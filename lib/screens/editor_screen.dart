@@ -35,11 +35,18 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   Future<void> _exportMedia() async {
     final project = ref.read(mockupProjectProvider);
-    
+
+    // Force reset rotation for video exports since FFmpeg composite is flat 2D
+    if (project.isVideo && (project.rotationX != 0 || project.rotationY != 0 || project.rotationZ != 0)) {
+      ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
+      await Future.delayed(const Duration(milliseconds: 100)); // Wait for UI to update
+    }
+
     if (project.isVideo) {
       final rawBytes = ref.read(videoRawBytesProvider);
       
       if (rawBytes == null || rawBytes.isEmpty) {
+        setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No video data available.')),
         );
@@ -54,13 +61,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           videoRawBytes: rawBytes,
           mockupNotifier: ref.read(mockupProjectProvider.notifier),
           device: project.device,
+          backgroundColor: project.backgroundColor,
         ),
       );
+      setState(() => _isExporting = false);
       return;
     }
 
     // Image Export Path
-    setState(() => _isExporting = true);
     final path = await ImageExportService.exportToPng(_repaintBoundaryKey);
     setState(() => _isExporting = false);
 
@@ -166,7 +174,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     // We wrap the mockup in a container with the background color 
                     // so the exported image has the correct background.
                     child: Container(
-                      color: project.backgroundColor,
+                      color: project.isCapturingOverlay ? Colors.transparent : project.backgroundColor,
                       padding: const EdgeInsets.all(64), // Some padding around the device in export
                       child: const PhoneMockupWidget(),
                     ),

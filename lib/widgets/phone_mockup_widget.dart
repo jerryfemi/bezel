@@ -41,7 +41,7 @@ class PhoneMockupWidget extends ConsumerWidget {
               width: device.screenRect.width,
               height: device.screenRect.height,
               decoration: BoxDecoration(
-                color: Colors.grey.shade900,
+                color: project.isCapturingOverlay ? Colors.transparent : Colors.grey.shade900,
                 borderRadius: BorderRadius.circular(device.cornerRadius - 4), // Inner radius
               ),
               clipBehavior: Clip.antiAlias,

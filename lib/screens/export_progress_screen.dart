@@ -9,6 +9,7 @@ class ExportProgressScreen extends StatefulWidget {
   final Uint8List videoRawBytes;
   final MockupProjectNotifier mockupNotifier;
   final DeviceSpec device;
+  final Color backgroundColor;
 
   const ExportProgressScreen({
     super.key,
@@ -16,6 +17,7 @@ class ExportProgressScreen extends StatefulWidget {
     required this.videoRawBytes,
     required this.mockupNotifier,
     required this.device,
+    required this.backgroundColor,
   });
 
   @override
@@ -41,6 +43,7 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
         videoRawBytes: widget.videoRawBytes,
         mockupNotifier: widget.mockupNotifier,
         device: widget.device,
+        backgroundColor: widget.backgroundColor,
         onProgress: (progress, message) {
           if (mounted) {
             setState(() {

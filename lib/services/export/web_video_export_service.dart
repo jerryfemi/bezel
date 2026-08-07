@@ -21,6 +21,7 @@ class WebVideoExportService {
     required Uint8List videoRawBytes,
     required MockupProjectNotifier mockupNotifier,
     required DeviceSpec device,
+    required Color backgroundColor,
     required void Function(double progress, String message) onProgress,
   }) async {
     try {
@@ -79,10 +80,13 @@ class WebVideoExportService {
       onProgress(0.45, 'Encoding Video...');
 
       // Strict key=value filter complex to avoid any parsing failures
+      final bgColorHex = backgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
+      final ffmpegColor = '0x$bgColorHex';
+      
       final filterComplex =
           '[0:v]scale=w=${screenW}:h=${screenH}:force_original_aspect_ratio=decrease,'
-          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=black[scaled];'
-          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=black[padded];'
+          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=$ffmpegColor[scaled];'
+          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=$ffmpegColor[padded];'
           '[padded][1:v]overlay=x=0:y=0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
