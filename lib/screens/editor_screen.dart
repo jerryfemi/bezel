@@ -8,6 +8,7 @@ import '../screens/export_progress_screen.dart';
 import '../widgets/panels/left_rail_widget.dart';
 import '../widgets/panels/device_selector_panel.dart';
 import '../widgets/panels/background_panel.dart';
+import '../widgets/panels/crop_panel.dart';
 import '../widgets/video_playback_controls.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -154,6 +155,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 return const DeviceSelectorPanel();
               } else if (activeTool == EditorTool.background) {
                 return const BackgroundPanel();
+              } else if (activeTool == EditorTool.crop) {
+                return const CropPanel();
               }
               return const SizedBox(width: 280); // Placeholder
             },
@@ -167,11 +170,22 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   _isInitialScaleSet = true;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     final project = ref.read(mockupProjectProvider);
-                    // Approximate total height: screen height + top bezel * 2 + 128px padding
+                    // Approximate total width and height
+                    final deviceWidth = project.device.screenRect.width + (project.device.screenRect.left * 2) + 128;
                     final deviceHeight = project.device.screenRect.height + (project.device.screenRect.top * 2) + 128;
+                    
                     // Target 70% of available vertical space
                     final targetScale = (constraints.maxHeight * 0.7) / deviceHeight;
-                    _transformationController.value = Matrix4.identity()..scale(targetScale, targetScale, 1.0);
+                    
+                    // Calculate translation to center the scaled device in the viewport
+                    final dx = (constraints.maxWidth - (deviceWidth * targetScale)) / 2;
+                    final dy = (constraints.maxHeight - (deviceHeight * targetScale)) / 2;
+                    
+                    final initialTransform = Matrix4.identity()
+                      ..translate(dx, dy)
+                      ..scale(targetScale, targetScale, 1.0);
+                      
+                    _transformationController.value = initialTransform;
                   });
                 }
                 
@@ -195,6 +209,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     boundaryMargin: const EdgeInsets.all(double.infinity),
                     minScale: 0.1,
                     maxScale: 4.0,
+                    scaleEnabled: ref.watch(activeEditorToolProvider) != EditorTool.crop,
                     constrained:
                         false, // Prevents InteractiveViewer from forcing screen constraints
                     child: UnconstrainedBox(
@@ -204,14 +219,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         key: _repaintBoundaryKey,
                         // We wrap the mockup in a container with the background color
                         // so the exported image has the correct background.
-                        child: Container(
-                          color: project.isCapturingOverlay
-                              ? Colors.transparent
-                              : project.backgroundColor,
-                          padding: const EdgeInsets.all(
-                            64,
-                          ), // Some padding around the device in export
-                          child: const PhoneMockupWidget(),
+                        child: Builder(
+                          builder: (context) {
+                            final rotationMagnitude = project.rotationX.abs() + project.rotationY.abs() + project.rotationZ.abs();
+                            final dynamicPadding = 64.0 + (rotationMagnitude * 800).clamp(0.0, 1500.0);
+                            
+                            return Container(
+                              color: project.isCapturingOverlay
+                                  ? Colors.transparent
+                                  : project.backgroundColor,
+                              padding: EdgeInsets.all(dynamicPadding),
+                              child: const PhoneMockupWidget(),
+                            );
+                          }
                         ),
                       ),
                     ),
