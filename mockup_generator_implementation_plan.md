@@ -15,19 +15,19 @@ A Flutter app that lets users upload a screenshot or screen recording and place 
 | 3D rendering approach | **Fake 3D** via `Matrix4` perspective transforms on layered 2D assets, not a true 3D engine | True 3D (`flutter_scene`) requires Flutter's unstable master channel and is labeled early-preview. Not viable for a production v1. |
 | Rejected: WebView-based 3D | `o3d` / `model_viewer_plus` | These render via a WebView platform view, which lives outside Flutter's own paint tree. `RepaintBoundary` cannot reliably capture platform views — export would silently fail or return blank frames. Since export is the core feature, this is disqualifying, not a minor tradeoff. |
 | Image export | `RepaintBoundary.toImage()` | Native, stable, well-supported. No caveats as long as everything on screen is pure Flutter widgets (see row above). |
-| Video export | **Native hardware encoders** (`AVAssetWriter` on iOS, `MediaCodec` on Android) via platform channels, fed frames captured through `RepaintBoundary` | `ffmpeg_kit_flutter` was retired by its maintainer in January 2025, partly due to codec-patent licensing exposure. Community forks exist but inherit that same legal ambiguity. Native encoders avoid the dependency entirely, are hardware-accelerated, and keep binary size down. |
+| Video export | **FFmpeg WebAssembly (`ffmpeg_wasm`)** on Flutter Web | Pivot to web-first required a WASM-based FFmpeg solution. We use `ffmpeg_wasm` to composite the transparent bezel sequence over the raw user video directly in the browser via SharedArrayBuffer. Native hardware encoders are deferred. |
 | Future true-3D tier | `flutter_scene` (Flutter GPU / Impeller-based) | Only revisit once the package is off master channel and Impeller's 3D roadmap matures. This is the only 3D engine option that renders *inside* Flutter's scene graph, meaning it would actually be exportable. |
 
 ---
 
 ## 3. Tech Stack
 
-- **Framework:** Flutter (stable channel) — target desktop + mobile first; web deprioritized until video export story is resolved for web (MediaRecorder-based path would need separate design).
+- **Framework:** Flutter Web (stable channel) — target web first, using a custom Python server (`serve.py`) to inject required Cross-Origin headers for SharedArrayBuffer support.
 - **State management:** Riverpod (matches prior project conventions).
 - **Local persistence:** Hive (project drafts, saved presets) — consistent with prior stack choices.
 - **Video preview:** `video_player` for scrubbing/previewing the source clip before export.
 - **Image capture:** `dart:ui` + `RenderRepaintBoundary` (built-in, no package).
-- **Video export:** Custom platform channel to native `AVAssetWriter` (iOS) / `MediaCodec` (Android). No third-party video package for encoding.
+- **Video export:** `ffmpeg_wasm` to composite video frames in the browser.
 - **Asset format:** Transparent PNG/WebP bezels; SVG considered for scalability but rasterized bezels are simpler to get pixel-perfect against real device photography.
 
 ---
@@ -52,17 +52,15 @@ A Flutter app that lets users upload a screenshot or screen recording and place 
 
 **Definition of done:** user can upload a screenshot, tilt it, and export a crisp PNG mockup with no watermark. **This is the shippable v1.**
 
-### Phase 2 — Video Mockup + Native Export (3–5 weeks)
-- [ ] Swap static `Image` screen content for a live `video_player` texture inside the same `PhoneMockupWidget`.
+### Phase 2 — Video Mockup + Web Export (3–5 weeks)
+- [x] Swap static `Image` screen content for a live `video_player` texture inside the same `PhoneMockupWidget`.
 - [ ] Playback controls: trim start/end, loop preview while adjusting tilt.
-- [ ] Frame capture loop: on export, drive the animation (if any camera movement is baked in) frame-by-frame, capturing each via `RepaintBoundary.toImage()` at a fixed fps (24/30/60 selectable).
-- [ ] Platform channel implementation:
-  - iOS: `AVAssetWriter` + `AVAssetWriterInputPixelBufferAdaptor`, feeding captured RGBA frames as `CVPixelBuffer`s.
-  - Android: `MediaCodec` + `Surface` input, feeding frames via `ImageReader`/`Surface` writes.
-- [ ] Progress UI for export (this can take real wall-clock time for longer clips — needs a proper progress bar, not a spinner).
-- [ ] Handle audio passthrough from the source video if present (native encoders support muxing audio track — decide whether v2 needs this or defers it).
+- [x] Frame capture loop: on export, capture the transparent bezel at a fixed fps via `RepaintBoundary.toImage()`.
+- [x] FFmpeg WASM implementation: Use `ffmpeg_wasm` to composite the transparent bezel frames over the raw source video.
+- [x] Progress UI for export via `ExportProgressScreen`.
+- [ ] Handle audio passthrough from the source video (currently raw video bytes are composited, ensure audio is retained).
 
-**Definition of done:** user can upload a screen recording, apply a mockup (static tilt or simple animated camera move), and export a real MP4 with no third-party video-encoding dependency.
+**Definition of done:** user can upload a screen recording, apply a mockup, and export a real MP4 directly in the browser via FFmpeg WASM.
 
 ### Phase 3 — Animated Camera Moves (2–3 weeks, can run parallel to Phase 2 polish)
 - [ ] Keyframe system: user sets 2+ tilt/zoom states, app interpolates between them over a duration (the actual "cinematic" selling point of tools like Rotato).
@@ -96,15 +94,13 @@ lib/
     export/
       image_export_service.dart
       video_export_service.dart   // dart-side orchestration
-    platform/
-      video_encoder_channel.dart  // MethodChannel wrapper
+    export/
+      image_export_service.dart
+      video_export_service.dart   // dart-side orchestration with ffmpeg_wasm
   screens/
     editor_screen.dart
     export_progress_screen.dart
-ios/Runner/
-  VideoEncoder.swift           // AVAssetWriter implementation
-android/app/src/main/kotlin/.../
-  VideoEncoder.kt               // MediaCodec implementation
+serve.py                       // Local dev server for COOP/COEP headers
 assets/
   devices/
     iphone_15/
@@ -128,6 +124,6 @@ assets/
 
 ## 7. Out of Scope (for now)
 
-- Web export (video encoding story on web is a separate design problem — MediaRecorder API vs current native-channel approach don't share code).
+- Native desktop/mobile video export (focusing on Web WASM approach first, native hardware encoders deferred).
 - Multi-device "scene" compositions (several phones arranged together) — nice future feature, not needed for MVP value prop.
 - Cloud/server-side rendering — revisit only if native on-device performance proves insufficient for longer video exports.

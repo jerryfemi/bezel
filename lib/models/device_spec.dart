@@ -55,7 +55,7 @@ class DeviceSpecConstants {
     id: 'iphone_16_pro_max_desert',
     colorName: 'Desert Titanium',
     assetPath: 'lib/assets/16 Pro Max - Desert Titanium.png',
-    screenRect: Rect.fromLTWH(76, 75, 430, 932),
-    cornerRadius: 48.0,
+    screenRect: Rect.fromLTWH(100, 100, 1320, 2868),
+    cornerRadius: 144.0,
   );
 }

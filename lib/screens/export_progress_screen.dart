@@ -1,23 +1,21 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '../models/device_spec.dart';
 import '../../providers/mockup_provider.dart';
 import '../../services/export/web_video_export_service.dart';
+import '../../models/mockup_project.dart';
 
 class ExportProgressScreen extends StatefulWidget {
   final GlobalKey boundaryKey;
   final Uint8List videoRawBytes;
   final MockupProjectNotifier mockupNotifier;
-  final DeviceSpec device;
-  final Color backgroundColor;
+  final MockupProject project;
 
   const ExportProgressScreen({
     super.key,
     required this.boundaryKey,
     required this.videoRawBytes,
     required this.mockupNotifier,
-    required this.device,
-    required this.backgroundColor,
+    required this.project,
   });
 
   @override
@@ -42,8 +40,7 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
         boundaryKey: widget.boundaryKey,
         videoRawBytes: widget.videoRawBytes,
         mockupNotifier: widget.mockupNotifier,
-        device: widget.device,
-        backgroundColor: widget.backgroundColor,
+        project: widget.project,
         onProgress: (progress, message) {
           if (mounted) {
             setState(() {
