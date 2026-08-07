@@ -158,7 +158,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 boundaryMargin: const EdgeInsets.all(double.infinity),
                 minScale: 0.1,
                 maxScale: 4.0,
-                child: Center(
+                constrained: false, // Prevents InteractiveViewer from forcing screen constraints
+                child: UnconstrainedBox( // Ensures RepaintBoundary layout size is never clipped
+                  clipBehavior: Clip.none,
                   child: RepaintBoundary(
                     key: _repaintBoundaryKey,
                     // We wrap the mockup in a container with the background color 
