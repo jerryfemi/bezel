@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ffmpeg_wasm/ffmpeg_wasm.dart';
 import 'dart:html' as html;
-import '../../models/device_spec.dart';
 import '../../providers/mockup_provider.dart';
+import '../../models/mockup_project.dart';
 
 class WebVideoExportService {
   late final FFmpeg _ffmpeg = createFFmpeg(
@@ -20,8 +20,7 @@ class WebVideoExportService {
     required GlobalKey boundaryKey,
     required Uint8List videoRawBytes,
     required MockupProjectNotifier mockupNotifier,
-    required DeviceSpec device,
-    required Color backgroundColor,
+    required MockupProject project,
     required void Function(double progress, String message) onProgress,
   }) async {
     try {
@@ -68,8 +67,8 @@ class WebVideoExportService {
       // --- Step 4: Dimensions ---
       final canvasW = _makeEven(overlayImage.width);
       final canvasH = _makeEven(overlayImage.height);
-      final screenW = _makeEven(device.screenRect.width.toInt());
-      final screenH = _makeEven(device.screenRect.height.toInt());
+      final screenW = _makeEven(project.device.screenRect.width.toInt());
+      final screenH = _makeEven(project.device.screenRect.height.toInt());
       final offsetX = 64 + 20;
       final offsetY = 64 + 20;
 
@@ -81,15 +80,26 @@ class WebVideoExportService {
       onProgress(0.45, 'Encoding Video...');
 
       // Strict key=value filter complex to avoid any parsing failures
-      final effectiveColor = backgroundColor == Colors.transparent ? Colors.black : backgroundColor;
+      final effectiveColor = project.backgroundColor == Colors.transparent ? Colors.black : project.backgroundColor;
       final bgColorHex = effectiveColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
       final ffmpegColor = '0x$bgColorHex';
       
+      final matrix = project.mediaTransform ?? Matrix4.identity();
+      final scale = matrix.getMaxScaleOnAxis();
+      final tx = matrix.getTranslation().x;
+      final ty = matrix.getTranslation().y;
+      
+      final scaledW = _makeEven((screenW * scale).toInt());
+      final scaledH = _makeEven((screenH * scale).toInt());
+      final finalX = (offsetX + tx).toInt();
+      final finalY = (offsetY + ty).toInt();
+
       final filterComplex =
-          '[0:v]scale=w=$screenW:h=$screenH:force_original_aspect_ratio=decrease,'
-          'pad=w=$screenW:h=$screenH:x=(ow-iw)/2:y=(oh-ih)/2:color=$ffmpegColor[scaled];'
-          '[scaled]pad=w=$canvasW:h=$canvasH:x=$offsetX:y=$offsetY:color=$ffmpegColor[padded];'
-          '[padded][1:v]overlay=x=0:y=0[out]';
+          'color=c=$ffmpegColor:s=${canvasW}x${canvasH}[bg];'
+          '[0:v]scale=w=$screenW:h=$screenH:force_original_aspect_ratio=increase,crop=$screenW:$screenH[covered];'
+          '[covered]scale=w=$scaledW:h=$scaledH[scaled];'
+          '[bg][scaled]overlay=x=$finalX:y=$finalY:format=auto[vid_on_bg];'
+          '[vid_on_bg][1:v]overlay=x=0:y=0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 

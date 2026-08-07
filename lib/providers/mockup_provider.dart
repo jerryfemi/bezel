@@ -40,6 +40,10 @@ class MockupProjectNotifier extends Notifier<MockupProject> {
   void setCapturingOverlay(bool capturing) {
     state = state.copyWith(isCapturingOverlay: capturing);
   }
+
+  void setMediaTransform(Matrix4 transform) {
+    state = state.copyWith(mediaTransform: transform);
+  }
 }
 
 final mockupProjectProvider = NotifierProvider<MockupProjectNotifier, MockupProject>(() {
@@ -54,6 +58,7 @@ final videoRawBytesProvider = StateProvider<Uint8List?>((ref) => null);
 enum EditorTool {
   device,
   background,
+  crop,
   export,
 }
 

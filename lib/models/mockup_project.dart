@@ -17,6 +17,9 @@ class MockupProject {
   // Export flag: when true, the media widget renders transparent so we can capture just the bezel
   final bool isCapturingOverlay;
 
+  // Media transform (pan/zoom inside the screen)
+  final Matrix4? mediaTransform;
+
   const MockupProject({
     required this.device,
     this.sourceImagePath,
@@ -26,6 +29,7 @@ class MockupProject {
     this.rotationZ = 0.0,
     this.backgroundColor = const Color(0xFF1E1E1E),
     this.isCapturingOverlay = false,
+    this.mediaTransform,
   });
 
   MockupProject copyWith({
@@ -37,6 +41,7 @@ class MockupProject {
     double? rotationZ,
     Color? backgroundColor,
     bool? isCapturingOverlay,
+    Matrix4? mediaTransform,
   }) {
     return MockupProject(
       device: device ?? this.device,
@@ -47,6 +52,7 @@ class MockupProject {
       rotationZ: rotationZ ?? this.rotationZ,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       isCapturingOverlay: isCapturingOverlay ?? this.isCapturingOverlay,
+      mediaTransform: mediaTransform ?? this.mediaTransform,
     );
   }
 }

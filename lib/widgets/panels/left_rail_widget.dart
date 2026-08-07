@@ -28,6 +28,13 @@ class LeftRailWidget extends ConsumerWidget {
             isActive: activeTool == EditorTool.background,
             onTap: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.background,
           ),
+          const SizedBox(height: 16),
+          _RailIcon(
+            icon: Icons.crop,
+            tooltip: 'Crop Media',
+            isActive: activeTool == EditorTool.crop,
+            onTap: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.crop,
+          ),
           const Spacer(),
           const SizedBox(height: 24),
         ],

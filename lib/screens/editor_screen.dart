@@ -81,8 +81,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           boundaryKey: _repaintBoundaryKey,
           videoRawBytes: rawBytes,
           mockupNotifier: ref.read(mockupProjectProvider.notifier),
-          device: project.device,
-          backgroundColor: project.backgroundColor,
+          project: project,
         ),
       );
       setState(() => _isExporting = false);

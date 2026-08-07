@@ -88,10 +88,12 @@ class _MockupMediaWidget extends ConsumerStatefulWidget {
 
 class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
   VideoPlayerController? _controller;
+  late final TransformationController _transformController;
 
   @override
   void initState() {
     super.initState();
+    _transformController = TransformationController();
     _initMedia();
   }
 
@@ -106,10 +108,12 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
   void _initMedia() {
     _controller?.dispose();
     _controller = null;
+    _transformController.value = Matrix4.identity(); // reset crop on new media
 
     // Clear the provider when re-initializing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(videoControllerProvider.notifier).state = null;
+      if (mounted) ref.read(mockupProjectProvider.notifier).setMediaTransform(Matrix4.identity());
     });
 
     if (widget.isVideo) {
@@ -144,9 +148,8 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
   @override
   void dispose() {
     _controller?.dispose();
+    _transformController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // We can't guarantee ref is still valid here if the provider is being disposed,
-      // but it's good practice to null out if the widget dies but the provider lives.
       try {
         ref.read(videoControllerProvider.notifier).state = null;
       } catch (e) {
@@ -163,16 +166,20 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
     if (project.isCapturingOverlay) {
       return const SizedBox.expand();
     }
-
-    if (!widget.isVideo) {
-      return kIsWeb
-          ? Image.network(widget.path, fit: BoxFit.cover)
-          : Image.file(File(widget.path), fit: BoxFit.cover);
+    
+    // Sync external transform if it changes (like on reset)
+    if (project.mediaTransform != null && project.mediaTransform != _transformController.value) {
+      _transformController.value = project.mediaTransform!;
     }
 
-    if (_controller != null) {
-      if (_controller!.value.hasError) {
-        return Center(
+    Widget mediaContent;
+    if (!widget.isVideo) {
+      mediaContent = kIsWeb
+          ? Image.network(widget.path, fit: BoxFit.cover)
+          : Image.file(File(widget.path), fit: BoxFit.cover);
+    } else {
+      if (_controller != null && _controller!.value.hasError) {
+        mediaContent = Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
@@ -182,9 +189,8 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
             ),
           ),
         );
-      }
-      if (_controller!.value.isInitialized) {
-        return SizedBox.expand(
+      } else if (_controller != null && _controller!.value.isInitialized) {
+        mediaContent = SizedBox.expand(
           child: FittedBox(
             fit: BoxFit.cover,
             child: SizedBox(
@@ -194,9 +200,27 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
             ),
           ),
         );
+      } else {
+        mediaContent = const Center(child: CircularProgressIndicator());
       }
     }
 
-    return const Center(child: CircularProgressIndicator());
+    final activeTool = ref.watch(activeEditorToolProvider);
+    final isCropMode = activeTool == EditorTool.crop;
+
+    return InteractiveViewer(
+      transformationController: _transformController,
+      panEnabled: isCropMode,
+      scaleEnabled: isCropMode,
+      minScale: 0.1,
+      maxScale: 10.0,
+      boundaryMargin: const EdgeInsets.all(double.infinity),
+      onInteractionEnd: (details) {
+        ref.read(mockupProjectProvider.notifier).setMediaTransform(_transformController.value);
+      },
+      child: SizedBox.expand(
+        child: mediaContent,
+      ),
+    );
   }
 }
