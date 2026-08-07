@@ -4,111 +4,177 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ffmpeg_wasm/ffmpeg_wasm.dart';
-import 'package:video_player/video_player.dart';
 import 'dart:html' as html;
+import '../../models/device_spec.dart';
+import '../../providers/mockup_provider.dart';
 
 class WebVideoExportService {
-  late final FFmpeg _ffmpeg = createFFmpeg(CreateFFmpegParam(
-    log: true, 
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
-  ));
-  
-  // Progress callback: returns a value between 0.0 and 1.0
-  Future<void> exportVideo(
-    GlobalKey boundaryKey, 
-    VideoPlayerController videoController, 
-    ValueChanged<double> onProgress,
-  ) async {
+  late final FFmpeg _ffmpeg = createFFmpeg(
+    CreateFFmpegParam(
+      log: true,
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+    ),
+  );
+
+  Future<void> exportVideo({
+    required GlobalKey boundaryKey,
+    required Uint8List videoRawBytes,
+    required MockupProjectNotifier mockupNotifier,
+    required DeviceSpec device,
+    required Color backgroundColor,
+    required void Function(double progress, String message) onProgress,
+  }) async {
     try {
+      // --- Step 1: Load FFmpeg ---
+      onProgress(0.05, 'Loading FFmpeg Engine...');
       if (!_ffmpeg.isLoaded()) {
-        onProgress(0.05); // Initial loading state
         await _ffmpeg.load();
       }
+      onProgress(0.10, 'FFmpeg Ready');
 
-      // 1. Prepare video playback
-      final originalIsPlaying = videoController.value.isPlaying;
-      if (originalIsPlaying) {
-        await videoController.pause();
+      // --- Step 2: Capture bezel overlay ---
+      onProgress(0.15, 'Capturing Bezel Overlay...');
+
+      mockupNotifier.setCapturingOverlay(true);
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final boundary =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) {
+        mockupNotifier.setCapturingOverlay(false);
+        throw Exception('Could not find RepaintBoundary');
       }
+
+      final overlayImage = await boundary.toImage(pixelRatio: 1.0);
+      final overlayByteData = await overlayImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      final overlayPng = overlayByteData?.buffer.asUint8List();
+
+      mockupNotifier.setCapturingOverlay(false);
+
+      if (overlayPng == null)
+        throw Exception('Failed to capture bezel overlay');
+      onProgress(0.25, 'Bezel Captured');
+
+      // --- Step 3: Write files ---
+      onProgress(0.30, 'Preparing Files...');
+      _ffmpeg.writeFile('input.mp4', videoRawBytes);
+      _ffmpeg.writeFile('overlay.png', overlayPng);
+      onProgress(0.40, 'Files Ready');
+
+      // --- Step 4: Dimensions ---
+      final canvasW = _makeEven(overlayImage.width);
+      final canvasH = _makeEven(overlayImage.height);
+      final screenW = _makeEven(device.screenRect.width.toInt());
+      final screenH = _makeEven(device.screenRect.height.toInt());
+      final offsetX = 64 + 20;
+      final offsetY = 64 + 20;
+
+      debugPrint(
+        'FFmpeg dimensions: canvas=${canvasW}x$canvasH, screen=${screenW}x$screenH, offset=$offsetX,$offsetY',
+      );
+
+      // --- Step 5: Run ---
+      onProgress(0.45, 'Encoding Video...');
+
+      // Strict key=value filter complex to avoid any parsing failures
+      final bgColorHex = backgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
+      final ffmpegColor = '0x$bgColorHex';
       
-      final duration = videoController.value.duration;
-      if (duration.inMilliseconds == 0) {
-        throw Exception("Video duration is unknown");
-      }
+      final filterComplex =
+          '[0:v]scale=w=${screenW}:h=${screenH}:force_original_aspect_ratio=decrease,'
+          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=$ffmpegColor[scaled];'
+          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=$ffmpegColor[padded];'
+          '[padded][1:v]overlay=x=0:y=0[out]';
 
-      // We will capture at 10 fps to keep the web memory usage reasonable
-      const int fps = 10;
-      final int frameCount = (duration.inMilliseconds / 1000 * fps).ceil();
-      
-      onProgress(0.1);
+      debugPrint('FFmpeg filter: $filterComplex');
 
-      // --- FRAME CAPTURE LOOP ---
-      for (int i = 0; i < frameCount; i++) {
-        // Calculate timestamp for this frame
-        final frameTimeMs = (i * 1000 / fps).round();
-        await videoController.seekTo(Duration(milliseconds: frameTimeMs));
-        
-        // Wait for the web texture to actually render the new frame onto the canvas.
-        // 150ms is usually enough for the HTML <video> tag to pipe the frame to WebGL.
-        await Future.delayed(const Duration(milliseconds: 150));
-        
-        final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-        if (boundary == null) throw Exception("Could not find RepaintBoundary");
+      // Track all logs so we don't just see the final "run FS.readFile" message
+      List<String> ffmpegLogs = [];
+      _ffmpeg.setLogger((logger) {
+        ffmpegLogs.add(logger.message);
+        debugPrint('FFmpeg Log: ${logger.message}');
+      });
 
-        final image = await boundary.toImage(pixelRatio: 2.0); // 2.0 for performance vs quality
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-        final pngBytes = byteData?.buffer.asUint8List();
-
-        if (pngBytes != null) {
-          _ffmpeg.writeFile('frame_$i.png', pngBytes);
+      _ffmpeg.setProgress((progress) {
+        if (progress.ratio > 0) {
+          onProgress(
+            0.45 + (0.45 * progress.ratio),
+            'Encoding Video... ${(progress.ratio * 100).toInt()}%',
+          );
         }
+      });
 
-        // Update progress: 10% to 80% is frame capture
-        onProgress(0.1 + (0.7 * (i / frameCount)));
-      }
-
-      // Restore playback
-      await videoController.seekTo(Duration.zero);
-      if (originalIsPlaying) {
-        await videoController.play();
-      }
-
-      onProgress(0.85); // Encoding started
-
-      // --- FFMPEG ENCODING ---
+      // Execute FFmpeg (ffmpeg_wasm run() returns void)
       await _ffmpeg.run([
-        '-framerate', '$fps',
-        '-i', 'frame_%d.png',
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        'output.mp4'
+        '-i',
+        'input.mp4',
+        '-i',
+        'overlay.png',
+        '-filter_complex',
+        filterComplex,
+        '-map',
+        '[out]',
+        '-an',
+        '-c:v',
+        'libx264',
+        '-pix_fmt',
+        'yuv420p',
+        '-preset',
+        'ultrafast',
+        '-crf',
+        '28',
+        '-y',
+        'output.mp4',
       ]);
 
-      onProgress(0.95);
+      onProgress(0.92, 'Finalizing...');
 
+      // --- Step 6: Output ---
       final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
-      
-      // --- TRIGGER DOWNLOAD ---
-      _downloadWeb(outBytes, 'bezel_mockup_${DateTime.now().millisecondsSinceEpoch}.mp4');
 
-      // Cleanup virtual file system to free memory
-      for (int i = 0; i < frameCount; i++) {
-        _ffmpeg.unlink('frame_$i.png');
+      if (outBytes.isEmpty) {
+        // Find the actual crash reason from the log buffer
+        final realLogs = ffmpegLogs
+            .where((l) => !l.contains('FS.readFile'))
+            .toList();
+        final errorMsg = realLogs.length > 10
+            ? realLogs.sublist(realLogs.length - 10).join('\n')
+            : realLogs.join('\n');
+        throw Exception('FFmpeg Crash Log:\n$errorMsg');
       }
-      _ffmpeg.unlink('output.mp4');
 
-      onProgress(1.0); // Done!
+      debugPrint('Export successful: ${outBytes.length} bytes');
+      _downloadWeb(
+        outBytes,
+        'bezel_mockup_${DateTime.now().millisecondsSinceEpoch}.mp4',
+      );
+
+      try {
+        _ffmpeg.unlink('input.mp4');
+        _ffmpeg.unlink('overlay.png');
+        _ffmpeg.unlink('output.mp4');
+      } catch (_) {}
+
+      onProgress(1.0, 'Export Complete!');
     } catch (e) {
+      try {
+        mockupNotifier.setCapturingOverlay(false);
+      } catch (_) {}
       debugPrint('Export failed: $e');
       throw Exception('Video export failed: $e');
     }
   }
 
+  int _makeEven(int value) => (value ~/ 2) * 2;
+
   void _downloadWeb(Uint8List bytes, String filename) {
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
     html.AnchorElement(href: url)
-      ..setAttribute("download", filename)
+      ..setAttribute('download', filename)
       ..click();
     html.Url.revokeObjectUrl(url);
   }

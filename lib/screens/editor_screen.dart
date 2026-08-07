@@ -5,6 +5,9 @@ import '../providers/mockup_provider.dart';
 import '../widgets/phone_mockup_widget.dart';
 import '../services/export/image_export_service.dart';
 import '../screens/export_progress_screen.dart';
+import '../widgets/panels/left_rail_widget.dart';
+import '../widgets/panels/device_selector_panel.dart';
+import '../widgets/panels/background_panel.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -24,35 +27,51 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         : await _picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
       ref.read(mockupProjectProvider.notifier).setSourceImage(file.path, isVideo: isVideo);
+      
+      if (isVideo) {
+        // Store the raw video bytes for FFmpeg compositing
+        final bytes = await file.readAsBytes();
+        ref.read(videoRawBytesProvider.notifier).state = bytes;
+      }
     }
   }
 
   Future<void> _exportMedia() async {
     final project = ref.read(mockupProjectProvider);
-    
+
+    // Force reset rotation for video exports since FFmpeg composite is flat 2D
+    if (project.isVideo && (project.rotationX != 0 || project.rotationY != 0 || project.rotationZ != 0)) {
+      ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
+      await Future.delayed(const Duration(milliseconds: 100)); // Wait for UI to update
+    }
+
     if (project.isVideo) {
-      final videoController = ref.read(videoControllerProvider);
+      final rawBytes = ref.read(videoRawBytesProvider);
       
-      if (videoController == null || !videoController.value.isInitialized) {
+      if (rawBytes == null || rawBytes.isEmpty) {
+        setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video is not ready yet.')),
+          const SnackBar(content: Text('No video data available.')),
         );
         return;
       }
 
       showDialog(
         context: context,
-        barrierDismissible: false, // Don't allow closing while exporting
+        barrierDismissible: false,
         builder: (ctx) => ExportProgressScreen(
           boundaryKey: _repaintBoundaryKey,
-          videoController: videoController,
+          videoRawBytes: rawBytes,
+          mockupNotifier: ref.read(mockupProjectProvider.notifier),
+          device: project.device,
+          backgroundColor: project.backgroundColor,
         ),
       );
+      setState(() => _isExporting = false);
       return;
     }
 
     // Image Export Path
-    setState(() => _isExporting = true);
     final path = await ImageExportService.exportToPng(_repaintBoundaryKey);
     setState(() => _isExporting = false);
 
@@ -106,35 +125,22 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       ),
       body: Row(
         children: [
-          // Left Sidebar - Controls
-          Container(
-            width: 300,
-            color: Theme.of(context).colorScheme.surface,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Rotation', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                _buildSlider('X Axis', project.rotationX, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(val, project.rotationY, project.rotationZ);
-                }),
-                _buildSlider('Y Axis', project.rotationY, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, val, project.rotationZ);
-                }),
-                _buildSlider('Z Axis', project.rotationZ, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, project.rotationY, val);
-                }),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-                  },
-                  child: const Text('Reset Rotation'),
-                )
-              ],
-            ),
+          // Left Rail - Icon Tools
+          const LeftRailWidget(),
+          
+          // Right Panel - Context Sensitive
+          Consumer(
+            builder: (context, ref, child) {
+              final activeTool = ref.watch(activeEditorToolProvider);
+              if (activeTool == EditorTool.device) {
+                return const DeviceSelectorPanel();
+              } else if (activeTool == EditorTool.background) {
+                return const BackgroundPanel();
+              }
+              return const SizedBox(width: 280); // Placeholder
+            },
           ),
+          
           // Main Canvas
           Expanded(
             child: GestureDetector(
@@ -150,13 +156,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 boundaryMargin: const EdgeInsets.all(double.infinity),
                 minScale: 0.1,
                 maxScale: 4.0,
-                child: Center(
+                constrained: false, // Prevents InteractiveViewer from forcing screen constraints
+                child: UnconstrainedBox( // Ensures RepaintBoundary layout size is never clipped
+                  clipBehavior: Clip.none,
                   child: RepaintBoundary(
                     key: _repaintBoundaryKey,
                     // We wrap the mockup in a container with the background color 
                     // so the exported image has the correct background.
                     child: Container(
-                      color: project.backgroundColor,
+                      color: project.isCapturingOverlay ? Colors.transparent : project.backgroundColor,
                       padding: const EdgeInsets.all(64), // Some padding around the device in export
                       child: const PhoneMockupWidget(),
                     ),
@@ -170,18 +178,5 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
-  Widget _buildSlider(String label, double value, ValueChanged<double> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        Slider(
-          value: value,
-          min: -3.14, // -pi
-          max: 3.14,  // pi
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
+
 }

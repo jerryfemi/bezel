@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -8,7 +9,7 @@ class MockupProjectNotifier extends Notifier<MockupProject> {
   @override
   MockupProject build() {
     return const MockupProject(
-      device: DeviceSpec.placeholderIPhone,
+      device: DeviceSpecConstants.placeholderIPhone,
     );
   }
 
@@ -35,6 +36,10 @@ class MockupProjectNotifier extends Notifier<MockupProject> {
   void setBackgroundColor(Color color) {
     state = state.copyWith(backgroundColor: color);
   }
+
+  void setCapturingOverlay(bool capturing) {
+    state = state.copyWith(isCapturingOverlay: capturing);
+  }
 }
 
 final mockupProjectProvider = NotifierProvider<MockupProjectNotifier, MockupProject>(() {
@@ -42,3 +47,14 @@ final mockupProjectProvider = NotifierProvider<MockupProjectNotifier, MockupProj
 });
 
 final videoControllerProvider = StateProvider<VideoPlayerController?>((ref) => null);
+
+/// Stores the raw bytes of the uploaded video file for FFmpeg compositing.
+final videoRawBytesProvider = StateProvider<Uint8List?>((ref) => null);
+
+enum EditorTool {
+  device,
+  background,
+  export,
+}
+
+final activeEditorToolProvider = StateProvider<EditorTool>((ref) => EditorTool.device);
