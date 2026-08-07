@@ -21,63 +21,57 @@ class PhoneMockupWidget extends ConsumerWidget {
           ..rotateY(project.rotationY)
           ..rotateZ(project.rotationZ),
         alignment: FractionalOffset.center,
-        child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 30,
-                offset: const Offset(0, 20),
-              )
-            ],
-          ),
-          child: Stack(
-            children: [
-              // The physical device bezel layer on top dictates the size of the Stack
-              if (device.assetPath.isNotEmpty)
-                IgnorePointer(
-                  child: Image.asset(device.assetPath),
-                )
-              else
-                // Fallback for placeholder
-                IgnorePointer(
-                  child: Container(
-                    width: device.screenRect.width + device.screenRect.left * 2,
-                    height: device.screenRect.height + device.screenRect.top * 2,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade800, width: device.screenRect.left),
-                      borderRadius: BorderRadius.circular(device.cornerRadius + device.screenRect.left),
+        child: Stack(
+          children: [
+            // The media screen layer (bottom layer)
+            Positioned(
+              left: device.screenRect.left,
+              top: device.screenRect.top,
+              width: device.screenRect.width,
+              height: device.screenRect.height,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: project.isCapturingOverlay
+                      ? Colors.transparent
+                      : Colors.grey.shade900,
+                  borderRadius: BorderRadius.circular(device.cornerRadius),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: project.sourceImagePath != null
+                    ? _MockupMediaWidget(
+                        path: project.sourceImagePath!,
+                        isVideo: project.isVideo,
+                      )
+                    : const Center(
+                        child: Text(
+                          'Select an Image or Video',
+                          style: TextStyle(color: Colors.white54),
+                        ),
+                      ),
+              ),
+            ),
+
+            // The physical device bezel layer on top dictates the size of the Stack
+            if (device.assetPath.isNotEmpty)
+              IgnorePointer(child: Image.asset(device.assetPath))
+            else
+              // Fallback for placeholder
+              IgnorePointer(
+                child: Container(
+                  width: device.screenRect.width + device.screenRect.left * 2,
+                  height: device.screenRect.height + device.screenRect.top * 2,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey.shade800,
+                      width: device.screenRect.left,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      device.cornerRadius + device.screenRect.left,
                     ),
                   ),
                 ),
-
-              // The media screen layer
-              Positioned(
-                left: device.screenRect.left,
-                top: device.screenRect.top,
-                width: device.screenRect.width,
-                height: device.screenRect.height,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: project.isCapturingOverlay ? Colors.transparent : Colors.grey.shade900,
-                    borderRadius: BorderRadius.circular(device.cornerRadius),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: project.sourceImagePath != null
-                      ? _MockupMediaWidget(
-                          path: project.sourceImagePath!,
-                          isVideo: project.isVideo,
-                        )
-                      : const Center(
-                          child: Text(
-                            'Select an Image or Video',
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                        ),
-                ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -114,7 +108,7 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
   void _initMedia() {
     _controller?.dispose();
     _controller = null;
-    
+
     // Clear the provider when re-initializing
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(videoControllerProvider.notifier).state = null;
@@ -126,23 +120,26 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
       } else {
         _controller = VideoPlayerController.file(File(widget.path));
       }
-      
-      _controller!.initialize().then((_) {
-        if (mounted) {
-          setState(() {});
-          _controller!.setVolume(0.0); // Mute video preview
-          _controller!.setLooping(true);
-          _controller!.play();
-          
-          // Provide the controller to the rest of the app for export logic
-          ref.read(videoControllerProvider.notifier).state = _controller;
-        }
-      }).catchError((error) {
-        debugPrint('Video initialization error: $error');
-        if (mounted) {
-          setState(() {});
-        }
-      });
+
+      _controller!
+          .initialize()
+          .then((_) {
+            if (mounted) {
+              setState(() {});
+              _controller!.setVolume(0.0); // Mute video preview
+              _controller!.setLooping(true);
+              _controller!.play();
+
+              // Provide the controller to the rest of the app for export logic
+              ref.read(videoControllerProvider.notifier).state = _controller;
+            }
+          })
+          .catchError((error) {
+            debugPrint('Video initialization error: $error');
+            if (mounted) {
+              setState(() {});
+            }
+          });
     }
   }
 
@@ -153,7 +150,7 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
       // We can't guarantee ref is still valid here if the provider is being disposed,
       // but it's good practice to null out if the widget dies but the provider lives.
       try {
-         ref.read(videoControllerProvider.notifier).state = null;
+        ref.read(videoControllerProvider.notifier).state = null;
       } catch (e) {
         // ignore
       }

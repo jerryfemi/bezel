@@ -52,10 +52,10 @@ typedef DeviceSpec = DeviceVariant;
 
 class DeviceSpecConstants {
   static const DeviceSpec placeholderIPhone = DeviceVariant(
-    id: 'placeholder_iphone_15',
-    colorName: 'Default',
-    assetPath: '',
-    screenRect: Rect.fromLTWH(20, 20, 393, 852),
+    id: 'iphone_16_pro_max_desert',
+    colorName: 'Desert Titanium',
+    assetPath: 'lib/assets/16 Pro Max - Desert Titanium.png',
+    screenRect: Rect.fromLTWH(76, 75, 430, 932),
     cornerRadius: 48.0,
   );
 }
