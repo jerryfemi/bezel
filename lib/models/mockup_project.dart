@@ -20,6 +20,10 @@ class MockupProject {
   // Media transform (pan/zoom inside the screen)
   final Matrix4? mediaTransform;
 
+  // Video trimming
+  final Duration? trimStartTime;
+  final Duration? trimEndTime;
+
   const MockupProject({
     required this.device,
     this.sourceImagePath,
@@ -30,6 +34,8 @@ class MockupProject {
     this.backgroundColor = const Color(0xFF1E1E1E),
     this.isCapturingOverlay = false,
     this.mediaTransform,
+    this.trimStartTime,
+    this.trimEndTime,
   });
 
   MockupProject copyWith({
@@ -42,6 +48,8 @@ class MockupProject {
     Color? backgroundColor,
     bool? isCapturingOverlay,
     Matrix4? mediaTransform,
+    Duration? trimStartTime,
+    Duration? trimEndTime,
   }) {
     return MockupProject(
       device: device ?? this.device,
@@ -53,6 +61,8 @@ class MockupProject {
       backgroundColor: backgroundColor ?? this.backgroundColor,
       isCapturingOverlay: isCapturingOverlay ?? this.isCapturingOverlay,
       mediaTransform: mediaTransform ?? this.mediaTransform,
+      trimStartTime: trimStartTime ?? this.trimStartTime,
+      trimEndTime: trimEndTime ?? this.trimEndTime,
     );
   }
 }

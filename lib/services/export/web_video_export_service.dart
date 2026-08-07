@@ -119,8 +119,23 @@ class WebVideoExportService {
         }
       });
 
-      // Execute FFmpeg (ffmpeg_wasm run() returns void)
-      await _ffmpeg.run([
+      // Build FFmpeg arguments
+      final List<String> args = [];
+      
+      // If trim start is set, apply input seek
+      if (project.trimStartTime != null) {
+        args.addAll(['-ss', '${project.trimStartTime!.inMilliseconds / 1000}']);
+      }
+      
+      // If trim end is set, specify duration to cut off
+      if (project.trimStartTime != null && project.trimEndTime != null) {
+        final duration = project.trimEndTime! - project.trimStartTime!;
+        args.addAll(['-t', '${duration.inMilliseconds / 1000}']);
+      } else if (project.trimEndTime != null) {
+        args.addAll(['-to', '${project.trimEndTime!.inMilliseconds / 1000}']);
+      }
+
+      args.addAll([
         '-i',
         'input.mp4',
         '-i',
@@ -141,6 +156,9 @@ class WebVideoExportService {
         '-y',
         'output.mp4',
       ]);
+
+      // Execute FFmpeg (ffmpeg_wasm run() returns void)
+      await _ffmpeg.run(args);
 
       onProgress(0.92, 'Finalizing...');
 

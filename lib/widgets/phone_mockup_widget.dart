@@ -130,6 +130,7 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
               setState(() {});
               _controller!.setVolume(0.0); // Mute video preview
               _controller!.setLooping(true);
+              _controller!.addListener(_videoListener);
               _controller!.play();
 
               // Provide the controller to the rest of the app for export logic
@@ -142,6 +143,27 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
               setState(() {});
             }
           });
+    }
+  }
+
+  void _videoListener() {
+    if (_controller == null || !mounted) return;
+    
+    // We wrap reading the provider in a try-catch because if the widget is unmounted,
+    // reading it could throw an exception, although we check mounted above.
+    final project = ref.read(mockupProjectProvider);
+    final pos = _controller!.value.position;
+    
+    final start = project.trimStartTime;
+    final end = project.trimEndTime;
+
+    // We add a tiny buffer (50ms) to the end condition to avoid rapid triggering 
+    // when exactly at the end time or slightly past it.
+    if (end != null && pos >= end) {
+      _controller!.seekTo(start ?? Duration.zero);
+    } else if (start != null && pos < start) {
+      // If we somehow seeked before the start, snap to start
+      _controller!.seekTo(start);
     }
   }
 
