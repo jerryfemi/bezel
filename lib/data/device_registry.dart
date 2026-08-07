@@ -60,16 +60,65 @@ class DeviceRegistry {
       ],
     ),
     DeviceModel(
-      id: 'ipad_air',
-      name: 'iPad Air',
+      id: 'ipad_air_13',
+      name: 'iPad Air 13 (M2/M3)',
       category: DeviceCategory.tablet,
       variants: [
         DeviceVariant(
-          id: 'ipad_air_cloud_white',
-          colorName: 'Cloud White',
-          assetPath: 'lib/assets/Air - Cloud White.png',
-          screenRect: Rect.fromLTWH(80, 80, 820, 1180), // Needs precise calibration
-          cornerRadius: 24.0,
+          id: 'ipad_air_13_space_gray',
+          colorName: 'Space Gray',
+          assetPath: 'lib/assets/iPad Air 13 - M2 & M3 - Landscape - Space Gray.png',
+          screenRect: Rect.fromLTWH(64, 64, 1180, 820), 
+          cornerRadius: 32.0,
+        ),
+        DeviceVariant(
+          id: 'ipad_air_13_lavender',
+          colorName: 'Lavender',
+          assetPath: 'lib/assets/iPad Air 13 - M2 & M3  - Landscape - Lavender.png',
+          screenRect: Rect.fromLTWH(64, 64, 1180, 820), 
+          cornerRadius: 32.0,
+        ),
+      ],
+    ),
+    DeviceModel(
+      id: 'macbook_pro_16',
+      name: 'MacBook Pro 16',
+      category: DeviceCategory.macos,
+      variants: [
+        DeviceVariant(
+          id: 'mbp_16_silver',
+          colorName: 'Silver',
+          assetPath: 'lib/assets/MacBook Pro 16.png',
+          screenRect: Rect.fromLTWH(130, 48, 1728, 1117), // Approximate
+          cornerRadius: 16.0,
+        ),
+      ],
+    ),
+    DeviceModel(
+      id: 'xps_16',
+      name: 'Dell XPS 16 (2024)',
+      category: DeviceCategory.windows,
+      variants: [
+        DeviceVariant(
+          id: 'xps_16_platinum',
+          colorName: 'Platinum',
+          assetPath: 'lib/assets/2024 XPS 16 Platinum.png',
+          screenRect: Rect.fromLTWH(120, 60, 1920, 1200), // Approximate
+          cornerRadius: 8.0,
+        ),
+      ],
+    ),
+    DeviceModel(
+      id: 'surface_laptop_15',
+      name: 'Surface Laptop 15',
+      category: DeviceCategory.windows,
+      variants: [
+        DeviceVariant(
+          id: 'surface_15_platinum',
+          colorName: 'Platinum',
+          assetPath: 'lib/assets/Surface Laptop 15 - Platinum.png',
+          screenRect: Rect.fromLTWH(100, 80, 1500, 1000), // Approximate
+          cornerRadius: 8.0,
         ),
       ],
     ),
