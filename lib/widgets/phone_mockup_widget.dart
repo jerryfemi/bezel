@@ -22,11 +22,7 @@ class PhoneMockupWidget extends ConsumerWidget {
           ..rotateZ(project.rotationZ),
         alignment: FractionalOffset.center,
         child: Container(
-          width: device.screenRect.width + 40, // 20px padding on each side for placeholder bezel
-          height: device.screenRect.height + 40,
           decoration: BoxDecoration(
-            color: Colors.black, // Placeholder bezel color
-            borderRadius: BorderRadius.circular(device.cornerRadius),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.5),
@@ -34,29 +30,53 @@ class PhoneMockupWidget extends ConsumerWidget {
                 offset: const Offset(0, 20),
               )
             ],
-            border: Border.all(color: Colors.grey.shade800, width: 2), // Bezel edge
           ),
-          child: Center(
-            child: Container(
-              width: device.screenRect.width,
-              height: device.screenRect.height,
-              decoration: BoxDecoration(
-                color: project.isCapturingOverlay ? Colors.transparent : Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(device.cornerRadius - 4), // Inner radius
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: project.sourceImagePath != null
-                  ? _MockupMediaWidget(
-                      path: project.sourceImagePath!,
-                      isVideo: project.isVideo,
-                    )
-                  : const Center(
-                      child: Text(
-                        'Select an Image or Video',
-                        style: TextStyle(color: Colors.white54),
-                      ),
+          child: Stack(
+            children: [
+              // The physical device bezel layer on top dictates the size of the Stack
+              if (device.assetPath.isNotEmpty)
+                IgnorePointer(
+                  child: Image.asset(device.assetPath),
+                )
+              else
+                // Fallback for placeholder
+                IgnorePointer(
+                  child: Container(
+                    width: device.screenRect.width + device.screenRect.left * 2,
+                    height: device.screenRect.height + device.screenRect.top * 2,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade800, width: device.screenRect.left),
+                      borderRadius: BorderRadius.circular(device.cornerRadius + device.screenRect.left),
                     ),
-            ),
+                  ),
+                ),
+
+              // The media screen layer
+              Positioned(
+                left: device.screenRect.left,
+                top: device.screenRect.top,
+                width: device.screenRect.width,
+                height: device.screenRect.height,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: project.isCapturingOverlay ? Colors.transparent : Colors.grey.shade900,
+                    borderRadius: BorderRadius.circular(device.cornerRadius),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: project.sourceImagePath != null
+                      ? _MockupMediaWidget(
+                          path: project.sourceImagePath!,
+                          isVideo: project.isVideo,
+                        )
+                      : const Center(
+                          child: Text(
+                            'Select an Image or Video',
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

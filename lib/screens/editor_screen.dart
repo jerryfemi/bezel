@@ -5,6 +5,9 @@ import '../providers/mockup_provider.dart';
 import '../widgets/phone_mockup_widget.dart';
 import '../services/export/image_export_service.dart';
 import '../screens/export_progress_screen.dart';
+import '../widgets/panels/left_rail_widget.dart';
+import '../widgets/panels/device_selector_panel.dart';
+import '../widgets/panels/background_panel.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -122,35 +125,22 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       ),
       body: Row(
         children: [
-          // Left Sidebar - Controls
-          Container(
-            width: 300,
-            color: Theme.of(context).colorScheme.surface,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Rotation', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                _buildSlider('X Axis', project.rotationX, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(val, project.rotationY, project.rotationZ);
-                }),
-                _buildSlider('Y Axis', project.rotationY, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, val, project.rotationZ);
-                }),
-                _buildSlider('Z Axis', project.rotationZ, (val) {
-                  ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, project.rotationY, val);
-                }),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-                  },
-                  child: const Text('Reset Rotation'),
-                )
-              ],
-            ),
+          // Left Rail - Icon Tools
+          const LeftRailWidget(),
+          
+          // Right Panel - Context Sensitive
+          Consumer(
+            builder: (context, ref, child) {
+              final activeTool = ref.watch(activeEditorToolProvider);
+              if (activeTool == EditorTool.device) {
+                return const DeviceSelectorPanel();
+              } else if (activeTool == EditorTool.background) {
+                return const BackgroundPanel();
+              }
+              return const SizedBox(width: 280); // Placeholder
+            },
           ),
+          
           // Main Canvas
           Expanded(
             child: GestureDetector(
@@ -188,18 +178,5 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
-  Widget _buildSlider(String label, double value, ValueChanged<double> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        Slider(
-          value: value,
-          min: -3.14, // -pi
-          max: 3.14,  // pi
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
+
 }
