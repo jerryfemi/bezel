@@ -20,7 +20,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   final GlobalKey _repaintBoundaryKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
   final TransformationController _transformationController =
-      TransformationController(Matrix4.identity()..scale(0.3));
+      TransformationController(Matrix4.identity()..scale(0.3, 0.3, 1.0));
   bool _isExporting = false;
 
   @override
@@ -64,13 +64,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       final rawBytes = ref.read(videoRawBytesProvider);
 
       if (rawBytes == null || rawBytes.isEmpty) {
-        setState(() => _isExporting = false);
+        if (mounted) setState(() => _isExporting = false);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No video data available.')),
         );
         return;
       }
 
+      if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -158,9 +160,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
           // Main Canvas
           Expanded(
-            child: Stack(
-              children: [
-                GestureDetector(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final canvasCenterX = constraints.maxWidth / 2;
+                final canvasCenterY = constraints.maxHeight / 2;
+                return Stack(
+                  children: [
+                    GestureDetector(
                   onPanUpdate: (details) {
                     // Drag to rotate
                     ref
@@ -198,10 +204,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     ),
                   ),
                 ),
-
+                
                 // Floating Zoom Slider
-                Positioned(bottom: 32, left: 32, child: _buildZoomSlider()),
+                Positioned(
+                  bottom: 32,
+                  left: 32,
+                  child: _buildZoomSlider(canvasCenterX, canvasCenterY),
+                ),
               ],
+            );
+              },
             ),
           ),
         ],
@@ -209,7 +221,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
-  Widget _buildZoomSlider() {
+  Widget _buildZoomSlider(double centerX, double centerY) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xAA16181C), // rgba(22, 24, 28, 0.65)
@@ -246,9 +258,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     final current = _transformationController.value.clone();
                     final currentScale = current.getMaxScaleOnAxis();
                     final ratio = newScale / currentScale;
-                    // Scale around the center of the viewport ideally, but just scaling the matrix works for basic zoom
-                    // ignore: deprecated_member_use
-                    current.scale(ratio);
+                    // Transform to center, scale, transform back
+                    current.translate(centerX, centerY, 0.0);
+                    current.scale(ratio, ratio, 1.0);
+                    current.translate(-centerX, -centerY, 0.0);
+                    
                     _transformationController.value = current;
                   },
                 );

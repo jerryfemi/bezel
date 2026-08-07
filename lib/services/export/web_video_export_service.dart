@@ -54,8 +54,9 @@ class WebVideoExportService {
 
       mockupNotifier.setCapturingOverlay(false);
 
-      if (overlayPng == null)
+      if (overlayPng == null) {
         throw Exception('Failed to capture bezel overlay');
+      }
       onProgress(0.25, 'Bezel Captured');
 
       // --- Step 3: Write files ---
@@ -84,9 +85,9 @@ class WebVideoExportService {
       final ffmpegColor = '0x$bgColorHex';
       
       final filterComplex =
-          '[0:v]scale=w=${screenW}:h=${screenH}:force_original_aspect_ratio=decrease,'
-          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=$ffmpegColor[scaled];'
-          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=$ffmpegColor[padded];'
+          '[0:v]scale=w=$screenW:h=$screenH:force_original_aspect_ratio=decrease,'
+          'pad=w=$screenW:h=$screenH:x=(ow-iw)/2:y=(oh-ih)/2:color=$ffmpegColor[scaled];'
+          '[scaled]pad=w=$canvasW:h=$canvasH:x=$offsetX:y=$offsetY:color=$ffmpegColor[padded];'
           '[padded][1:v]overlay=x=0:y=0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');

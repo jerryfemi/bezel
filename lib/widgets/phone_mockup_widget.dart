@@ -25,10 +25,10 @@ class PhoneMockupWidget extends ConsumerWidget {
           children: [
             // The media screen layer (bottom layer)
             Positioned(
-              left: device.screenRect.left,
-              top: device.screenRect.top,
-              width: device.screenRect.width,
-              height: device.screenRect.height,
+              left: device.screenRect.left - 2,
+              top: device.screenRect.top - 2,
+              width: device.screenRect.width + 4,
+              height: device.screenRect.height + 4,
                 child: Container(
                 decoration: BoxDecoration(
                   color: Colors.transparent, // Always transparent to prevent edges from sticking out
