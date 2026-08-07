@@ -9,10 +9,12 @@ import '../../models/device_spec.dart';
 import '../../providers/mockup_provider.dart';
 
 class WebVideoExportService {
-  late final FFmpeg _ffmpeg = createFFmpeg(CreateFFmpegParam(
-    log: true,
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
-  ));
+  late final FFmpeg _ffmpeg = createFFmpeg(
+    CreateFFmpegParam(
+      log: true,
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+    ),
+  );
 
   /// Exports a video with the bezel overlay composited on top using FFmpeg.
   ///
@@ -42,8 +44,9 @@ class WebVideoExportService {
       // Wait for Flutter to rebuild with the video hidden
       await Future.delayed(const Duration(milliseconds: 300));
 
-      final boundary = boundaryKey.currentContext?.findRenderObject()
-          as RenderRepaintBoundary?;
+      final boundary =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) {
         mockupNotifier.setCapturingOverlay(false);
         throw Exception('Could not find RepaintBoundary');
@@ -51,8 +54,9 @@ class WebVideoExportService {
 
       // Capture at 1x pixel ratio to reduce memory pressure in WASM
       final overlayImage = await boundary.toImage(pixelRatio: 1.0);
-      final overlayByteData =
-          await overlayImage.toByteData(format: ui.ImageByteFormat.png);
+      final overlayByteData = await overlayImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       final overlayPng = overlayByteData?.buffer.asUint8List();
 
       // Restore video immediately
@@ -74,7 +78,7 @@ class WebVideoExportService {
       // --- Step 4: Calculate dimensions ---
       // All dimensions must be even for yuv420p / libx264.
       // We use ~/ 2 * 2 to force even numbers.
-      
+
       // The overlay image dimensions at 1x pixel ratio
       final canvasW = _makeEven(overlayImage.width);
       final canvasH = _makeEven(overlayImage.height);
@@ -91,8 +95,10 @@ class WebVideoExportService {
       final offsetX = editorPadding + bezelPadding;
       final offsetY = editorPadding + bezelPadding;
 
-      debugPrint('FFmpeg dimensions: canvas=${canvasW}x$canvasH, '
-          'screen=${screenW}x$screenH, offset=$offsetX,$offsetY');
+      debugPrint(
+        'FFmpeg dimensions: canvas=${canvasW}x$canvasH, '
+        'screen=${screenW}x$screenH, offset=$offsetX,$offsetY',
+      );
 
       // --- Step 5: Run FFmpeg compositing ---
       onProgress(0.45, 'Encoding Video...');
@@ -102,18 +108,17 @@ class WebVideoExportService {
       // 2. Pad it to the full canvas size, positioned at the screen offset
       // 3. Overlay the bezel PNG on top (bezel has transparent screen cutout)
       //
-      // Filter chain using STRICT key=value pairs to avoid parsing errors in WASM
+      // We use explicit integer values and trunc() to avoid any fractional pixel issues.
       final filterComplex =
-          '[0:v]scale=w=${screenW}:h=${screenH}:force_original_aspect_ratio=decrease,'
-          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=black[scaled];'
-          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=black[padded];'
-          '[padded][1:v]overlay=x=0:y=0[out]';
+          '[0:v]scale=$screenW:$screenH:force_original_aspect_ratio=decrease,pad=$screenW:$screenH:trunc((ow-iw)/2):trunc((oh-ih)/2):color=black[scaled];'
+          '[scaled]pad=$canvasW:$canvasH:$offsetX:$offsetY:color=black[padded];'
+          '[padded][1:v]overlay=0:0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 
-      List<String> ffmpegLogs = [];
+      String lastFfmpegLog = '';
       _ffmpeg.setLogger((logger) {
-        ffmpegLogs.add(logger.message);
+        lastFfmpegLog = logger.message;
         debugPrint('FFmpeg Log: ${logger.message}');
       });
 
@@ -132,26 +137,24 @@ class WebVideoExportService {
         '-i', 'overlay.png',
         '-filter_complex', filterComplex,
         '-map', '[out]',
-        '-an',              // Strip audio for v1 (avoids codec compatibility issues in WASM)
+        '-an', // Strip audio for v1 (avoids codec compatibility issues in WASM)
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
-        '-preset', 'ultrafast',  // Fastest preset to minimize WASM memory pressure
-        '-crf', '28',            // Slightly lower quality = much less memory
+        '-preset',
+        'ultrafast', // Fastest preset to minimize WASM memory pressure
+        '-crf', '28', // Slightly lower quality = much less memory
         '-y', 'output.mp4',
       ]);
 
       onProgress(0.92, 'Finalizing...');
 
       // --- Step 6: Read output and trigger download ---
+      // Check if the output file exists by attempting to read it.
+      // If FFmpeg failed silently, this will throw and we'll catch it below.
       final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
 
       if (outBytes.isEmpty) {
-        // Grab the last 10 lines of logs to show in the UI, ignoring the 'readFile' logs
-        final realLogs = ffmpegLogs.where((l) => !l.contains('FS.readFile')).toList();
-        final errorMsg = realLogs.length > 10 
-            ? realLogs.sublist(realLogs.length - 10).join('\n') 
-            : realLogs.join('\n');
-        throw Exception('FFmpeg Crash Log:\n$errorMsg');
+        throw Exception('FFmpeg failed: $lastFfmpegLog');
       }
 
       debugPrint('Export successful: ${outBytes.length} bytes');
