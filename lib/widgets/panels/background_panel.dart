@@ -30,6 +30,23 @@ class BackgroundPanel extends ConsumerWidget {
             ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, project.rotationY, val);
           }),
           const SizedBox(height: 24),
+          const Text('Background Color', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildColorOption(context, ref, Colors.transparent, project.backgroundColor, isTransparent: true),
+              _buildColorOption(context, ref, const Color(0xFF1A1A1A), project.backgroundColor),
+              _buildColorOption(context, ref, Colors.white, project.backgroundColor),
+              _buildColorOption(context, ref, Colors.black, project.backgroundColor),
+              _buildColorOption(context, ref, const Color(0xFFE91E63), project.backgroundColor), // Pink
+              _buildColorOption(context, ref, const Color(0xFF2196F3), project.backgroundColor), // Blue
+              _buildColorOption(context, ref, const Color(0xFF4CAF50), project.backgroundColor), // Green
+              _buildColorOption(context, ref, const Color(0xFFFFC107), project.backgroundColor), // Yellow
+            ],
+          ),
+          const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
               ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
@@ -37,6 +54,30 @@ class BackgroundPanel extends ConsumerWidget {
             child: const Text('Reset Rotation'),
           )
         ],
+      ),
+    );
+  }
+
+  Widget _buildColorOption(BuildContext context, WidgetRef ref, Color color, Color selectedColor, {bool isTransparent = false}) {
+    final isSelected = color == selectedColor;
+    return GestureDetector(
+      onTap: () {
+        ref.read(mockupProjectProvider.notifier).setBackgroundColor(color);
+      },
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isTransparent ? Colors.grey.shade800 : color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade700,
+            width: isSelected ? 3 : 1,
+          ),
+        ),
+        child: isTransparent 
+            ? const Icon(Icons.format_color_reset, size: 20, color: Colors.white54)
+            : null,
       ),
     );
   }

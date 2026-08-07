@@ -81,7 +81,8 @@ class WebVideoExportService {
       onProgress(0.45, 'Encoding Video...');
 
       // Strict key=value filter complex to avoid any parsing failures
-      final bgColorHex = backgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
+      final effectiveColor = backgroundColor == Colors.transparent ? Colors.black : backgroundColor;
+      final bgColorHex = effectiveColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
       final ffmpegColor = '0x$bgColorHex';
       
       final filterComplex =

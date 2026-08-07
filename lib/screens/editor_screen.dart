@@ -22,6 +22,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   final TransformationController _transformationController =
       TransformationController(Matrix4.identity()..scale(0.3, 0.3, 1.0));
   bool _isExporting = false;
+  bool _isInitialScaleSet = false;
 
   @override
   void dispose() {
@@ -162,6 +163,18 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                if (!_isInitialScaleSet && constraints.maxHeight > 0) {
+                  _isInitialScaleSet = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    final project = ref.read(mockupProjectProvider);
+                    // Approximate total height: screen height + top bezel * 2 + 128px padding
+                    final deviceHeight = project.device.screenRect.height + (project.device.screenRect.top * 2) + 128;
+                    // Target 70% of available vertical space
+                    final targetScale = (constraints.maxHeight * 0.7) / deviceHeight;
+                    _transformationController.value = Matrix4.identity()..scale(targetScale, targetScale, 1.0);
+                  });
+                }
+                
                 final canvasCenterX = constraints.maxWidth / 2;
                 final canvasCenterY = constraints.maxHeight / 2;
                 return Stack(
