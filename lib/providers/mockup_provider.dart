@@ -9,7 +9,7 @@ class MockupProjectNotifier extends Notifier<MockupProject> {
   @override
   MockupProject build() {
     return const MockupProject(
-      device: DeviceSpec.placeholderIPhone,
+      device: DeviceSpecConstants.placeholderIPhone,
     );
   }
 
@@ -50,3 +50,11 @@ final videoControllerProvider = StateProvider<VideoPlayerController?>((ref) => n
 
 /// Stores the raw bytes of the uploaded video file for FFmpeg compositing.
 final videoRawBytesProvider = StateProvider<Uint8List?>((ref) => null);
+
+enum EditorTool {
+  device,
+  background,
+  export,
+}
+
+final activeEditorToolProvider = StateProvider<EditorTool>((ref) => EditorTool.device);
