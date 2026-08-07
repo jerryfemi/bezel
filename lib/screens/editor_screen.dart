@@ -8,6 +8,7 @@ import '../screens/export_progress_screen.dart';
 import '../widgets/panels/left_rail_widget.dart';
 import '../widgets/panels/device_selector_panel.dart';
 import '../widgets/panels/background_panel.dart';
+import '../widgets/video_playback_controls.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -223,6 +224,17 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   left: 32,
                   child: _buildZoomSlider(canvasCenterX, canvasCenterY),
                 ),
+                
+                // Floating Playback Controls
+                if (ref.watch(mockupProjectProvider).isVideo)
+                  const Positioned(
+                    bottom: 32,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: VideoPlaybackControls(),
+                    ),
+                  ),
               ],
             );
               },

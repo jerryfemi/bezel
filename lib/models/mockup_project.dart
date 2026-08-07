@@ -5,7 +5,7 @@ class MockupProject {
   final DeviceSpec device;
   final String? sourceImagePath;
   final bool isVideo;
-  
+
   // Rotation values in radians
   final double rotationX;
   final double rotationY;
@@ -56,4 +56,3 @@ class MockupProject {
     );
   }
 }
-
