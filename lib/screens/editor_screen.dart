@@ -19,15 +19,25 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   final GlobalKey _repaintBoundaryKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
+  final TransformationController _transformationController =
+      TransformationController(Matrix4.identity()..scale(0.3));
   bool _isExporting = false;
 
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickMedia(bool isVideo) async {
-    final XFile? file = isVideo 
+    final XFile? file = isVideo
         ? await _picker.pickVideo(source: ImageSource.gallery)
         : await _picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
-      ref.read(mockupProjectProvider.notifier).setSourceImage(file.path, isVideo: isVideo);
-      
+      ref
+          .read(mockupProjectProvider.notifier)
+          .setSourceImage(file.path, isVideo: isVideo);
+
       if (isVideo) {
         // Store the raw video bytes for FFmpeg compositing
         final bytes = await file.readAsBytes();
@@ -40,14 +50,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final project = ref.read(mockupProjectProvider);
 
     // Force reset rotation for video exports since FFmpeg composite is flat 2D
-    if (project.isVideo && (project.rotationX != 0 || project.rotationY != 0 || project.rotationZ != 0)) {
+    if (project.isVideo &&
+        (project.rotationX != 0 ||
+            project.rotationY != 0 ||
+            project.rotationZ != 0)) {
       ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-      await Future.delayed(const Duration(milliseconds: 100)); // Wait for UI to update
+      await Future.delayed(
+        const Duration(milliseconds: 100),
+      ); // Wait for UI to update
     }
 
     if (project.isVideo) {
       final rawBytes = ref.read(videoRawBytesProvider);
-      
+
       if (rawBytes == null || rawBytes.isEmpty) {
         setState(() => _isExporting = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,9 +96,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           SnackBar(content: Text('Exported successfully to $path')),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Export failed.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Export failed.')));
       }
     }
   }
@@ -127,7 +142,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         children: [
           // Left Rail - Icon Tools
           const LeftRailWidget(),
-          
+
           // Right Panel - Context Sensitive
           Consumer(
             builder: (context, ref, child) {
@@ -140,37 +155,53 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               return const SizedBox(width: 280); // Placeholder
             },
           ),
-          
+
           // Main Canvas
           Expanded(
-            child: GestureDetector(
-              onPanUpdate: (details) {
-                // Drag to rotate
-                ref.read(mockupProjectProvider.notifier).updateRotation(
-                  -details.delta.dy * 0.01,
-                  details.delta.dx * 0.01,
-                  0,
-                );
-              },
-              child: InteractiveViewer(
-                boundaryMargin: const EdgeInsets.all(double.infinity),
-                minScale: 0.1,
-                maxScale: 4.0,
-                constrained: false, // Prevents InteractiveViewer from forcing screen constraints
-                child: UnconstrainedBox( // Ensures RepaintBoundary layout size is never clipped
-                  clipBehavior: Clip.none,
-                  child: RepaintBoundary(
-                    key: _repaintBoundaryKey,
-                    // We wrap the mockup in a container with the background color 
-                    // so the exported image has the correct background.
-                    child: Container(
-                      color: project.isCapturingOverlay ? Colors.transparent : project.backgroundColor,
-                      padding: const EdgeInsets.all(64), // Some padding around the device in export
-                      child: const PhoneMockupWidget(),
+            child: Stack(
+              children: [
+                GestureDetector(
+                  onPanUpdate: (details) {
+                    // Drag to rotate
+                    ref
+                        .read(mockupProjectProvider.notifier)
+                        .updateRotation(
+                          -details.delta.dy * 0.01,
+                          details.delta.dx * 0.01,
+                          0,
+                        );
+                  },
+                  child: InteractiveViewer(
+                    transformationController: _transformationController,
+                    boundaryMargin: const EdgeInsets.all(double.infinity),
+                    minScale: 0.1,
+                    maxScale: 4.0,
+                    constrained:
+                        false, // Prevents InteractiveViewer from forcing screen constraints
+                    child: UnconstrainedBox(
+                      // Ensures RepaintBoundary layout size is never clipped
+                      clipBehavior: Clip.none,
+                      child: RepaintBoundary(
+                        key: _repaintBoundaryKey,
+                        // We wrap the mockup in a container with the background color
+                        // so the exported image has the correct background.
+                        child: Container(
+                          color: project.isCapturingOverlay
+                              ? Colors.transparent
+                              : project.backgroundColor,
+                          padding: const EdgeInsets.all(
+                            64,
+                          ), // Some padding around the device in export
+                          child: const PhoneMockupWidget(),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+
+                // Floating Zoom Slider
+                Positioned(bottom: 32, left: 32, child: _buildZoomSlider()),
+              ],
             ),
           ),
         ],
@@ -178,5 +209,55 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
-
+  Widget _buildZoomSlider() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xAA16181C), // rgba(22, 24, 28, 0.65)
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0x14F5F1E8),
+        ), // rgba(245, 241, 232, 0.08)
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black45,
+            blurRadius: 32,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.zoom_out, size: 16, color: Colors.white70),
+          SizedBox(
+            width: 150,
+            child: ValueListenableBuilder<Matrix4>(
+              valueListenable: _transformationController,
+              builder: (context, matrix, child) {
+                final scale = matrix.getMaxScaleOnAxis();
+                return Slider(
+                  value: scale.clamp(0.1, 4.0),
+                  min: 0.1,
+                  max: 4.0,
+                  activeColor: const Color(0xFF4DE8C4),
+                  inactiveColor: Colors.white24,
+                  onChanged: (newScale) {
+                    final current = _transformationController.value.clone();
+                    final currentScale = current.getMaxScaleOnAxis();
+                    final ratio = newScale / currentScale;
+                    // Scale around the center of the viewport ideally, but just scaling the matrix works for basic zoom
+                    // ignore: deprecated_member_use
+                    current.scale(ratio);
+                    _transformationController.value = current;
+                  },
+                );
+              },
+            ),
+          ),
+          const Icon(Icons.zoom_in, size: 16, color: Colors.white70),
+        ],
+      ),
+    );
+  }
 }
