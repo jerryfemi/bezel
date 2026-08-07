@@ -1,15 +1,21 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import '../models/device_spec.dart';
+import '../../providers/mockup_provider.dart';
 import '../../services/export/web_video_export_service.dart';
 
 class ExportProgressScreen extends StatefulWidget {
   final GlobalKey boundaryKey;
-  final VideoPlayerController videoController;
+  final Uint8List videoRawBytes;
+  final MockupProjectNotifier mockupNotifier;
+  final DeviceSpec device;
 
   const ExportProgressScreen({
     super.key,
     required this.boundaryKey,
-    required this.videoController,
+    required this.videoRawBytes,
+    required this.mockupNotifier,
+    required this.device,
   });
 
   @override
@@ -31,26 +37,22 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
   Future<void> _startExport() async {
     try {
       await _exportService.exportVideo(
-        widget.boundaryKey,
-        widget.videoController,
-        (progress) {
+        boundaryKey: widget.boundaryKey,
+        videoRawBytes: widget.videoRawBytes,
+        mockupNotifier: widget.mockupNotifier,
+        device: widget.device,
+        onProgress: (progress, message) {
           if (mounted) {
             setState(() {
               _progress = progress;
-              if (progress < 0.1) {
-                _statusMessage = "Loading FFmpeg Engine...";
-              } else if (progress < 0.85) {
-                _statusMessage =
-                    "Capturing Frames (${(progress * 100).toInt()}%)...";
-              } else if (progress < 1.0) {
-                _statusMessage = "Encoding MP4...";
-              } else {
+              _statusMessage = message;
+
+              if (progress >= 1.0) {
                 _statusMessage = "Export Complete!";
               }
             });
 
             if (progress >= 1.0) {
-              // Close modal after success
               Future.delayed(const Duration(seconds: 1), () {
                 if (mounted) Navigator.of(context).pop();
               });
@@ -62,7 +64,7 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
       if (mounted) {
         setState(() {
           _isError = true;
-          _statusMessage = "Export Failed: $e";
+          _statusMessage = 'Export Failed: $e';
         });
       }
     }
@@ -71,24 +73,28 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: const Color(0xFF2A2A2A),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
               'Exporting Video',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 24),
             LinearProgressIndicator(
               value: _progress,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(4),
               backgroundColor: Colors.grey.shade800,
-              color: _isError ? Colors.red : Theme.of(context).primaryColor,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _isError ? Colors.red : Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -97,7 +103,7 @@ class _ExportProgressScreenState extends State<ExportProgressScreen> {
               textAlign: TextAlign.center,
             ),
             if (_isError) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Close'),

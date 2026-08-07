@@ -4,101 +4,149 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:ffmpeg_wasm/ffmpeg_wasm.dart';
-import 'package:video_player/video_player.dart';
 import 'dart:html' as html;
+import '../../models/device_spec.dart';
+import '../../providers/mockup_provider.dart';
 
 class WebVideoExportService {
   late final FFmpeg _ffmpeg = createFFmpeg(CreateFFmpegParam(
-    log: true, 
-    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js'
+    log: true,
+    corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
   ));
-  
-  // Progress callback: returns a value between 0.0 and 1.0
-  Future<void> exportVideo(
-    GlobalKey boundaryKey, 
-    VideoPlayerController videoController, 
-    ValueChanged<double> onProgress,
-  ) async {
+
+  /// Exports a video with the bezel overlay composited on top using FFmpeg.
+  ///
+  /// Flow:
+  /// 1. Load FFmpeg WASM engine
+  /// 2. Set isCapturingOverlay=true, wait a frame, capture bezel overlay PNG
+  /// 3. Set isCapturingOverlay=false to restore video preview
+  /// 4. Write input.mp4 (raw video) and overlay.png to FFmpeg's virtual FS
+  /// 5. Run FFmpeg to scale video, pad to canvas size, overlay bezel on top
+  /// 6. Download the output.mp4
+  Future<void> exportVideo({
+    required GlobalKey boundaryKey,
+    required Uint8List videoRawBytes,
+    required MockupProjectNotifier mockupNotifier,
+    required DeviceSpec device,
+    required void Function(double progress, String message) onProgress,
+  }) async {
     try {
+      // --- Step 1: Load FFmpeg ---
+      onProgress(0.05, 'Loading FFmpeg Engine...');
       if (!_ffmpeg.isLoaded()) {
-        onProgress(0.05); // Initial loading state
         await _ffmpeg.load();
       }
+      onProgress(0.10, 'FFmpeg Ready');
 
-      // 1. Prepare video playback
-      final originalIsPlaying = videoController.value.isPlaying;
-      if (originalIsPlaying) {
-        await videoController.pause();
-      }
-      
-      final duration = videoController.value.duration;
-      if (duration.inMilliseconds == 0) {
-        throw Exception("Video duration is unknown");
-      }
+      // --- Step 2: Capture bezel overlay ---
+      onProgress(0.15, 'Capturing Bezel Overlay...');
 
-      // We will capture at 10 fps to keep the web memory usage reasonable
-      const int fps = 10;
-      final int frameCount = (duration.inMilliseconds / 1000 * fps).ceil();
-      
-      onProgress(0.1);
+      // Hide the video by setting the capture flag
+      mockupNotifier.setCapturingOverlay(true);
 
-      // --- FRAME CAPTURE LOOP ---
-      for (int i = 0; i < frameCount; i++) {
-        // Calculate timestamp for this frame
-        final frameTimeMs = (i * 1000 / fps).round();
-        await videoController.seekTo(Duration(milliseconds: frameTimeMs));
-        
-        // Wait for the web texture to actually render the new frame onto the canvas.
-        // 150ms is usually enough for the HTML <video> tag to pipe the frame to WebGL.
-        await Future.delayed(const Duration(milliseconds: 150));
-        
-        final boundary = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-        if (boundary == null) throw Exception("Could not find RepaintBoundary");
+      // Wait for Flutter to rebuild with the video hidden
+      await Future.delayed(const Duration(milliseconds: 200));
 
-        final image = await boundary.toImage(pixelRatio: 2.0); // 2.0 for performance vs quality
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-        final pngBytes = byteData?.buffer.asUint8List();
-
-        if (pngBytes != null) {
-          _ffmpeg.writeFile('frame_$i.png', pngBytes);
-        }
-
-        // Update progress: 10% to 80% is frame capture
-        onProgress(0.1 + (0.7 * (i / frameCount)));
+      final boundary = boundaryKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (boundary == null) {
+        mockupNotifier.setCapturingOverlay(false);
+        throw Exception('Could not find RepaintBoundary');
       }
 
-      // Restore playback
-      await videoController.seekTo(Duration.zero);
-      if (originalIsPlaying) {
-        await videoController.play();
+      // Capture the bezel-only overlay at high quality
+      final overlayImage = await boundary.toImage(pixelRatio: 2.0);
+      final overlayByteData =
+          await overlayImage.toByteData(format: ui.ImageByteFormat.png);
+      final overlayPng = overlayByteData?.buffer.asUint8List();
+
+      // Restore video immediately
+      mockupNotifier.setCapturingOverlay(false);
+
+      if (overlayPng == null) {
+        throw Exception('Failed to capture bezel overlay');
       }
 
-      onProgress(0.85); // Encoding started
+      onProgress(0.25, 'Bezel Captured');
 
-      // --- FFMPEG ENCODING ---
-      await _ffmpeg.run([
-        '-framerate', '$fps',
-        '-i', 'frame_%d.png',
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        'output.mp4'
-      ]);
+      // --- Step 3: Write files to FFmpeg virtual FS ---
+      onProgress(0.30, 'Preparing Files...');
+      _ffmpeg.writeFile('input.mp4', videoRawBytes);
+      _ffmpeg.writeFile('overlay.png', overlayPng);
 
-      onProgress(0.95);
+      onProgress(0.40, 'Files Ready');
 
+      // --- Step 4: Calculate dimensions ---
+      // The overlay PNG is what RepaintBoundary captured (the full canvas with bezel).
+      // The video needs to be scaled to fit inside the screen area of the bezel,
+      // then the bezel PNG is overlaid on top.
+      //
+      // Canvas dimensions must be even for yuv420p
+      final canvasW = (overlayImage.width.toInt() ~/ 2) * 2;
+      final canvasH = (overlayImage.height.toInt() ~/ 2) * 2;
+
+      const double pixelRatio = 2.0;
+      const double editorPadding = 64.0;
+      const double bezelPadding = 20.0;
+
+      // Screen dimensions must be even
+      final screenW = ((device.screenRect.width * pixelRatio).toInt() ~/ 2) * 2;
+      final screenH = ((device.screenRect.height * pixelRatio).toInt() ~/ 2) * 2;
+
+      // Offset
+      final offsetX = ((editorPadding + bezelPadding) * pixelRatio).toInt();
+      final offsetY = ((editorPadding + bezelPadding) * pixelRatio).toInt();
+
+      // Convert background color to hex for FFmpeg pad filter
+      // FFmpeg requires 0xRRGGBB or #RRGGBB
+      const bgColor = '0x1E1E1E';
+
+      // --- Step 5: Run FFmpeg compositing ---
+      onProgress(0.45, 'Encoding Video...');
+
+      final filterComplex =
+          '[0:v]scale=$screenW:$screenH:force_original_aspect_ratio=decrease,'
+          'pad=$screenW:$screenH:(ow-iw)/2:(oh-ih)/2:color=$bgColor[scaled];'
+          '[scaled]pad=$canvasW:$canvasH:$offsetX:$offsetY:color=$bgColor[padded];'
+          '[padded][1:v]overlay=0:0[out]';
+
+      _ffmpeg.setProgress((progress) {
+        final ffmpegProgress = progress.ratio;
+        onProgress(
+          0.45 + (0.45 * ffmpegProgress),
+          'Encoding Video... ${(ffmpegProgress * 100).toInt()}%',
+        );
+      });
+
+      await _ffmpeg.runCommand(
+        '-i input.mp4 -i overlay.png '
+        '-filter_complex "$filterComplex" '
+        '-map "[out]" -map 0:a? '
+        '-c:v libx264 -pix_fmt yuv420p -preset fast '
+        '-y output.mp4',
+      );
+
+      onProgress(0.92, 'Finalizing...');
+
+      // --- Step 6: Read output and trigger download ---
       final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
-      
-      // --- TRIGGER DOWNLOAD ---
-      _downloadWeb(outBytes, 'bezel_mockup_${DateTime.now().millisecondsSinceEpoch}.mp4');
 
-      // Cleanup virtual file system to free memory
-      for (int i = 0; i < frameCount; i++) {
-        _ffmpeg.unlink('frame_$i.png');
-      }
+      _downloadWeb(
+        outBytes,
+        'bezel_mockup_${DateTime.now().millisecondsSinceEpoch}.mp4',
+      );
+
+      // Cleanup virtual file system
+      _ffmpeg.unlink('input.mp4');
+      _ffmpeg.unlink('overlay.png');
       _ffmpeg.unlink('output.mp4');
 
-      onProgress(1.0); // Done!
+      onProgress(1.0, 'Export Complete!');
     } catch (e) {
+      // Make sure we restore the video if something goes wrong
+      try {
+        mockupNotifier.setCapturingOverlay(false);
+      } catch (_) {}
       debugPrint('Export failed: $e');
       throw Exception('Video export failed: $e');
     }
@@ -108,7 +156,7 @@ class WebVideoExportService {
     final blob = html.Blob([bytes]);
     final url = html.Url.createObjectUrlFromBlob(blob);
     html.AnchorElement(href: url)
-      ..setAttribute("download", filename)
+      ..setAttribute('download', filename)
       ..click();
     html.Url.revokeObjectUrl(url);
   }

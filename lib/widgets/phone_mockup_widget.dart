@@ -142,6 +142,12 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // During overlay capture, render transparent so RepaintBoundary only sees the bezel
+    final project = ref.watch(mockupProjectProvider);
+    if (project.isCapturingOverlay) {
+      return const SizedBox.expand();
+    }
+
     if (!widget.isVideo) {
       return kIsWeb
           ? Image.network(widget.path, fit: BoxFit.cover)

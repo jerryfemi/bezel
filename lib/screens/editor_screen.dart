@@ -24,6 +24,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         : await _picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
       ref.read(mockupProjectProvider.notifier).setSourceImage(file.path, isVideo: isVideo);
+      
+      if (isVideo) {
+        // Store the raw video bytes for FFmpeg compositing
+        final bytes = await file.readAsBytes();
+        ref.read(videoRawBytesProvider.notifier).state = bytes;
+      }
     }
   }
 
@@ -31,21 +37,23 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final project = ref.read(mockupProjectProvider);
     
     if (project.isVideo) {
-      final videoController = ref.read(videoControllerProvider);
+      final rawBytes = ref.read(videoRawBytesProvider);
       
-      if (videoController == null || !videoController.value.isInitialized) {
+      if (rawBytes == null || rawBytes.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video is not ready yet.')),
+          const SnackBar(content: Text('No video data available.')),
         );
         return;
       }
 
       showDialog(
         context: context,
-        barrierDismissible: false, // Don't allow closing while exporting
+        barrierDismissible: false,
         builder: (ctx) => ExportProgressScreen(
           boundaryKey: _repaintBoundaryKey,
-          videoController: videoController,
+          videoRawBytes: rawBytes,
+          mockupNotifier: ref.read(mockupProjectProvider.notifier),
+          device: project.device,
         ),
       );
       return;
