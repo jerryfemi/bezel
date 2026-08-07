@@ -110,6 +110,7 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
       _controller!.initialize().then((_) {
         if (mounted) {
           setState(() {});
+          _controller!.setVolume(0.0); // Mute video preview
           _controller!.setLooping(true);
           _controller!.play();
           

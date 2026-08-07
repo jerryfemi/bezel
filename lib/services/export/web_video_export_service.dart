@@ -102,13 +102,20 @@ class WebVideoExportService {
       // 2. Pad it to the full canvas size, positioned at the screen offset
       // 3. Overlay the bezel PNG on top (bezel has transparent screen cutout)
       //
-      // We use explicit integer values to avoid any fractional pixel issues.
+      // Filter chain using STRICT key=value pairs to avoid parsing errors in WASM
       final filterComplex =
-          '[0:v]scale=${screenW}:${screenH}:force_original_aspect_ratio=decrease,pad=${screenW}:${screenH}:(ow-iw)/2:(oh-ih)/2:color=0x1E1E1E[scaled];'
-          '[scaled]pad=${canvasW}:${canvasH}:${offsetX}:${offsetY}:color=0x1E1E1E[padded];'
-          '[padded][1:v]overlay=0:0[out]';
+          '[0:v]scale=w=${screenW}:h=${screenH}:force_original_aspect_ratio=decrease,'
+          'pad=w=${screenW}:h=${screenH}:x=(ow-iw)/2:y=(oh-ih)/2:color=black[scaled];'
+          '[scaled]pad=w=${canvasW}:h=${canvasH}:x=${offsetX}:y=${offsetY}:color=black[padded];'
+          '[padded][1:v]overlay=x=0:y=0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
+
+      List<String> ffmpegLogs = [];
+      _ffmpeg.setLogger((logger) {
+        ffmpegLogs.add(logger.message);
+        debugPrint('FFmpeg Log: ${logger.message}');
+      });
 
       _ffmpeg.setProgress((progress) {
         final ffmpegProgress = progress.ratio;
@@ -136,12 +143,15 @@ class WebVideoExportService {
       onProgress(0.92, 'Finalizing...');
 
       // --- Step 6: Read output and trigger download ---
-      // Check if the output file exists by attempting to read it.
-      // If FFmpeg failed silently, this will throw and we'll catch it below.
       final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
 
       if (outBytes.isEmpty) {
-        throw Exception('FFmpeg produced an empty output file');
+        // Grab the last 10 lines of logs to show in the UI, ignoring the 'readFile' logs
+        final realLogs = ffmpegLogs.where((l) => !l.contains('FS.readFile')).toList();
+        final errorMsg = realLogs.length > 10 
+            ? realLogs.sublist(realLogs.length - 10).join('\n') 
+            : realLogs.join('\n');
+        throw Exception('FFmpeg Crash Log:\n$errorMsg');
       }
 
       debugPrint('Export successful: ${outBytes.length} bytes');
