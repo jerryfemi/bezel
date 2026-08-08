@@ -82,7 +82,7 @@ class _DeviceModelItem extends ConsumerWidget {
           ),
         ),
         SizedBox(
-          height: 100,
+          height: 180,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -97,7 +97,7 @@ class _DeviceModelItem extends ConsumerWidget {
                 },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: 70,
+                  width: 120,
                   decoration: BoxDecoration(
                     color: isActive ? Colors.white10 : Colors.transparent,
                     border: Border.all(
