@@ -1,28 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'app_colors.dart';
+import 'app_metrics.dart';
+import 'app_typography.dart';
 
 class AppTheme {
-  // Brand colors based on portfolio identity
-  static const Color nearBlack = Color(0xFF121212);
-  static const Color phosphorTeal = Color(0xFF00FFC4);
-  static const Color surfaceColor = Color(0xFF1E1E1E);
-
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: nearBlack,
-      primaryColor: phosphorTeal,
+      scaffoldBackgroundColor: AppColors.canvas,
+      primaryColor: AppColors.accent,
       colorScheme: const ColorScheme.dark(
-        primary: phosphorTeal,
-        surface: surfaceColor,
-        onSurface: Colors.white,
+        primary: AppColors.accent,
+        surface: AppColors.surface,
+        onSurface: AppColors.primaryText,
+        error: AppColors.danger,
       ),
-      fontFamily: 'Space Grotesk', // Make sure to add this to pubspec later if we want it strictly
-      appBarTheme: const AppBarTheme(
-        backgroundColor: nearBlack,
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.dark().textTheme,
+      ).copyWith(
+        bodyMedium: AppTypography.uiBody,
+        bodySmall: AppTypography.uiBodySecondary,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.canvas,
         elevation: 0,
         centerTitle: false,
+        titleTextStyle: AppTypography.uiLabel,
       ),
       useMaterial3: true,
+      
+      // Override default material components to be closer to our design primitives
+      // where we haven't built custom ones yet
+      dividerTheme: const DividerThemeData(
+        color: AppColors.border,
+        thickness: 1,
+        space: 1,
+      ),
     );
   }
 }
