@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/mockup_provider.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_metrics.dart';
+import '../theme/app_typography.dart';
 
 class VideoPlaybackControls extends ConsumerStatefulWidget {
   const VideoPlaybackControls({super.key});
@@ -29,64 +32,100 @@ class _VideoPlaybackControlsState extends ConsumerState<VideoPlaybackControls> {
         final isMuted = volume == 0.0;
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s16,
+            vertical: AppSpacing.s8,
+          ),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E).withOpacity(0.9),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white12),
+            // Glass treatment — only used for floating canvas controls
+            color: AppColors.surface.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(AppRadius.panel),
+            border: Border.all(
+              color: AppColors.primaryText.withValues(alpha: 0.08),
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black45,
+                blurRadius: 32,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                color: Colors.white,
-                onPressed: () {
+              // Play/Pause
+              GestureDetector(
+                onTap: () {
                   if (isPlaying) {
                     controller.pause();
                   } else {
                     controller.play();
                   }
                 },
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatDuration(position),
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 200,
-                child: Slider(
-                  value: position.inMilliseconds.toDouble().clamp(
-                    0.0,
-                    duration.inMilliseconds.toDouble(),
-                  ),
-                  min: 0.0,
-                  max: duration.inMilliseconds.toDouble() > 0
-                      ? duration.inMilliseconds.toDouble()
-                      : 1.0,
-                  activeColor: Theme.of(context).colorScheme.primary,
-                  inactiveColor: Colors.white24,
-                  onChanged: (newPosition) {
-                    controller.seekTo(
-                      Duration(milliseconds: newPosition.toInt()),
-                    );
-                  },
+                child: Icon(
+                  isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: AppColors.primaryText,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.s12),
+              
+              // Current time
+              Text(
+                _formatDuration(position),
+                style: AppTypography.technical,
+              ),
+              const SizedBox(width: AppSpacing.s8),
+              
+              // Seek slider
+              SizedBox(
+                width: 200,
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2.0,
+                    activeTrackColor: AppColors.accent,
+                    inactiveTrackColor: AppColors.border,
+                    thumbColor: AppColors.primaryText,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                  ),
+                  child: Slider(
+                    value: position.inMilliseconds.toDouble().clamp(
+                      0.0,
+                      duration.inMilliseconds.toDouble(),
+                    ),
+                    min: 0.0,
+                    max: duration.inMilliseconds.toDouble() > 0
+                        ? duration.inMilliseconds.toDouble()
+                        : 1.0,
+                    onChanged: (newPosition) {
+                      controller.seekTo(
+                        Duration(milliseconds: newPosition.toInt()),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.s8),
+              
+              // Total time
               Text(
                 _formatDuration(duration),
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: AppTypography.technicalSubtle,
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: Icon(isMuted ? Icons.volume_off : Icons.volume_up),
-                color: Colors.white,
-                onPressed: () {
+              const SizedBox(width: AppSpacing.s12),
+              
+              // Mute toggle
+              GestureDetector(
+                onTap: () {
                   controller.setVolume(isMuted ? 1.0 : 0.0);
                 },
+                child: Icon(
+                  isMuted ? Icons.volume_off : Icons.volume_up,
+                  color: AppColors.secondaryText,
+                  size: 18,
+                ),
               ),
             ],
           ),

@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/device_spec.dart';
 import '../../data/device_registry.dart';
 import '../../providers/mockup_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_metrics.dart';
+import '../../theme/app_typography.dart';
+import '../studio/studio_segmented_control.dart';
 
 class DeviceSelectorPanel extends ConsumerStatefulWidget {
   const DeviceSelectorPanel({super.key});
@@ -20,35 +24,36 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
 
     return Container(
       width: 280,
-      color: Theme.of(context).colorScheme.surface,
+      color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Panel title
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('Device', style: Theme.of(context).textTheme.titleLarge),
+            padding: const EdgeInsets.all(AppSpacing.s16),
+            child: Text('Device', style: AppTypography.headingMedium),
           ),
-          // Category tabs
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: DeviceCategory.values.map((cat) {
-                final isActive = cat == _selectedCategory;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    label: Text(cat.label),
-                    selected: isActive,
-                    onSelected: (val) {
-                      setState(() => _selectedCategory = cat);
-                    },
-                  ),
-                );
-              }).toList(),
+
+          // Category selector — using our custom segmented control
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+            child: StudioSegmentedControl<DeviceCategory>(
+              segments: {
+                for (final cat in DeviceCategory.values)
+                  cat: cat.label,
+              },
+              selectedValue: _selectedCategory,
+              onValueChanged: (cat) {
+                setState(() => _selectedCategory = cat);
+              },
             ),
           ),
-          const Divider(height: 32),
+          
+          const SizedBox(height: AppSpacing.s16),
+          Divider(color: AppColors.border, height: 1),
+          const SizedBox(height: AppSpacing.s8),
+
+          // Device list
           Expanded(
             child: ListView.builder(
               itemCount: models.length,
@@ -75,17 +80,17 @@ class _DeviceModelItem extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s8),
           child: Text(
             model.name,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white70),
+            style: AppTypography.uiLabel,
           ),
         ),
         SizedBox(
           height: 180,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
             itemCount: model.variants.length,
             itemBuilder: (ctx, i) {
               final variant = model.variants[i];
@@ -95,33 +100,39 @@ class _DeviceModelItem extends ConsumerWidget {
                 onTap: () {
                   ref.read(mockupProjectProvider.notifier).setDevice(variant);
                 },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  curve: Curves.easeOut,
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
                   width: 120,
                   decoration: BoxDecoration(
-                    color: isActive ? Colors.white10 : Colors.transparent,
+                    color: isActive ? AppColors.raisedSurface : Colors.transparent,
                     border: Border.all(
-                      color: isActive ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                      width: 2,
+                      color: isActive ? AppColors.accent : Colors.transparent,
+                      width: 1,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.control),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(AppSpacing.s8),
                           child: variant.assetPath.isEmpty 
-                              ? const Icon(Icons.smartphone, size: 32)
+                              ? Icon(Icons.smartphone, size: 32, color: AppColors.secondaryText)
                               : Image.asset(variant.assetPath, fit: BoxFit.contain),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0, left: 4, right: 4),
+                        padding: const EdgeInsets.only(
+                          bottom: AppSpacing.s8,
+                          left: AppSpacing.s4,
+                          right: AppSpacing.s4,
+                        ),
                         child: Text(
                           variant.colorName,
-                          style: const TextStyle(fontSize: 10),
+                          style: AppTypography.technicalSubtle.copyWith(fontSize: 10),
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           maxLines: 1,
@@ -134,7 +145,7 @@ class _DeviceModelItem extends ConsumerWidget {
             },
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.s16),
       ],
     );
   }

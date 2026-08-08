@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/mockup_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_metrics.dart';
+import '../studio/studio_icon_button.dart';
 
 class LeftRailWidget extends ConsumerWidget {
   const LeftRailWidget({super.key});
@@ -11,60 +14,32 @@ class LeftRailWidget extends ConsumerWidget {
 
     return Container(
       width: 72,
-      color: Theme.of(context).colorScheme.surface,
+      color: AppColors.surface,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.s24),
       child: Column(
         children: [
-          const SizedBox(height: 24),
-          _RailIcon(
+          StudioIconButton(
             icon: Icons.smartphone,
             tooltip: 'Device',
             isActive: activeTool == EditorTool.device,
-            onTap: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.device,
+            onPressed: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.device,
           ),
-          const SizedBox(height: 16),
-          _RailIcon(
+          const SizedBox(height: AppSpacing.s12),
+          StudioIconButton(
             icon: Icons.format_color_fill,
             tooltip: 'Background',
             isActive: activeTool == EditorTool.background,
-            onTap: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.background,
+            onPressed: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.background,
           ),
-          const SizedBox(height: 16),
-          _RailIcon(
+          const SizedBox(height: AppSpacing.s12),
+          StudioIconButton(
             icon: Icons.crop,
             tooltip: 'Crop Media',
             isActive: activeTool == EditorTool.crop,
-            onTap: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.crop,
+            onPressed: () => ref.read(activeEditorToolProvider.notifier).state = EditorTool.crop,
           ),
           const Spacer(),
-          const SizedBox(height: 24),
         ],
-      ),
-    );
-  }
-}
-
-class _RailIcon extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _RailIcon({
-    required this.icon,
-    required this.tooltip,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: IconButton(
-        icon: Icon(icon),
-        color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade600,
-        onPressed: onTap,
-        iconSize: 28,
       ),
     );
   }
