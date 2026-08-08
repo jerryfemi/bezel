@@ -14,6 +14,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_metrics.dart';
 import '../theme/app_typography.dart';
 import '../widgets/studio/studio_button.dart';
+import '../widgets/studio/rotation_dial.dart';
 
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -266,6 +267,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
               
               // ─── Floating Canvas Controls (Glass Treatment) ───
+              
+              // Rotation Dial — top right
+              const Positioned(
+                top: AppSpacing.s32,
+                right: AppSpacing.s32,
+                child: RotationDial(),
+              ),
               
               // Zoom slider — bottom left
               Positioned(

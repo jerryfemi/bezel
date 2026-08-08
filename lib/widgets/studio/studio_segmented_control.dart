@@ -7,12 +7,14 @@ class StudioSegmentedControl<T> extends StatelessWidget {
   final Map<T, String> segments;
   final T selectedValue;
   final ValueChanged<T> onValueChanged;
+  final bool expand;
 
   const StudioSegmentedControl({
     super.key,
     required this.segments,
     required this.selectedValue,
     required this.onValueChanged,
+    this.expand = true,
   });
 
   @override
@@ -30,34 +32,39 @@ class StudioSegmentedControl<T> extends StatelessWidget {
           final isFirst = entry.key == segments.keys.first;
           final isLast = entry.key == segments.keys.last;
 
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onValueChanged(entry.key),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                curve: Curves.easeOut,
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.s8,
+          Widget segmentWidget = GestureDetector(
+            onTap: () => onValueChanged(entry.key),
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(
+                vertical: AppSpacing.s8,
+                horizontal: expand ? 0 : AppSpacing.s12,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.border : Colors.transparent,
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(isFirst ? AppRadius.control - 1 : 0),
+                  right: Radius.circular(isLast ? AppRadius.control - 1 : 0),
                 ),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.border : Colors.transparent,
-                  borderRadius: BorderRadius.horizontal(
-                    left: Radius.circular(isFirst ? AppRadius.control - 1 : 0),
-                    right: Radius.circular(isLast ? AppRadius.control - 1 : 0),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    entry.value,
-                    style: AppTypography.uiLabel.copyWith(
-                      color: isSelected ? AppColors.primaryText : AppColors.secondaryText,
-                    ),
+              ),
+              child: Center(
+                child: Text(
+                  entry.value,
+                  style: AppTypography.uiLabel.copyWith(
+                    color: isSelected ? AppColors.primaryText : AppColors.secondaryText,
                   ),
                 ),
               ),
             ),
           );
+
+          if (expand) {
+            segmentWidget = Expanded(child: segmentWidget);
+          }
+
+          return segmentWidget;
         }).toList(),
       ),
     );

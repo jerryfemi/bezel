@@ -37,15 +37,19 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
           // Category selector — using our custom segmented control
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-            child: StudioSegmentedControl<DeviceCategory>(
-              segments: {
-                for (final cat in DeviceCategory.values)
-                  cat: cat.label,
-              },
-              selectedValue: _selectedCategory,
-              onValueChanged: (cat) {
-                setState(() => _selectedCategory = cat);
-              },
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: StudioSegmentedControl<DeviceCategory>(
+                expand: false, // Prevent wrapping / squishing
+                segments: {
+                  for (final cat in DeviceCategory.values)
+                    cat: cat.label,
+                },
+                selectedValue: _selectedCategory,
+                onValueChanged: (cat) {
+                  setState(() => _selectedCategory = cat);
+                },
+              ),
             ),
           ),
           
