@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/mockup_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_metrics.dart';
+import '../../theme/app_typography.dart';
+import '../studio/studio_slider.dart';
+import '../studio/studio_button.dart';
+import '../studio/inspector_section.dart';
 
 class BackgroundPanel extends ConsumerWidget {
   const BackgroundPanel({super.key});
@@ -11,90 +17,129 @@ class BackgroundPanel extends ConsumerWidget {
 
     return Container(
       width: 280,
-      color: Theme.of(context).colorScheme.surface,
-      padding: const EdgeInsets.all(16),
+      color: AppColors.surface,
+      padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Background', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 24),
-          const Text('Rotation', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          _buildSlider(context, 'X Axis', project.rotationX, (val) {
-            ref.read(mockupProjectProvider.notifier).setRotation(val, project.rotationY, project.rotationZ);
-          }),
-          _buildSlider(context, 'Y Axis', project.rotationY, (val) {
-            ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, val, project.rotationZ);
-          }),
-          _buildSlider(context, 'Z Axis', project.rotationZ, (val) {
-            ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, project.rotationY, val);
-          }),
-          const SizedBox(height: 24),
-          const Text('Background Color', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildColorOption(context, ref, Colors.transparent, project.backgroundColor, isTransparent: true),
-              _buildColorOption(context, ref, const Color(0xFF1A1A1A), project.backgroundColor),
-              _buildColorOption(context, ref, Colors.white, project.backgroundColor),
-              _buildColorOption(context, ref, Colors.black, project.backgroundColor),
-              _buildColorOption(context, ref, const Color(0xFFE91E63), project.backgroundColor), // Pink
-              _buildColorOption(context, ref, const Color(0xFF2196F3), project.backgroundColor), // Blue
-              _buildColorOption(context, ref, const Color(0xFF4CAF50), project.backgroundColor), // Green
-              _buildColorOption(context, ref, const Color(0xFFFFC107), project.backgroundColor), // Yellow
-            ],
+          // Panel title
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+            child: Text('Background', style: AppTypography.headingMedium),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-            },
-            child: const Text('Reset Rotation'),
-          )
+
+          // ─── ROTATION ──────────────────────────────────
+          InspectorSection(
+            title: 'Rotation',
+            child: Column(
+              children: [
+                StudioSlider(
+                  label: 'X Axis',
+                  valueDisplay: '${(project.rotationX * 57.2958).toStringAsFixed(1)}°',
+                  value: project.rotationX,
+                  min: -3.14,
+                  max: 3.14,
+                  onChanged: (val) {
+                    ref.read(mockupProjectProvider.notifier).setRotation(val, project.rotationY, project.rotationZ);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                StudioSlider(
+                  label: 'Y Axis',
+                  valueDisplay: '${(project.rotationY * 57.2958).toStringAsFixed(1)}°',
+                  value: project.rotationY,
+                  min: -3.14,
+                  max: 3.14,
+                  onChanged: (val) {
+                    ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, val, project.rotationZ);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                StudioSlider(
+                  label: 'Z Axis',
+                  valueDisplay: '${(project.rotationZ * 57.2958).toStringAsFixed(1)}°',
+                  value: project.rotationZ,
+                  min: -3.14,
+                  max: 3.14,
+                  onChanged: (val) {
+                    ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, project.rotationY, val);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.s12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: StudioButton(
+                    label: 'Reset',
+                    onPressed: () {
+                      ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ─── BACKGROUND COLOR ──────────────────────────
+          InspectorSection(
+            title: 'Color',
+            showDivider: false,
+            child: Wrap(
+              spacing: AppSpacing.s8,
+              runSpacing: AppSpacing.s8,
+              children: [
+                _ColorSwatch(color: Colors.transparent, selected: project.backgroundColor, isTransparent: true, ref: ref),
+                _ColorSwatch(color: const Color(0xFF1A1A1A), selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: Colors.white, selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: Colors.black, selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: const Color(0xFFE91E63), selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: const Color(0xFF2196F3), selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: const Color(0xFF4CAF50), selected: project.backgroundColor, ref: ref),
+                _ColorSwatch(color: const Color(0xFFFFC107), selected: project.backgroundColor, ref: ref),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildColorOption(BuildContext context, WidgetRef ref, Color color, Color selectedColor, {bool isTransparent = false}) {
-    final isSelected = color == selectedColor;
+class _ColorSwatch extends StatelessWidget {
+  final Color color;
+  final Color selected;
+  final bool isTransparent;
+  final WidgetRef ref;
+
+  const _ColorSwatch({
+    required this.color,
+    required this.selected,
+    this.isTransparent = false,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = color == selected;
     return GestureDetector(
       onTap: () {
         ref.read(mockupProjectProvider.notifier).setBackgroundColor(color);
       },
-      child: Container(
-        width: 40,
-        height: 40,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: isTransparent ? Colors.grey.shade800 : color,
-          shape: BoxShape.circle,
+          color: isTransparent ? AppColors.raisedSurface : color,
+          borderRadius: BorderRadius.circular(AppRadius.control),
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade700,
-            width: isSelected ? 3 : 1,
+            color: isSelected ? AppColors.accent : AppColors.border,
+            width: isSelected ? 2 : 1,
           ),
         ),
-        child: isTransparent 
-            ? const Icon(Icons.format_color_reset, size: 20, color: Colors.white54)
+        child: isTransparent
+            ? Icon(Icons.format_color_reset, size: 16, color: AppColors.secondaryText)
             : null,
       ),
-    );
-  }
-
-  Widget _buildSlider(BuildContext context, String label, double value, ValueChanged<double> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
-        Slider(
-          value: value,
-          min: -3.14,
-          max: 3.14,
-          activeColor: Theme.of(context).colorScheme.primary,
-          onChanged: onChanged,
-        ),
-      ],
     );
   }
 }

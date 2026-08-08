@@ -5,7 +5,8 @@ enum DeviceCategory {
   android('Android'),
   tablet('Tablet'),
   macos('macOS'),
-  windows('Windows');
+  windows('Windows'),
+  monitor('Monitor');
 
   final String label;
   const DeviceCategory(this.label);
@@ -55,7 +56,7 @@ class DeviceSpecConstants {
     id: 'iphone_16_pro_max_desert',
     colorName: 'Desert Titanium',
     assetPath: 'lib/assets/16 Pro Max - Desert Titanium.png',
-    screenRect: Rect.fromLTWH(100, 100, 1320, 2868),
+    screenRect: Rect.fromLTWH(100, 251, 1320, 2717),
     cornerRadius: 144.0,
   );
 }

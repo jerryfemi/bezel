@@ -8,7 +8,14 @@ import '../screens/export_progress_screen.dart';
 import '../widgets/panels/left_rail_widget.dart';
 import '../widgets/panels/device_selector_panel.dart';
 import '../widgets/panels/background_panel.dart';
+import '../widgets/panels/crop_panel.dart';
 import '../widgets/video_playback_controls.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_metrics.dart';
+import '../theme/app_typography.dart';
+import '../widgets/studio/studio_button.dart';
+import '../widgets/studio/rotation_dial.dart';
+
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -41,7 +48,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           .setSourceImage(file.path, isVideo: isVideo);
 
       if (isVideo) {
-        // Store the raw video bytes for FFmpeg compositing
         final bytes = await file.readAsBytes();
         ref.read(videoRawBytesProvider.notifier).state = bytes;
       }
@@ -51,15 +57,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   Future<void> _exportMedia() async {
     final project = ref.read(mockupProjectProvider);
 
-    // Force reset rotation for video exports since FFmpeg composite is flat 2D
     if (project.isVideo &&
         (project.rotationX != 0 ||
             project.rotationY != 0 ||
             project.rotationZ != 0)) {
       ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-      await Future.delayed(
-        const Duration(milliseconds: 100),
-      ); // Wait for UI to update
+      await Future.delayed(const Duration(milliseconds: 100));
     }
 
     if (project.isVideo) {
@@ -111,133 +114,33 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final project = ref.watch(mockupProjectProvider);
 
     return Scaffold(
-      backgroundColor: project.backgroundColor,
-      appBar: AppBar(
-        title: const Text('Bezel'),
-        actions: [
-          TextButton.icon(
-            onPressed: () => _pickMedia(false),
-            icon: const Icon(Icons.image),
-            label: const Text('Add Image'),
-          ),
-          const SizedBox(width: 8),
-          TextButton.icon(
-            onPressed: () => _pickMedia(true),
-            icon: const Icon(Icons.videocam),
-            label: const Text('Add Video'),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: _isExporting ? null : _exportMedia,
-            icon: _isExporting
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.download),
-            label: const Text('Export Mockup'),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Row(
+      backgroundColor: AppColors.canvas,
+      body: Column(
         children: [
-          // Left Rail - Icon Tools
-          const LeftRailWidget(),
-
-          // Right Panel - Context Sensitive
-          Consumer(
-            builder: (context, ref, child) {
-              final activeTool = ref.watch(activeEditorToolProvider);
-              if (activeTool == EditorTool.device) {
-                return const DeviceSelectorPanel();
-              } else if (activeTool == EditorTool.background) {
-                return const BackgroundPanel();
-              }
-              return const SizedBox(width: 280); // Placeholder
-            },
-          ),
-
-          // Main Canvas
+          // ─── TOP BAR (56px) ─────────────────────────────────
+          _buildTopBar(),
+          
+          // ─── MAIN CONTENT ──────────────────────────────────
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (!_isInitialScaleSet && constraints.maxHeight > 0) {
-                  _isInitialScaleSet = true;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    final project = ref.read(mockupProjectProvider);
-                    // Approximate total height: screen height + top bezel * 2 + 128px padding
-                    final deviceHeight = project.device.screenRect.height + (project.device.screenRect.top * 2) + 128;
-                    // Target 70% of available vertical space
-                    final targetScale = (constraints.maxHeight * 0.7) / deviceHeight;
-                    _transformationController.value = Matrix4.identity()..scale(targetScale, targetScale, 1.0);
-                  });
-                }
+            child: Row(
+              children: [
+                // ─── LEFT RAIL (72px) ──────────────────────
+                const LeftRailWidget(),
                 
-                final canvasCenterX = constraints.maxWidth / 2;
-                final canvasCenterY = constraints.maxHeight / 2;
-                return Stack(
-                  children: [
-                    GestureDetector(
-                  onPanUpdate: (details) {
-                    // Drag to rotate
-                    ref
-                        .read(mockupProjectProvider.notifier)
-                        .updateRotation(
-                          -details.delta.dy * 0.01,
-                          details.delta.dx * 0.01,
-                          0,
-                        );
-                  },
-                  child: InteractiveViewer(
-                    transformationController: _transformationController,
-                    boundaryMargin: const EdgeInsets.all(double.infinity),
-                    minScale: 0.1,
-                    maxScale: 4.0,
-                    constrained:
-                        false, // Prevents InteractiveViewer from forcing screen constraints
-                    child: UnconstrainedBox(
-                      // Ensures RepaintBoundary layout size is never clipped
-                      clipBehavior: Clip.none,
-                      child: RepaintBoundary(
-                        key: _repaintBoundaryKey,
-                        // We wrap the mockup in a container with the background color
-                        // so the exported image has the correct background.
-                        child: Container(
-                          color: project.isCapturingOverlay
-                              ? Colors.transparent
-                              : project.backgroundColor,
-                          padding: const EdgeInsets.all(
-                            64,
-                          ), // Some padding around the device in export
-                          child: const PhoneMockupWidget(),
-                        ),
-                      ),
-                    ),
-                  ),
+                // Thin border between rail and canvas
+                const VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
+                
+                // ─── CANVAS (Dominant ~70%) ────────────────
+                Expanded(
+                  child: _buildCanvas(project),
                 ),
                 
-                // Floating Zoom Slider
-                Positioned(
-                  bottom: 32,
-                  left: 32,
-                  child: _buildZoomSlider(canvasCenterX, canvasCenterY),
-                ),
+                // Thin border between canvas and inspector
+                const VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
                 
-                // Floating Playback Controls
-                if (ref.watch(mockupProjectProvider).isVideo)
-                  const Positioned(
-                    bottom: 32,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: VideoPlaybackControls(),
-                    ),
-                  ),
+                // ─── RIGHT INSPECTOR (280px) ───────────────
+                _buildInspectorPanel(),
               ],
-            );
-              },
             ),
           ),
         ],
@@ -245,14 +148,187 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // TOP BAR — 56px, extremely quiet
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildTopBar() {
+    return Container(
+      height: 56,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(
+          bottom: BorderSide(color: AppColors.border, width: 1),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+      child: Row(
+        children: [
+          // LEFT: Project name
+          Text('Untitled Mockup', style: AppTypography.uiBody),
+          
+          const Spacer(),
+          
+          // RIGHT: Media pickers + Export
+          _TopBarAction(
+            icon: Icons.image_outlined,
+            label: 'Image',
+            onTap: () => _pickMedia(false),
+          ),
+          const SizedBox(width: AppSpacing.s8),
+          _TopBarAction(
+            icon: Icons.videocam_outlined,
+            label: 'Video',
+            onTap: () => _pickMedia(true),
+          ),
+          const SizedBox(width: AppSpacing.s16),
+          StudioButton(
+            label: 'Export',
+            icon: Icons.download_rounded,
+            isPrimary: true,
+            onPressed: _isExporting ? () {} : _exportMedia,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CANVAS — dominant surface, the hero
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildCanvas(dynamic project) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!_isInitialScaleSet && constraints.maxHeight > 0) {
+          _isInitialScaleSet = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final project = ref.read(mockupProjectProvider);
+            final deviceWidth = project.device.screenRect.width + (project.device.screenRect.left * 2) + 128;
+            final deviceHeight = project.device.screenRect.height + (project.device.screenRect.top * 2) + 128;
+            
+            final targetScale = (constraints.maxHeight * 0.7) / deviceHeight;
+            
+            final dx = (constraints.maxWidth - (deviceWidth * targetScale)) / 2;
+            final dy = (constraints.maxHeight - (deviceHeight * targetScale)) / 2;
+            
+            final initialTransform = Matrix4.identity()
+              ..translate(dx, dy, 0.0)
+              ..scale(targetScale, targetScale, 1.0);
+              
+            _transformationController.value = initialTransform;
+          });
+        }
+        
+        final canvasCenterX = constraints.maxWidth / 2;
+        final canvasCenterY = constraints.maxHeight / 2;
+        
+        return Container(
+          color: project.backgroundColor,
+          child: Stack(
+            children: [
+              // The interactive canvas with the device mockup
+              GestureDetector(
+                onPanUpdate: (details) {
+                  ref
+                      .read(mockupProjectProvider.notifier)
+                      .updateRotation(
+                        -details.delta.dy * 0.01,
+                        details.delta.dx * 0.01,
+                        0,
+                      );
+                },
+                child: InteractiveViewer(
+                  transformationController: _transformationController,
+                  boundaryMargin: const EdgeInsets.all(double.infinity),
+                  minScale: 0.1,
+                  maxScale: 4.0,
+                  scaleEnabled: ref.watch(activeEditorToolProvider) != EditorTool.crop,
+                  constrained: false,
+                  child: UnconstrainedBox(
+                    clipBehavior: Clip.none,
+                    child: RepaintBoundary(
+                      key: _repaintBoundaryKey,
+                      child: Builder(
+                        builder: (context) {
+                          final rotationMagnitude = project.rotationX.abs() + project.rotationY.abs() + project.rotationZ.abs();
+                          final dynamicPadding = 64.0 + (rotationMagnitude * 800).clamp(0.0, 1500.0);
+                          
+                          return Container(
+                            color: project.isCapturingOverlay
+                                ? Colors.transparent
+                                : project.backgroundColor,
+                            padding: EdgeInsets.all(dynamicPadding),
+                            child: const PhoneMockupWidget(),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
+              // ─── Floating Canvas Controls (Glass Treatment) ───
+              
+              // Rotation Dial — top right
+              const Positioned(
+                top: AppSpacing.s32,
+                right: AppSpacing.s32,
+                child: RotationDial(),
+              ),
+              
+              // Zoom slider — bottom left
+              Positioned(
+                bottom: AppSpacing.s32,
+                left: AppSpacing.s32,
+                child: _buildZoomSlider(canvasCenterX, canvasCenterY),
+              ),
+              
+              // Video playback controls — bottom center
+              if (ref.watch(mockupProjectProvider).isVideo)
+                const Positioned(
+                  bottom: 32,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: VideoPlaybackControls(),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RIGHT INSPECTOR — 280px, contextual
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildInspectorPanel() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final activeTool = ref.watch(activeEditorToolProvider);
+        if (activeTool == EditorTool.device) {
+          return const DeviceSelectorPanel();
+        } else if (activeTool == EditorTool.background) {
+          return const BackgroundPanel();
+        } else if (activeTool == EditorTool.crop) {
+          return const CropPanel();
+        }
+        return const SizedBox(width: 280);
+      },
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FLOATING ZOOM SLIDER — Glass Treatment
+  // ═══════════════════════════════════════════════════════════
   Widget _buildZoomSlider(double centerX, double centerY) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xAA16181C), // rgba(22, 24, 28, 0.65)
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.surface.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(AppRadius.panel),
         border: Border.all(
-          color: const Color(0x14F5F1E8),
-        ), // rgba(245, 241, 232, 0.08)
+          color: AppColors.primaryText.withValues(alpha: 0.08),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Colors.black45,
@@ -261,41 +337,106 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.s16,
+        vertical: AppSpacing.s8,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.zoom_out, size: 16, color: Colors.white70),
+          Icon(Icons.zoom_out, size: 16, color: AppColors.secondaryText),
           SizedBox(
             width: 150,
             child: ValueListenableBuilder<Matrix4>(
               valueListenable: _transformationController,
               builder: (context, matrix, child) {
                 final scale = matrix.getMaxScaleOnAxis();
-                return Slider(
-                  value: scale.clamp(0.1, 4.0),
-                  min: 0.1,
-                  max: 4.0,
-                  activeColor: const Color(0xFF4DE8C4),
-                  inactiveColor: Colors.white24,
-                  onChanged: (newScale) {
-                    final current = _transformationController.value.clone();
-                    final currentScale = current.getMaxScaleOnAxis();
-                    final ratio = newScale / currentScale;
-                    // Transform to center, scale, transform back
-                    current.translate(centerX, centerY, 0.0);
-                    current.scale(ratio, ratio, 1.0);
-                    current.translate(-centerX, -centerY, 0.0);
-                    
-                    _transformationController.value = current;
-                  },
+                return SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2.0,
+                    activeTrackColor: AppColors.accent,
+                    inactiveTrackColor: AppColors.border,
+                    thumbColor: AppColors.primaryText,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                  ),
+                  child: Slider(
+                    value: scale.clamp(0.1, 4.0),
+                    min: 0.1,
+                    max: 4.0,
+                    onChanged: (newScale) {
+                      final current = _transformationController.value.clone();
+                      final currentScale = current.getMaxScaleOnAxis();
+                      final ratio = newScale / currentScale;
+                      current.translate(centerX, centerY, 0.0);
+                      current.scale(ratio, ratio, 1.0);
+                      current.translate(-centerX, -centerY, 0.0);
+                      
+                      _transformationController.value = current;
+                    },
+                  ),
                 );
               },
             ),
           ),
-          const Icon(Icons.zoom_in, size: 16, color: Colors.white70),
+          Icon(Icons.zoom_in, size: 16, color: AppColors.secondaryText),
         ],
       ),
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// TOP BAR ACTION — quiet text+icon button for the top bar
+// ═══════════════════════════════════════════════════════════════
+class _TopBarAction extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _TopBarAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  State<_TopBarAction> createState() => _TopBarActionState();
+}
+
+class _TopBarActionState extends State<_TopBarAction> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 80),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s12,
+            vertical: AppSpacing.s4,
+          ),
+          decoration: BoxDecoration(
+            color: _isHovered ? AppColors.raisedSurface : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.control),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(widget.icon, size: 16, color: AppColors.secondaryText),
+              const SizedBox(width: AppSpacing.s4),
+              Text(widget.label, style: AppTypography.uiLabel.copyWith(
+                color: AppColors.secondaryText,
+              )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
