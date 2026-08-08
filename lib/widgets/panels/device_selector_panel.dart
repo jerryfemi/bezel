@@ -12,7 +12,8 @@ class DeviceSelectorPanel extends ConsumerStatefulWidget {
   const DeviceSelectorPanel({super.key});
 
   @override
-  ConsumerState<DeviceSelectorPanel> createState() => _DeviceSelectorPanelState();
+  ConsumerState<DeviceSelectorPanel> createState() =>
+      _DeviceSelectorPanelState();
 }
 
 class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
@@ -20,7 +21,9 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final models = DeviceRegistry.devices.where((d) => d.category == _selectedCategory).toList();
+    final models = DeviceRegistry.devices
+        .where((d) => d.category == _selectedCategory)
+        .toList();
 
     return Container(
       width: 280,
@@ -42,8 +45,7 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
               child: StudioSegmentedControl<DeviceCategory>(
                 expand: false, // Prevent wrapping / squishing
                 segments: {
-                  for (final cat in DeviceCategory.values)
-                    cat: cat.label,
+                  for (final cat in DeviceCategory.values) cat: cat.label,
                 },
                 selectedValue: _selectedCategory,
                 onValueChanged: (cat) {
@@ -52,7 +54,7 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
               ),
             ),
           ),
-          
+
           const SizedBox(height: AppSpacing.s16),
           Divider(color: AppColors.border, height: 1),
           const SizedBox(height: AppSpacing.s8),
@@ -84,11 +86,11 @@ class _DeviceModelItem extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s8),
-          child: Text(
-            model.name,
-            style: AppTypography.uiLabel,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.s16,
+            vertical: AppSpacing.s8,
           ),
+          child: Text(model.name, style: AppTypography.uiLabel),
         ),
         SizedBox(
           height: 180,
@@ -99,7 +101,7 @@ class _DeviceModelItem extends ConsumerWidget {
             itemBuilder: (ctx, i) {
               final variant = model.variants[i];
               final isActive = activeDevice.id == variant.id;
-              
+
               return GestureDetector(
                 onTap: () {
                   ref.read(mockupProjectProvider.notifier).setDevice(variant);
@@ -110,7 +112,9 @@ class _DeviceModelItem extends ConsumerWidget {
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
                   width: 120,
                   decoration: BoxDecoration(
-                    color: isActive ? AppColors.raisedSurface : Colors.transparent,
+                    color: isActive
+                        ? AppColors.raisedSurface
+                        : Colors.transparent,
                     border: Border.all(
                       color: isActive ? AppColors.accent : Colors.transparent,
                       width: 1,
@@ -123,9 +127,16 @@ class _DeviceModelItem extends ConsumerWidget {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.s8),
-                          child: variant.assetPath.isEmpty 
-                              ? Icon(Icons.smartphone, size: 32, color: AppColors.secondaryText)
-                              : Image.asset(variant.assetPath, fit: BoxFit.contain),
+                          child: variant.assetPath.isEmpty
+                              ? Icon(
+                                  Icons.smartphone,
+                                  size: 32,
+                                  color: AppColors.secondaryText,
+                                )
+                              : Image.asset(
+                                  variant.assetPath,
+                                  fit: BoxFit.contain,
+                                ),
                         ),
                       ),
                       Padding(
@@ -136,7 +147,9 @@ class _DeviceModelItem extends ConsumerWidget {
                         ),
                         child: Text(
                           variant.colorName,
-                          style: AppTypography.technicalSubtle.copyWith(fontSize: 10),
+                          style: AppTypography.technicalSubtle.copyWith(
+                            fontSize: 10,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           maxLines: 1,
