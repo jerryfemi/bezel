@@ -24,14 +24,17 @@ class PhoneMockupWidget extends ConsumerWidget {
         child: Stack(
           children: [
             // The media screen layer (bottom layer)
+            // We use the side bezel thickness (screenRect.left) as the top inset
+            // so media extends BEHIND the notch/Dynamic Island. The bezel PNG
+            // on top naturally masks the notch area, just like a real phone.
             Positioned(
               left: device.screenRect.left - 2,
-              top: device.screenRect.top - 2,
+              top: device.screenRect.left - 2, // Use side bezel, not top of transparent hole
               width: device.screenRect.width + 4,
-              height: device.screenRect.height + 4,
+              height: device.screenRect.height + (device.screenRect.top - device.screenRect.left) + 4,
                 child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.transparent, // Always transparent to prevent edges from sticking out
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(device.cornerRadius),
                 ),
                 clipBehavior: Clip.antiAlias,
