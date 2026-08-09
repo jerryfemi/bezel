@@ -198,9 +198,15 @@ class _MockupMediaWidgetState extends ConsumerState<_MockupMediaWidget> {
 
     Widget mediaContent;
     if (!widget.isVideo) {
-      mediaContent = kIsWeb
-          ? Image.network(widget.path, fit: BoxFit.cover)
-          : Image.file(File(widget.path), fit: BoxFit.cover);
+      mediaContent = SizedBox.expand(
+        child: FittedBox(
+          fit: BoxFit.cover,
+          clipBehavior: Clip.hardEdge,
+          child: kIsWeb
+              ? Image.network(widget.path)
+              : Image.file(File(widget.path)),
+        ),
+      );
     } else {
       if (_controller != null && _controller!.value.hasError) {
         mediaContent = Center(

@@ -16,7 +16,6 @@ import '../theme/app_typography.dart';
 import '../widgets/studio/studio_button.dart';
 import '../widgets/studio/rotation_dial.dart';
 
-
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
 
@@ -111,7 +110,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     await Future.delayed(const Duration(milliseconds: 100));
 
     final path = await ImageExportService.exportToPng(_repaintBoundaryKey);
-    
+
     // Close the dialog
     if (mounted) Navigator.of(context).pop();
 
@@ -139,25 +138,31 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         children: [
           // ─── TOP BAR (56px) ─────────────────────────────────
           _buildTopBar(),
-          
+
           // ─── MAIN CONTENT ──────────────────────────────────
           Expanded(
             child: Row(
               children: [
                 // ─── LEFT RAIL (72px) ──────────────────────
                 const LeftRailWidget(),
-                
+
                 // Thin border between rail and canvas
-                const VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
-                
-                // ─── CANVAS (Dominant ~70%) ────────────────
-                Expanded(
-                  child: _buildCanvas(project),
+                const VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: AppColors.border,
                 ),
-                
+
+                // ─── CANVAS (Dominant ~70%) ────────────────
+                Expanded(child: _buildCanvas(project)),
+
                 // Thin border between canvas and inspector
-                const VerticalDivider(width: 1, thickness: 1, color: AppColors.border),
-                
+                const VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: AppColors.border,
+                ),
+
                 // ─── RIGHT INSPECTOR (280px) ───────────────
                 _buildInspectorPanel(),
               ],
@@ -176,18 +181,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       height: 56,
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(
         children: [
           // LEFT: Project name
           Text('Untitled Mockup', style: AppTypography.uiBody),
-          
+
           const Spacer(),
-          
+
           // RIGHT: Media pickers + Export
           _TopBarAction(
             icon: Icons.image_outlined,
@@ -222,25 +225,32 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           _isInitialScaleSet = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final project = ref.read(mockupProjectProvider);
-            final deviceWidth = project.device.screenRect.width + (project.device.screenRect.left * 2) + 128;
-            final deviceHeight = project.device.screenRect.height + (project.device.screenRect.top * 2) + 128;
-            
+            final deviceWidth =
+                project.device.screenRect.width +
+                (project.device.screenRect.left * 2) +
+                128;
+            final deviceHeight =
+                project.device.screenRect.height +
+                (project.device.screenRect.top * 2) +
+                128;
+
             final targetScale = (constraints.maxHeight * 0.7) / deviceHeight;
-            
+
             final dx = (constraints.maxWidth - (deviceWidth * targetScale)) / 2;
-            final dy = (constraints.maxHeight - (deviceHeight * targetScale)) / 2;
-            
+            final dy =
+                (constraints.maxHeight - (deviceHeight * targetScale)) / 2;
+
             final initialTransform = Matrix4.identity()
               ..translate(dx, dy, 0.0)
               ..scale(targetScale, targetScale, 1.0);
-              
+
             _transformationController.value = initialTransform;
           });
         }
-        
+
         final canvasCenterX = constraints.maxWidth / 2;
         final canvasCenterY = constraints.maxHeight / 2;
-        
+
         return Container(
           color: project.backgroundColor,
           child: Stack(
@@ -261,7 +271,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   boundaryMargin: const EdgeInsets.all(double.infinity),
                   minScale: 0.1,
                   maxScale: 4.0,
-                  scaleEnabled: ref.watch(activeEditorToolProvider) != EditorTool.crop,
+                  scaleEnabled:
+                      ref.watch(activeEditorToolProvider) != EditorTool.crop,
                   constrained: false,
                   child: UnconstrainedBox(
                     clipBehavior: Clip.none,
@@ -269,9 +280,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       key: _repaintBoundaryKey,
                       child: Builder(
                         builder: (context) {
-                          final rotationMagnitude = project.rotationX.abs() + project.rotationY.abs() + project.rotationZ.abs();
-                          final dynamicPadding = 64.0 + (rotationMagnitude * 800).clamp(0.0, 1500.0);
-                          
+                          final rotationMagnitude =
+                              project.rotationX.abs() +
+                              project.rotationY.abs() +
+                              project.rotationZ.abs();
+                          final dynamicPadding =
+                              64.0 +
+                              (rotationMagnitude * 800).clamp(0.0, 1500.0);
+
                           return Container(
                             color: project.isCapturingOverlay
                                 ? Colors.transparent
@@ -285,32 +301,30 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   ),
                 ),
               ),
-              
+
               // ─── Floating Canvas Controls (Glass Treatment) ───
-              
+
               // Rotation Dial — top right
               const Positioned(
                 top: AppSpacing.s32,
                 right: AppSpacing.s32,
                 child: RotationDial(),
               ),
-              
+
               // Zoom slider — bottom left
               Positioned(
                 bottom: AppSpacing.s32,
                 left: AppSpacing.s32,
                 child: _buildZoomSlider(canvasCenterX, canvasCenterY),
               ),
-              
+
               // Video playback controls — bottom center
               if (ref.watch(mockupProjectProvider).isVideo)
                 const Positioned(
                   bottom: 32,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: VideoPlaybackControls(),
-                  ),
+                  child: Center(child: VideoPlaybackControls()),
                 ),
             ],
           ),
@@ -377,8 +391,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     activeTrackColor: AppColors.accent,
                     inactiveTrackColor: AppColors.border,
                     thumbColor: AppColors.primaryText,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 5.0,
+                    ),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 12.0,
+                    ),
                   ),
                   child: Slider(
                     value: scale.clamp(0.1, 4.0),
@@ -391,7 +409,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       current.translate(centerX, centerY, 0.0);
                       current.scale(ratio, ratio, 1.0);
                       current.translate(-centerX, -centerY, 0.0);
-                      
+
                       _transformationController.value = current;
                     },
                   ),
@@ -449,9 +467,12 @@ class _TopBarActionState extends State<_TopBarAction> {
             children: [
               Icon(widget.icon, size: 16, color: AppColors.secondaryText),
               const SizedBox(width: AppSpacing.s4),
-              Text(widget.label, style: AppTypography.uiLabel.copyWith(
-                color: AppColors.secondaryText,
-              )),
+              Text(
+                widget.label,
+                style: AppTypography.uiLabel.copyWith(
+                  color: AppColors.secondaryText,
+                ),
+              ),
             ],
           ),
         ),
@@ -459,4 +480,3 @@ class _TopBarActionState extends State<_TopBarAction> {
     );
   }
 }
-

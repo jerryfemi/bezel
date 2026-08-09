@@ -59,6 +59,7 @@ class DeviceSpecConstants {
     colorName: 'Desert Titanium',
     assetPath: 'lib/assets/16 Pro Max - Desert Titanium.png',
     screenRect: Rect.fromLTWH(100, 251, 1320, 2717),
+    screenPadding: EdgeInsets.only(top: 151),
     cornerRadius: 144.0,
   );
 }
