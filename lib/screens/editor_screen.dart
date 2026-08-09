@@ -93,10 +93,30 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     }
 
     // Image Export Path
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 24),
+            Text('Generating High-Res Image...'),
+          ],
+        ),
+      ),
+    );
+
+    // Give the UI time to render the dialog before the heavy work
+    await Future.delayed(const Duration(milliseconds: 100));
+
     final path = await ImageExportService.exportToPng(_repaintBoundaryKey);
-    setState(() => _isExporting = false);
+    
+    // Close the dialog
+    if (mounted) Navigator.of(context).pop();
 
     if (mounted) {
+      setState(() => _isExporting = false);
       if (path != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Exported successfully to $path')),
