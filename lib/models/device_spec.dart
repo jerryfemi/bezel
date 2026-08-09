@@ -20,6 +20,7 @@ class DeviceVariant {
   // Example: Rect.fromLTWH(offsetX, offsetY, screenWidth, screenHeight)
   final Rect screenRect;
   final double cornerRadius;
+  final EdgeInsets screenPadding;
 
   const DeviceVariant({
     required this.id,
@@ -27,6 +28,7 @@ class DeviceVariant {
     required this.assetPath,
     required this.screenRect,
     required this.cornerRadius,
+    this.screenPadding = EdgeInsets.zero,
   });
 
   // Polyfill for old code

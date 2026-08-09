@@ -16,6 +16,7 @@ class DeviceRegistry {
           colorName: 'Black',
           assetPath: 'lib/assets/13 mini - Black.png',
           screenRect: Rect.fromLTWH(100, 210, 1080, 2230),
+          screenPadding: EdgeInsets.only(top: 110),
           cornerRadius: 100.0,
         ),
         DeviceVariant(
@@ -23,6 +24,7 @@ class DeviceRegistry {
           colorName: 'Blue',
           assetPath: 'lib/assets/13 mini - Blue.png',
           screenRect: Rect.fromLTWH(100, 210, 1080, 2230),
+          screenPadding: EdgeInsets.only(top: 110),
           cornerRadius: 100.0,
         ),
         DeviceVariant(
@@ -30,6 +32,7 @@ class DeviceRegistry {
           colorName: 'Pink',
           assetPath: 'lib/assets/13 mini - Pink.png',
           screenRect: Rect.fromLTWH(100, 210, 1080, 2230),
+          screenPadding: EdgeInsets.only(top: 110),
           cornerRadius: 100.0,
         ),
         DeviceVariant(
@@ -37,6 +40,7 @@ class DeviceRegistry {
           colorName: 'Product (RED)',
           assetPath: 'lib/assets/13 mini - Product (RED).png',
           screenRect: Rect.fromLTWH(100, 210, 1080, 2230),
+          screenPadding: EdgeInsets.only(top: 110),
           cornerRadius: 100.0,
         ),
         DeviceVariant(
@@ -44,6 +48,7 @@ class DeviceRegistry {
           colorName: 'Starlight',
           assetPath: 'lib/assets/13 mini - Starlight.png',
           screenRect: Rect.fromLTWH(100, 210, 1080, 2230),
+          screenPadding: EdgeInsets.only(top: 110),
           cornerRadius: 100.0,
         ),
       ],
@@ -58,6 +63,7 @@ class DeviceRegistry {
           colorName: 'Deep Purple',
           assetPath: 'lib/assets/14 Pro Max - Deep Purple - Shadow.png',
           screenRect: Rect.fromLTWH(101, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 143),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -65,6 +71,7 @@ class DeviceRegistry {
           colorName: 'Gold',
           assetPath: 'lib/assets/14 Pro Max - Gold.png',
           screenRect: Rect.fromLTWH(101, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 143),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -72,6 +79,7 @@ class DeviceRegistry {
           colorName: 'Silver',
           assetPath: 'lib/assets/14 Pro Max - Silver.png',
           screenRect: Rect.fromLTWH(101, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 143),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -79,6 +87,7 @@ class DeviceRegistry {
           colorName: 'Space Black',
           assetPath: 'lib/assets/14 Pro Max - Space Black.png',
           screenRect: Rect.fromLTWH(101, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 143),
           cornerRadius: 130.0,
         ),
       ],
@@ -93,6 +102,7 @@ class DeviceRegistry {
           colorName: 'Black Titanium',
           assetPath: 'lib/assets/15 Pro Max - Black Titanium.png',
           screenRect: Rect.fromLTWH(99, 243, 1290, 2653),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -100,6 +110,7 @@ class DeviceRegistry {
           colorName: 'Blue Titanium',
           assetPath: 'lib/assets/15 Pro Max - Blue Titanium.png',
           screenRect: Rect.fromLTWH(99, 243, 1290, 2653),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -107,6 +118,7 @@ class DeviceRegistry {
           colorName: 'Natural Titanium',
           assetPath: 'lib/assets/15 Pro Max - Natural Titanium.png',
           screenRect: Rect.fromLTWH(99, 243, 1290, 2653),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
       ],
@@ -121,6 +133,7 @@ class DeviceRegistry {
           colorName: 'Black',
           assetPath: 'lib/assets/16 Plus - Black.png',
           screenRect: Rect.fromLTWH(100, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -128,6 +141,7 @@ class DeviceRegistry {
           colorName: 'Pink',
           assetPath: 'lib/assets/16 Plus - Pink.png',
           screenRect: Rect.fromLTWH(100, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -135,6 +149,7 @@ class DeviceRegistry {
           colorName: 'Teal',
           assetPath: 'lib/assets/16 Plus - Teal.png',
           screenRect: Rect.fromLTWH(100, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -142,6 +157,7 @@ class DeviceRegistry {
           colorName: 'Ultramarine',
           assetPath: 'lib/assets/16 Plus - Ultramarine.png',
           screenRect: Rect.fromLTWH(100, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -149,6 +165,7 @@ class DeviceRegistry {
           colorName: 'White',
           assetPath: 'lib/assets/16 Plus - White.png',
           screenRect: Rect.fromLTWH(100, 244, 1290, 2652),
+          screenPadding: EdgeInsets.only(top: 144),
           cornerRadius: 130.0,
         ),
       ],
@@ -163,6 +180,7 @@ class DeviceRegistry {
           colorName: 'Black Titanium',
           assetPath: 'lib/assets/16 Pro Max - Black Titanium.png',
           screenRect: Rect.fromLTWH(100, 251, 1320, 2717),
+          screenPadding: EdgeInsets.only(top: 151),
           cornerRadius: 144.0,
         ),
         DeviceVariant(
@@ -170,6 +188,7 @@ class DeviceRegistry {
           colorName: 'Desert Titanium',
           assetPath: 'lib/assets/16 Pro Max - Desert Titanium.png',
           screenRect: Rect.fromLTWH(100, 251, 1320, 2717),
+          screenPadding: EdgeInsets.only(top: 151),
           cornerRadius: 144.0,
         ),
         DeviceVariant(
@@ -177,6 +196,7 @@ class DeviceRegistry {
           colorName: 'Natural Titanium',
           assetPath: 'lib/assets/16 Pro Max - Natural Titanium.png',
           screenRect: Rect.fromLTWH(100, 251, 1320, 2717),
+          screenPadding: EdgeInsets.only(top: 151),
           cornerRadius: 144.0,
         ),
       ],
@@ -191,6 +211,7 @@ class DeviceRegistry {
           colorName: 'Cosmic Orange',
           assetPath: 'lib/assets/17 Pro - Cosmic Orange.png',
           screenRect: Rect.fromLTWH(100, 250, 1206, 2472),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -198,6 +219,7 @@ class DeviceRegistry {
           colorName: 'Deep Blue',
           assetPath: 'lib/assets/17 Pro - Deep Blue.png',
           screenRect: Rect.fromLTWH(100, 250, 1206, 2472),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -205,6 +227,7 @@ class DeviceRegistry {
           colorName: 'Silver',
           assetPath: 'lib/assets/17 Pro - Silver.png',
           screenRect: Rect.fromLTWH(100, 250, 1206, 2472),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 130.0,
         ),
       ],
@@ -219,6 +242,7 @@ class DeviceRegistry {
           colorName: 'Cosmic Orange',
           assetPath: 'lib/assets/17 Pro Max - Cosmic Orange.png',
           screenRect: Rect.fromLTWH(100, 254, 1320, 2714),
+          screenPadding: EdgeInsets.only(top: 154),
           cornerRadius: 144.0,
         ),
         DeviceVariant(
@@ -226,6 +250,7 @@ class DeviceRegistry {
           colorName: 'Deep Blue',
           assetPath: 'lib/assets/17 Pro Max - Deep Blue.png',
           screenRect: Rect.fromLTWH(100, 254, 1320, 2714),
+          screenPadding: EdgeInsets.only(top: 154),
           cornerRadius: 144.0,
         ),
         DeviceVariant(
@@ -233,6 +258,7 @@ class DeviceRegistry {
           colorName: 'Silver',
           assetPath: 'lib/assets/17 Pro Max - Silver.png',
           screenRect: Rect.fromLTWH(100, 254, 1320, 2714),
+          screenPadding: EdgeInsets.only(top: 154),
           cornerRadius: 144.0,
         ),
       ],
@@ -248,6 +274,7 @@ class DeviceRegistry {
           colorName: 'Silver',
           assetPath: 'lib/assets/iPhone 17 Pro - Silver - Portrait.png',
           screenRect: Rect.fromLTWH(25, 74, 400, 822),
+          screenPadding: EdgeInsets.only(top: 49),
           cornerRadius: 44.0,
         ),
       ],
@@ -267,6 +294,7 @@ class DeviceRegistry {
           colorName: 'Cloud White',
           assetPath: 'lib/assets/Air - Cloud White.png',
           screenRect: Rect.fromLTWH(100, 273, 1290, 2623),
+          screenPadding: EdgeInsets.only(top: 173),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -274,6 +302,7 @@ class DeviceRegistry {
           colorName: 'Light Gold',
           assetPath: 'lib/assets/Air - Light Gold.png',
           screenRect: Rect.fromLTWH(100, 273, 1290, 2623),
+          screenPadding: EdgeInsets.only(top: 173),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -281,6 +310,7 @@ class DeviceRegistry {
           colorName: 'Sky Blue',
           assetPath: 'lib/assets/Air - Sky Blue.png',
           screenRect: Rect.fromLTWH(100, 273, 1290, 2623),
+          screenPadding: EdgeInsets.only(top: 173),
           cornerRadius: 130.0,
         ),
         DeviceVariant(
@@ -288,6 +318,7 @@ class DeviceRegistry {
           colorName: 'Space Black',
           assetPath: 'lib/assets/Air - Space Black.png',
           screenRect: Rect.fromLTWH(100, 273, 1290, 2623),
+          screenPadding: EdgeInsets.only(top: 173),
           cornerRadius: 130.0,
         ),
       ],
