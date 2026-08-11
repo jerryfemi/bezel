@@ -337,6 +337,7 @@ class DeviceRegistry {
           colorName: 'Hazel',
           assetPath: 'lib/assets/Pixel 9 Pro - Hazel.png',
           screenRect: Rect.fromLTWH(170, 290, 1280, 2708),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 126.0,
         ),
         DeviceVariant(
@@ -344,6 +345,7 @@ class DeviceRegistry {
           colorName: 'Rose Quartz',
           assetPath: 'lib/assets/Pixel 9 Pro - Rose Quartz.png',
           screenRect: Rect.fromLTWH(170, 290, 1280, 2708),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 126.0,
         ),
       ],
@@ -358,6 +360,7 @@ class DeviceRegistry {
           colorName: 'Hazel',
           assetPath: 'lib/assets/Pixel 9 Pro XL Hazel.png',
           screenRect: Rect.fromLTWH(170, 286, 1344, 2846),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 126.0,
         ),
         DeviceVariant(
@@ -365,6 +368,7 @@ class DeviceRegistry {
           colorName: 'Rose Quartz',
           assetPath: 'lib/assets/Pixel 9 Pro XL Rose Quartz.png',
           screenRect: Rect.fromLTWH(170, 286, 1344, 2846),
+          screenPadding: EdgeInsets.only(top: 150),
           cornerRadius: 126.0,
         ),
       ],
