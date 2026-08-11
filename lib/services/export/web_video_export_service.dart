@@ -112,7 +112,7 @@ class WebVideoExportService {
           // 3. Create transparent canvas matching the un-transformed screen hole
           'color=c=black@0.0:s=${cw}x${ch},format=rgba[trans_bg];'
           // 4. Apply InteractiveViewer pan
-          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=rgba[flat_video];'
+          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=auto[flat_video];'
           // 5. Stretch to full canvas size so perspective filter maps the corners correctly
           '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
           // 6. Apply 3D perspective mapping
@@ -182,9 +182,14 @@ class WebVideoExportService {
       onProgress(0.92, 'Finalizing...');
 
       // --- Step 6: Output ---
-      final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
+      Uint8List? outBytes;
+      try {
+        outBytes = _ffmpeg.readFile('output.mp4');
+      } catch (_) {
+        // readFile throws if the file doesn't exist (i.e. FFmpeg crashed)
+      }
 
-      if (outBytes.isEmpty) {
+      if (outBytes == null || outBytes.isEmpty) {
         // Find the actual crash reason from the log buffer
         final realLogs = ffmpegLogs
             .where((l) => !l.contains('FS.readFile'))
