@@ -123,6 +123,11 @@ class WebVideoExportService {
       final scaledW = _makeEven((cw * scale).toInt());
       final scaledH = _makeEven((ch * scale).toInt());
 
+      final bgColor = project.backgroundColor;
+      final ffmpegColor = bgColor == Colors.transparent
+          ? 'black@0.0'
+          : '0x${bgColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+
       final filterComplex =
           // 1. BoxFit.cover equivalent for the input video
           '[0:v]scale=w=$cw:h=$ch:force_original_aspect_ratio=increase,crop=$cw:$ch[covered];'
@@ -136,8 +141,12 @@ class WebVideoExportService {
           '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
           // 6. Apply 3D perspective mapping
           '[stretched_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
-          // 7. Composite warped video behind the device overlay (shortest=1 ensures it stops correctly)
-          '[warped_video][1:v]overlay=x=0:y=0:shortest=1[out]';
+          // 7. Create solid background
+          'color=c=$ffmpegColor:s=${canvasW}x$canvasH[solid_bg];'
+          // 8. Composite video on background (shortest=1 stops the infinite background color)
+          '[solid_bg][warped_video]overlay=x=0:y=0:shortest=1[vid_on_bg];'
+          // 9. Composite bezel on top
+          '[vid_on_bg][1:v]overlay=x=0:y=0:shortest=1[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 
