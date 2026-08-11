@@ -68,23 +68,42 @@ class WebVideoExportService {
       // --- Step 4: Dimensions ---
       final canvasW = _makeEven(overlayImage.width);
       final canvasH = _makeEven(overlayImage.height);
-      
+
       // Calculate the 4 projected corners of the video container
-      final videoBox = videoContainerKey.currentContext?.findRenderObject() as RenderBox?;
+      final videoBox =
+          videoContainerKey.currentContext?.findRenderObject() as RenderBox?;
       if (videoBox == null) throw Exception('Video container not found');
-      
-      final boundaryObj = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+
+      final boundaryObj =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundaryObj == null) throw Exception('RepaintBoundary not found');
 
-      final tl = videoBox.localToGlobal(const Offset(0, 0), ancestor: boundaryObj);
-      final tr = videoBox.localToGlobal(Offset(videoBox.size.width, 0), ancestor: boundaryObj);
-      final bl = videoBox.localToGlobal(Offset(0, videoBox.size.height), ancestor: boundaryObj);
-      final br = videoBox.localToGlobal(Offset(videoBox.size.width, videoBox.size.height), ancestor: boundaryObj);
+      final tl = videoBox.localToGlobal(
+        const Offset(0, 0),
+        ancestor: boundaryObj,
+      );
+      final tr = videoBox.localToGlobal(
+        Offset(videoBox.size.width, 0),
+        ancestor: boundaryObj,
+      );
+      final bl = videoBox.localToGlobal(
+        Offset(0, videoBox.size.height),
+        ancestor: boundaryObj,
+      );
+      final br = videoBox.localToGlobal(
+        Offset(videoBox.size.width, videoBox.size.height),
+        ancestor: boundaryObj,
+      );
 
-      final tlX = tl.dx; final tlY = tl.dy;
-      final trX = tr.dx; final trY = tr.dy;
-      final blX = bl.dx; final blY = bl.dy;
-      final brX = br.dx; final brY = br.dy;
+      final tlX = tl.dx;
+      final tlY = tl.dy;
+      final trX = tr.dx;
+      final trY = tr.dy;
+      final blX = bl.dx;
+      final blY = bl.dy;
+      final brX = br.dx;
+      final brY = br.dy;
 
       final cw = videoBox.size.width.toInt();
       final ch = videoBox.size.height.toInt();
@@ -100,7 +119,7 @@ class WebVideoExportService {
       final scale = matrix.getMaxScaleOnAxis();
       final tx = matrix.getTranslation().x.toInt();
       final ty = matrix.getTranslation().y.toInt();
-      
+
       final scaledW = _makeEven((cw * scale).toInt());
       final scaledH = _makeEven((ch * scale).toInt());
 
@@ -111,14 +130,14 @@ class WebVideoExportService {
           '[covered]scale=w=$scaledW:h=$scaledH[zoomed];'
           // 3. Create transparent canvas matching the un-transformed screen hole
           'color=c=black@0.0:s=${cw}x${ch},format=rgba[trans_bg];'
-          // 4. Apply InteractiveViewer pan
-          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=auto[flat_video];'
+          // 4. Apply InteractiveViewer pan (shortest=1 stops the infinite color stream when video ends)
+          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=auto:shortest=1[flat_video];'
           // 5. Stretch to full canvas size so perspective filter maps the corners correctly
           '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
           // 6. Apply 3D perspective mapping
           '[stretched_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
-          // 7. Composite warped video behind the device overlay (which has the solid background & transparent hole)
-          '[warped_video][1:v]overlay=x=0:y=0[out]';
+          // 7. Composite warped video behind the device overlay (shortest=1 ensures it stops correctly)
+          '[warped_video][1:v]overlay=x=0:y=0:shortest=1[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 
@@ -140,12 +159,12 @@ class WebVideoExportService {
 
       // Build FFmpeg arguments
       final List<String> args = [];
-      
+
       // If trim start is set, apply input seek
       if (project.trimStartTime != null) {
         args.addAll(['-ss', '${project.trimStartTime!.inMilliseconds / 1000}']);
       }
-      
+
       // If trim end is set, specify duration to cut off
       if (project.trimStartTime != null && project.trimEndTime != null) {
         final duration = project.trimEndTime! - project.trimStartTime!;
@@ -157,6 +176,8 @@ class WebVideoExportService {
       args.addAll([
         '-i',
         'input.mp4',
+        '-loop',
+        '1',
         '-i',
         'overlay.png',
         '-filter_complex',
