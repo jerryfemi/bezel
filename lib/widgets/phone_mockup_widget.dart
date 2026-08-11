@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/mockup_provider.dart';
 
+final videoContainerKey = GlobalKey();
+
 class PhoneMockupWidget extends ConsumerWidget {
   const PhoneMockupWidget({super.key});
 
@@ -32,6 +34,7 @@ class PhoneMockupWidget extends ConsumerWidget {
               width: device.screenRect.width + device.screenPadding.left + device.screenPadding.right,
               height: device.screenRect.height + device.screenPadding.top + device.screenPadding.bottom,
                 child: Container(
+                  key: videoContainerKey,
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(device.cornerRadius),

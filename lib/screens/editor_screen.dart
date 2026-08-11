@@ -289,8 +289,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                               (rotationMagnitude * 800).clamp(0.0, 1500.0);
 
                           return Container(
-                            color: project.isCapturingOverlay
-                                ? Colors.transparent
+                            color: (project.backgroundColor == Colors.transparent) 
+                                ? Colors.black 
                                 : project.backgroundColor,
                             padding: EdgeInsets.all(dynamicPadding),
                             child: const PhoneMockupWidget(),

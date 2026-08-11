@@ -7,6 +7,7 @@ import 'package:ffmpeg_wasm/ffmpeg_wasm.dart';
 import 'dart:html' as html;
 import '../../providers/mockup_provider.dart';
 import '../../models/mockup_project.dart';
+import '../../widgets/phone_mockup_widget.dart';
 
 class WebVideoExportService {
   late final FFmpeg _ffmpeg = createFFmpeg(
@@ -67,39 +68,57 @@ class WebVideoExportService {
       // --- Step 4: Dimensions ---
       final canvasW = _makeEven(overlayImage.width);
       final canvasH = _makeEven(overlayImage.height);
-      final screenW = _makeEven(project.device.screenRect.width.toInt());
-      final screenH = _makeEven(project.device.screenRect.height.toInt());
-      final offsetX = 64 + 20;
-      final offsetY = 64 + 20;
+      
+      // Calculate the 4 projected corners of the video container
+      final videoBox = videoContainerKey.currentContext?.findRenderObject() as RenderBox?;
+      if (videoBox == null) throw Exception('Video container not found');
+      
+      final boundaryObj = boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundaryObj == null) throw Exception('RepaintBoundary not found');
+
+      final tl = videoBox.localToGlobal(const Offset(0, 0), ancestor: boundaryObj);
+      final tr = videoBox.localToGlobal(Offset(videoBox.size.width, 0), ancestor: boundaryObj);
+      final bl = videoBox.localToGlobal(Offset(0, videoBox.size.height), ancestor: boundaryObj);
+      final br = videoBox.localToGlobal(Offset(videoBox.size.width, videoBox.size.height), ancestor: boundaryObj);
+
+      final tlX = tl.dx; final tlY = tl.dy;
+      final trX = tr.dx; final trY = tr.dy;
+      final blX = bl.dx; final blY = bl.dy;
+      final brX = br.dx; final brY = br.dy;
+
+      final cw = videoBox.size.width.toInt();
+      final ch = videoBox.size.height.toInt();
 
       debugPrint(
-        'FFmpeg dimensions: canvas=${canvasW}x$canvasH, screen=${screenW}x$screenH, offset=$offsetX,$offsetY',
+        'FFmpeg corners: tl($tlX, $tlY), tr($trX, $trY), bl($blX, $blY), br($brX, $brY)',
       );
 
       // --- Step 5: Run ---
       onProgress(0.45, 'Encoding Video...');
 
-      // Strict key=value filter complex to avoid any parsing failures
-      final effectiveColor = project.backgroundColor == Colors.transparent ? Colors.black : project.backgroundColor;
-      final bgColorHex = effectiveColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
-      final ffmpegColor = '0x$bgColorHex';
-      
       final matrix = project.mediaTransform ?? Matrix4.identity();
       final scale = matrix.getMaxScaleOnAxis();
-      final tx = matrix.getTranslation().x;
-      final ty = matrix.getTranslation().y;
+      final tx = matrix.getTranslation().x.toInt();
+      final ty = matrix.getTranslation().y.toInt();
       
-      final scaledW = _makeEven((screenW * scale).toInt());
-      final scaledH = _makeEven((screenH * scale).toInt());
-      final finalX = (offsetX + tx).toInt();
-      final finalY = (offsetY + ty).toInt();
+      final scaledW = _makeEven((cw * scale).toInt());
+      final scaledH = _makeEven((ch * scale).toInt());
 
       final filterComplex =
-          'color=c=$ffmpegColor:s=${canvasW}x${canvasH}[bg];'
-          '[0:v]scale=w=$screenW:h=$screenH:force_original_aspect_ratio=increase,crop=$screenW:$screenH[covered];'
-          '[covered]scale=w=$scaledW:h=$scaledH[scaled];'
-          '[bg][scaled]overlay=x=$finalX:y=$finalY:format=auto[vid_on_bg];'
-          '[vid_on_bg][1:v]overlay=x=0:y=0[out]';
+          // 1. BoxFit.cover equivalent for the input video
+          '[0:v]scale=w=$cw:h=$ch:force_original_aspect_ratio=increase,crop=$cw:$ch[covered];'
+          // 2. Apply InteractiveViewer zoom
+          '[covered]scale=w=$scaledW:h=$scaledH[zoomed];'
+          // 3. Create transparent canvas matching the un-transformed screen hole
+          'color=c=black@0.0:s=${cw}x${ch},format=rgba[trans_bg];'
+          // 4. Apply InteractiveViewer pan
+          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=rgba[flat_video];'
+          // 5. Stretch to full canvas size so perspective filter maps the corners correctly
+          '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
+          // 6. Apply 3D perspective mapping
+          '[stretched_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
+          // 7. Composite warped video behind the device overlay (which has the solid background & transparent hole)
+          '[warped_video][1:v]overlay=x=0:y=0[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 
