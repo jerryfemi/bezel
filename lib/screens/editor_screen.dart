@@ -56,13 +56,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   Future<void> _exportMedia() async {
     final project = ref.read(mockupProjectProvider);
 
-    if (project.isVideo &&
-        (project.rotationX != 0 ||
-            project.rotationY != 0 ||
-            project.rotationZ != 0)) {
-      ref.read(mockupProjectProvider.notifier).setRotation(0, 0, 0);
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
+
 
     if (project.isVideo) {
       final rawBytes = ref.read(videoRawBytesProvider);
