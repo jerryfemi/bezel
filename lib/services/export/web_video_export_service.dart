@@ -139,8 +139,10 @@ class WebVideoExportService {
           '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=auto:shortest=1[flat_video];'
           // 5. Stretch to full canvas size so perspective filter maps the corners correctly
           '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
+          // 5.5. Draw a 1-pixel transparent border inside the edges to prevent perspective edge-smearing
+          '[stretched_video]drawbox=x=0:y=0:w=iw:h=ih:color=black@0.0:thickness=1[bordered_video];'
           // 6. Apply 3D perspective mapping
-          '[stretched_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
+          '[bordered_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
           // 7. Create solid background
           'color=c=$ffmpegColor:s=${canvasW}x$canvasH[solid_bg];'
           // 8. Composite video on background (shortest=1 stops the infinite background color)
