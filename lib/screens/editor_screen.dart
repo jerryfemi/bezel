@@ -15,6 +15,9 @@ import '../theme/app_metrics.dart';
 import '../theme/app_typography.dart';
 import '../widgets/studio/studio_button.dart';
 import '../widgets/studio/rotation_dial.dart';
+import '../widgets/studio/timeline_panel.dart';
+
+enum EditorMode { design, motion }
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -30,6 +33,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       TransformationController(Matrix4.identity()..scale(0.3, 0.3, 1.0));
   bool _isExporting = false;
   bool _isInitialScaleSet = false;
+  EditorMode _currentMode = EditorMode.design;
 
   @override
   void dispose() {
@@ -180,8 +184,26 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(
         children: [
-          // LEFT: Project name
+          // LEFT: Project name and Mode Switcher
           Text('Untitled Mockup', style: AppTypography.uiBody),
+          const SizedBox(width: AppSpacing.s32),
+          
+          // Mode Switcher
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.raisedSurface,
+              borderRadius: BorderRadius.circular(AppRadius.control),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildModeTab('DESIGN', EditorMode.design),
+                const SizedBox(width: 4),
+                _buildModeTab('MOTION', EditorMode.motion),
+              ],
+            ),
+          ),
 
           const Spacer(),
 
@@ -313,12 +335,21 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
 
               // Video playback controls — bottom center
-              if (ref.watch(mockupProjectProvider).isVideo)
+              if (ref.watch(mockupProjectProvider).isVideo && _currentMode == EditorMode.design)
                 const Positioned(
                   bottom: 32,
                   left: 0,
                   right: 0,
                   child: Center(child: VideoPlaybackControls()),
+                ),
+
+              // Motion Timeline Panel — bottom
+              if (_currentMode == EditorMode.motion)
+                const Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: TimelinePanel(),
                 ),
             ],
           ),
@@ -413,6 +444,28 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
           Icon(Icons.zoom_in, size: 16, color: AppColors.secondaryText),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(String title, EditorMode mode) {
+    final isSelected = _currentMode == mode;
+    return GestureDetector(
+      onTap: () => setState(() => _currentMode = mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.control - 2),
+        ),
+        child: Text(
+          title,
+          style: AppTypography.uiLabel.copyWith(
+            color: isSelected ? Colors.black : AppColors.secondaryText,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
       ),
     );
   }
