@@ -2,7 +2,7 @@ import http.server
 import socketserver
 import os
 
-PORT = 8080
+PORT = 8081
 DIRECTORY = "build/web"
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -13,6 +13,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         # These headers are REQUIRED by browsers to enable SharedArrayBuffer for FFmpeg
         self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
         self.send_header('Cross-Origin-Embedder-Policy', 'require-corp')
+        
         super().end_headers()
 
 if not os.path.exists(DIRECTORY):

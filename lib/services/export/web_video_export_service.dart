@@ -7,6 +7,7 @@ import 'package:ffmpeg_wasm/ffmpeg_wasm.dart';
 import 'dart:html' as html;
 import '../../providers/mockup_provider.dart';
 import '../../models/mockup_project.dart';
+import '../../widgets/phone_mockup_widget.dart';
 
 class WebVideoExportService {
   late final FFmpeg _ffmpeg = createFFmpeg(
@@ -67,39 +68,87 @@ class WebVideoExportService {
       // --- Step 4: Dimensions ---
       final canvasW = _makeEven(overlayImage.width);
       final canvasH = _makeEven(overlayImage.height);
-      final screenW = _makeEven(project.device.screenRect.width.toInt());
-      final screenH = _makeEven(project.device.screenRect.height.toInt());
-      final offsetX = 64 + 20;
-      final offsetY = 64 + 20;
+
+      // Calculate the 4 projected corners of the video container
+      final videoBox =
+          videoContainerKey.currentContext?.findRenderObject() as RenderBox?;
+      if (videoBox == null) throw Exception('Video container not found');
+
+      final boundaryObj =
+          boundaryKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundaryObj == null) throw Exception('RepaintBoundary not found');
+
+      final tl = videoBox.localToGlobal(
+        const Offset(0, 0),
+        ancestor: boundaryObj,
+      );
+      final tr = videoBox.localToGlobal(
+        Offset(videoBox.size.width, 0),
+        ancestor: boundaryObj,
+      );
+      final bl = videoBox.localToGlobal(
+        Offset(0, videoBox.size.height),
+        ancestor: boundaryObj,
+      );
+      final br = videoBox.localToGlobal(
+        Offset(videoBox.size.width, videoBox.size.height),
+        ancestor: boundaryObj,
+      );
+
+      final tlX = tl.dx;
+      final tlY = tl.dy;
+      final trX = tr.dx;
+      final trY = tr.dy;
+      final blX = bl.dx;
+      final blY = bl.dy;
+      final brX = br.dx;
+      final brY = br.dy;
+
+      final cw = videoBox.size.width.toInt();
+      final ch = videoBox.size.height.toInt();
 
       debugPrint(
-        'FFmpeg dimensions: canvas=${canvasW}x$canvasH, screen=${screenW}x$screenH, offset=$offsetX,$offsetY',
+        'FFmpeg corners: tl($tlX, $tlY), tr($trX, $trY), bl($blX, $blY), br($brX, $brY)',
       );
 
       // --- Step 5: Run ---
       onProgress(0.45, 'Encoding Video...');
 
-      // Strict key=value filter complex to avoid any parsing failures
-      final effectiveColor = project.backgroundColor == Colors.transparent ? Colors.black : project.backgroundColor;
-      final bgColorHex = effectiveColor.value.toRadixString(16).padLeft(8, '0').substring(2, 8);
-      final ffmpegColor = '0x$bgColorHex';
-      
       final matrix = project.mediaTransform ?? Matrix4.identity();
       final scale = matrix.getMaxScaleOnAxis();
-      final tx = matrix.getTranslation().x;
-      final ty = matrix.getTranslation().y;
-      
-      final scaledW = _makeEven((screenW * scale).toInt());
-      final scaledH = _makeEven((screenH * scale).toInt());
-      final finalX = (offsetX + tx).toInt();
-      final finalY = (offsetY + ty).toInt();
+      final tx = matrix.getTranslation().x.toInt();
+      final ty = matrix.getTranslation().y.toInt();
+
+      final scaledW = _makeEven((cw * scale).toInt());
+      final scaledH = _makeEven((ch * scale).toInt());
+
+      final bgColor = project.backgroundColor;
+      final ffmpegColor = bgColor == Colors.transparent
+          ? 'black@0.0'
+          : '0x${bgColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
       final filterComplex =
-          'color=c=$ffmpegColor:s=${canvasW}x${canvasH}[bg];'
-          '[0:v]scale=w=$screenW:h=$screenH:force_original_aspect_ratio=increase,crop=$screenW:$screenH[covered];'
-          '[covered]scale=w=$scaledW:h=$scaledH[scaled];'
-          '[bg][scaled]overlay=x=$finalX:y=$finalY:format=auto[vid_on_bg];'
-          '[vid_on_bg][1:v]overlay=x=0:y=0[out]';
+          // 1. BoxFit.cover equivalent for the input video
+          '[0:v]scale=w=$cw:h=$ch:force_original_aspect_ratio=increase,crop=$cw:$ch[covered];'
+          // 2. Apply InteractiveViewer zoom
+          '[covered]scale=w=$scaledW:h=$scaledH[zoomed];'
+          // 3. Create transparent canvas matching the un-transformed screen hole
+          'color=c=black@0.0:s=${cw}x${ch},format=rgba[trans_bg];'
+          // 4. Apply InteractiveViewer pan (shortest=1 stops the infinite color stream when video ends)
+          '[trans_bg][zoomed]overlay=x=$tx:y=$ty:format=auto:shortest=1[flat_video];'
+          // 5. Stretch to full canvas size so perspective filter maps the corners correctly
+          '[flat_video]scale=w=$canvasW:h=$canvasH[stretched_video];'
+          // 5.5. Draw a 1-pixel transparent border inside the edges to prevent perspective edge-smearing
+          '[stretched_video]drawbox=x=0:y=0:w=iw:h=ih:color=black@0.0:thickness=1[bordered_video];'
+          // 6. Apply 3D perspective mapping
+          '[bordered_video]perspective=x0=$tlX:y0=$tlY:x1=$trX:y1=$trY:x2=$blX:y2=$blY:x3=$brX:y3=$brY:sense=destination[warped_video];'
+          // 7. Create solid background
+          'color=c=$ffmpegColor:s=${canvasW}x$canvasH[solid_bg];'
+          // 8. Composite video on background (shortest=1 stops the infinite background color)
+          '[solid_bg][warped_video]overlay=x=0:y=0:shortest=1[vid_on_bg];'
+          // 9. Composite bezel on top
+          '[vid_on_bg][1:v]overlay=x=0:y=0:shortest=1[out]';
 
       debugPrint('FFmpeg filter: $filterComplex');
 
@@ -121,12 +170,12 @@ class WebVideoExportService {
 
       // Build FFmpeg arguments
       final List<String> args = [];
-      
+
       // If trim start is set, apply input seek
       if (project.trimStartTime != null) {
         args.addAll(['-ss', '${project.trimStartTime!.inMilliseconds / 1000}']);
       }
-      
+
       // If trim end is set, specify duration to cut off
       if (project.trimStartTime != null && project.trimEndTime != null) {
         final duration = project.trimEndTime! - project.trimStartTime!;
@@ -138,6 +187,8 @@ class WebVideoExportService {
       args.addAll([
         '-i',
         'input.mp4',
+        '-loop',
+        '1',
         '-i',
         'overlay.png',
         '-filter_complex',
@@ -163,9 +214,14 @@ class WebVideoExportService {
       onProgress(0.92, 'Finalizing...');
 
       // --- Step 6: Output ---
-      final Uint8List outBytes = _ffmpeg.readFile('output.mp4');
+      Uint8List? outBytes;
+      try {
+        outBytes = _ffmpeg.readFile('output.mp4');
+      } catch (_) {
+        // readFile throws if the file doesn't exist (i.e. FFmpeg crashed)
+      }
 
-      if (outBytes.isEmpty) {
+      if (outBytes == null || outBytes.isEmpty) {
         // Find the actual crash reason from the log buffer
         final realLogs = ffmpegLogs
             .where((l) => !l.contains('FS.readFile'))
