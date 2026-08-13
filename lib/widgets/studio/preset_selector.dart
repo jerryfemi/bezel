@@ -25,54 +25,51 @@ class PresetSelector extends ConsumerWidget {
             child: Text('Motion Presets', style: AppTypography.uiBody),
           ),
           Expanded(
-            child: ListView.separated(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              itemCount: MotionPresets.allPresets.length,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: AppSpacing.s12),
-              itemBuilder: (context, index) {
-                final presetData = MotionPresets.allPresets[index];
-                final String name = presetData['name'] as String;
-                final Timeline timeline = presetData['timeline'] as Timeline;
+              child: Wrap(
+                spacing: AppSpacing.s8,
+                runSpacing: AppSpacing.s8,
+                children: MotionPresets.allPresets.map((presetData) {
+                  final String name = presetData['name'] as String;
+                  final Timeline timeline = presetData['timeline'] as Timeline;
+                  final bool isSelected = activeTimeline == timeline;
 
-                final bool isSelected = activeTimeline == timeline;
-
-                return GestureDetector(
-                  onTap: () {
-                    ref.read(activeTimelineProvider.notifier).state = timeline;
-                    // Reset playback time when switching presets
-                    ref.read(currentPlaybackTimeProvider.notifier).state =
-                        Duration.zero;
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.s16,
-                      vertical: AppSpacing.s16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.accent
-                          : AppColors.raisedSurface,
-                      borderRadius: BorderRadius.circular(AppRadius.control),
-                      border: Border.all(
-                        color: isSelected ? AppColors.accent : AppColors.border,
+                  return GestureDetector(
+                    onTap: () {
+                      ref.read(activeTimelineProvider.notifier).state = timeline;
+                      ref.read(currentPlaybackTimeProvider.notifier).state = Duration.zero;
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.s12,
+                        vertical: AppSpacing.s8,
                       ),
-                    ),
-                    child: Text(
-                      name,
-                      style: AppTypography.uiLabel.copyWith(
+                      decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.black
-                            : AppColors.primaryText,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                            ? AppColors.accent.withOpacity(0.15)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        border: Border.all(
+                          color: isSelected ? AppColors.accent : AppColors.border,
+                        ),
+                      ),
+                      child: Text(
+                        name,
+                        style: AppTypography.uiLabel.copyWith(
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.secondaryText,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ],

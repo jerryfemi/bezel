@@ -109,7 +109,7 @@ class KeyframeEditor extends ConsumerWidget {
         SliderTheme(
           data: const SliderThemeData(
             trackHeight: 2.0,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.0),
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.0),
           ),
           child: Slider(
             value: value.clamp(min, max),

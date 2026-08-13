@@ -222,8 +222,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           const SizedBox(width: AppSpacing.s16),
           StudioButton(
             label: 'Export',
-            icon: Icons.download_rounded,
-            isPrimary: true,
+            icon: Icons.download,
+            variant: ButtonVariant.primary,
             onPressed: _isExporting ? () {} : _exportMedia,
           ),
         ],

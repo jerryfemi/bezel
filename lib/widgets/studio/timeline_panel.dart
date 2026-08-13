@@ -83,7 +83,7 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
                 label: '',
                 icon: _controller.isAnimating ? Icons.pause : Icons.play_arrow,
                 onPressed: _togglePlayPause,
-                isPrimary: true,
+                variant: ButtonVariant.primary,
               ),
               const SizedBox(width: AppSpacing.s16),
               Text(
@@ -101,10 +101,11 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
                 Expanded(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      trackHeight: 4.0,
+                      trackHeight: 2.0,
                       activeTrackColor: AppColors.accent,
                       inactiveTrackColor: AppColors.border,
                       thumbColor: AppColors.primaryText,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
                     ),
                     child: Slider(
                       value: progress.clamp(0.0, 1.0),
