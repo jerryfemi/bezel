@@ -16,6 +16,8 @@ import '../theme/app_typography.dart';
 import '../widgets/studio/studio_button.dart';
 import '../widgets/studio/rotation_dial.dart';
 import '../widgets/studio/timeline_panel.dart';
+import '../widgets/studio/preset_selector.dart';
+import '../widgets/studio/keyframe_editor.dart';
 
 enum EditorMode { design, motion }
 
@@ -59,8 +61,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   Future<void> _exportMedia() async {
     final project = ref.read(mockupProjectProvider);
-
-
 
     if (project.isVideo) {
       final rawBytes = ref.read(videoRawBytesProvider);
@@ -187,7 +187,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           // LEFT: Project name and Mode Switcher
           Text('Untitled Mockup', style: AppTypography.uiBody),
           const SizedBox(width: AppSpacing.s32),
-          
+
           // Mode Switcher
           Container(
             decoration: BoxDecoration(
@@ -335,7 +335,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
 
               // Video playback controls — bottom center
-              if (ref.watch(mockupProjectProvider).isVideo && _currentMode == EditorMode.design)
+              if (ref.watch(mockupProjectProvider).isVideo &&
+                  _currentMode == EditorMode.design)
                 const Positioned(
                   bottom: 32,
                   left: 0,
@@ -364,6 +365,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   Widget _buildInspectorPanel() {
     return Consumer(
       builder: (context, ref, child) {
+        if (_currentMode == EditorMode.motion) {
+          return const Column(
+            children: [
+              Expanded(child: PresetSelector()),
+              Expanded(child: KeyframeEditor()),
+            ],
+          );
+        }
+
         final activeTool = ref.watch(activeEditorToolProvider);
         if (activeTool == EditorTool.device) {
           return const DeviceSelectorPanel();

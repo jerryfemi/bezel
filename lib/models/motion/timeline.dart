@@ -19,6 +19,53 @@ class Timeline {
     required this.duration,
   });
 
+  Timeline copyWith({
+    List<Keyframe<double>>? positionX,
+    List<Keyframe<double>>? positionY,
+    List<Keyframe<double>>? scale,
+    List<Keyframe<double>>? rotation,
+    List<Keyframe<double>>? opacity,
+    Duration? duration,
+  }) {
+    return Timeline(
+      positionX: positionX ?? this.positionX,
+      positionY: positionY ?? this.positionY,
+      scale: scale ?? this.scale,
+      rotation: rotation ?? this.rotation,
+      opacity: opacity ?? this.opacity,
+      duration: duration ?? this.duration,
+    );
+  }
+
+  List<Keyframe<double>> _upsertKeyframe(List<Keyframe<double>> list, Duration time, double value) {
+    final newList = List<Keyframe<double>>.from(list);
+    final index = newList.indexWhere((k) => k.time == time);
+    if (index >= 0) {
+      newList[index] = Keyframe(time: time, value: value, curve: newList[index].curve);
+    } else {
+      newList.add(Keyframe(time: time, value: value));
+      newList.sort((a, b) => a.time.compareTo(b.time));
+    }
+    return newList;
+  }
+
+  Timeline withUpdatedProperty({
+    double? positionX,
+    double? positionY,
+    double? scale,
+    double? rotation,
+    double? opacity,
+    required Duration time,
+  }) {
+    return copyWith(
+      positionX: positionX != null ? _upsertKeyframe(this.positionX, time, positionX) : null,
+      positionY: positionY != null ? _upsertKeyframe(this.positionY, time, positionY) : null,
+      scale: scale != null ? _upsertKeyframe(this.scale, time, scale) : null,
+      rotation: rotation != null ? _upsertKeyframe(this.rotation, time, rotation) : null,
+      opacity: opacity != null ? _upsertKeyframe(this.opacity, time, opacity) : null,
+    );
+  }
+
   SceneState evaluateAt(Duration time, {required SceneState baseState}) {
     // If the timeline is empty, return the base state
     if (positionX.isEmpty &&
