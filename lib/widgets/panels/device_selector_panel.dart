@@ -103,13 +103,18 @@ class _DeviceModelItem extends ConsumerWidget {
           ),
           child: Text(model.name, style: AppTypography.uiLabel),
         ),
-        SizedBox(
-          height: 180,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
-            itemCount: model.variants.length,
-            itemBuilder: (ctx, i) {
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: AppSpacing.s8,
+            mainAxisSpacing: AppSpacing.s8,
+          ),
+          itemCount: model.variants.length,
+          itemBuilder: (ctx, i) {
               final variant = model.variants[i];
               final isActive = activeDevice.id == variant.id;
 
@@ -172,7 +177,6 @@ class _DeviceModelItem extends ConsumerWidget {
               );
             },
           ),
-        ),
         const SizedBox(height: AppSpacing.s16),
       ],
     );

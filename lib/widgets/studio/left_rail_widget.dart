@@ -8,8 +8,6 @@ import '../../theme/app_typography.dart';
 import '../panels/device_selector_panel.dart';
 import '../panels/crop_panel.dart';
 import 'studio_button.dart';
-import 'package:bezel/services/export/image_export_service.dart';
-import 'package:bezel/screens/export_progress_screen.dart';
 
 class LeftRailWidget extends ConsumerWidget {
   final GlobalKey boundaryKey;
@@ -41,17 +39,13 @@ class LeftRailWidget extends ConsumerWidget {
 
                 const Divider(height: 1, color: AppColors.border),
 
-                // Screenshot + Crop + Export — scrollable bottom section
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ScreenshotSection(),
-                        const Divider(height: 1, color: AppColors.border),
-                        _ExportSection(boundaryKey: boundaryKey),
-                      ],
-                    ),
+                // Screenshot + Crop — sizes to its content at the bottom
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _ScreenshotSection(),
+                    ],
                   ),
                 ),
               ],
@@ -123,70 +117,3 @@ class _ScreenshotSection extends ConsumerWidget {
   }
 }
 
-class _ExportSection extends ConsumerStatefulWidget {
-  final GlobalKey boundaryKey;
-  const _ExportSection({required this.boundaryKey});
-
-  @override
-  ConsumerState<_ExportSection> createState() => _ExportSectionState();
-}
-
-class _ExportSectionState extends ConsumerState<_ExportSection> {
-  bool _isExporting = false;
-
-  Future<void> _exportMedia() async {
-    setState(() => _isExporting = true);
-    final project = ref.read(mockupProjectProvider);
-
-    if (project.isVideo) {
-      final rawBytes = ref.read(videoRawBytesProvider);
-      if (rawBytes == null || rawBytes.isEmpty) {
-        setState(() => _isExporting = false);
-        return;
-      }
-
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => ExportProgressScreen(
-          boundaryKey: widget.boundaryKey,
-          videoRawBytes: rawBytes,
-          mockupNotifier: ref.read(mockupProjectProvider.notifier),
-          project: project,
-        ),
-      );
-      setState(() => _isExporting = false);
-      return;
-    }
-
-    // Image Export
-    await ImageExportService.exportToPng(widget.boundaryKey);
-    if (mounted) setState(() => _isExporting = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final project = ref.watch(mockupProjectProvider);
-
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('EXPORT', style: AppTypography.panelHeader),
-          const SizedBox(height: AppSpacing.s12),
-          SizedBox(
-            width: double.infinity,
-            child: StudioButton(
-              label: project.isVideo ? 'Export Video' : 'Export PNG',
-              icon: Icons.download_rounded,
-              variant: ButtonVariant.primary,
-              onPressed: _isExporting ? () {} : _exportMedia,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

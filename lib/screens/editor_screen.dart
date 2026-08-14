@@ -72,6 +72,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 // ─── RIGHT INSPECTOR (always visible, collapsible) ───
                 RightInspectorWidget(
                   isMotionMode: _currentMode == EditorMode.motion,
+                  boundaryKey: _repaintBoundaryKey,
                 ),
               ],
             ),
