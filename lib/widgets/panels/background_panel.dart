@@ -9,24 +9,27 @@ import '../studio/studio_button.dart';
 import '../studio/inspector_section.dart';
 
 class BackgroundPanel extends ConsumerWidget {
-  const BackgroundPanel({super.key});
+  final bool isEmbedded;
+  const BackgroundPanel({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(mockupProjectProvider);
 
     return Container(
-      width: 280,
+      width: isEmbedded ? null : 280,
       color: AppColors.surface,
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Panel title
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-            child: Text('Background', style: AppTypography.headingMedium),
-          ),
+          if (!isEmbedded)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+              child: Text('Background', style: AppTypography.headingMedium),
+            ),
 
           // ─── ROTATION ──────────────────────────────────
           InspectorSection(
