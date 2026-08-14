@@ -15,7 +15,6 @@ class PresetSelector extends ConsumerWidget {
     final activeTimeline = ref.watch(activeTimelineProvider);
 
     return Container(
-      width: 280,
       color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
