@@ -19,7 +19,6 @@ class KeyframeEditor extends ConsumerWidget {
     }
 
     return Container(
-      width: 280,
       padding: const EdgeInsets.all(AppSpacing.s16),
       color: AppColors.surface,
       child: SingleChildScrollView(
