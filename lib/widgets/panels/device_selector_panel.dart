@@ -9,7 +9,8 @@ import '../../theme/app_typography.dart';
 import '../studio/studio_segmented_control.dart';
 
 class DeviceSelectorPanel extends ConsumerStatefulWidget {
-  const DeviceSelectorPanel({super.key});
+  final bool isEmbedded;
+  const DeviceSelectorPanel({super.key, this.isEmbedded = false});
 
   @override
   ConsumerState<DeviceSelectorPanel> createState() =>
@@ -26,16 +27,26 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
         .toList();
 
     return Container(
-      width: 280,
+      width: widget.isEmbedded ? null : 280,
       color: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Panel title
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            child: Text('Device', style: AppTypography.headingMedium),
-          ),
+          if (!widget.isEmbedded)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.s16),
+              child: Text('Device', style: AppTypography.headingMedium),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.s16,
+                top: AppSpacing.s16,
+                bottom: AppSpacing.s8,
+              ),
+              child: Text('Device', style: AppTypography.panelHeader),
+            ),
 
           // Category selector — using our custom segmented control
           Padding(
