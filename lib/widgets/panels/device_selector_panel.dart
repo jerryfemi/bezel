@@ -17,23 +17,23 @@ class DeviceSelectorPanel extends ConsumerStatefulWidget {
       _DeviceSelectorPanelState();
 }
 
+String getCategoryAsset(DeviceCategory cat) {
+  switch (cat) {
+    case DeviceCategory.ios:
+    case DeviceCategory.android:
+      return 'lib/assets/iphone.png';
+    case DeviceCategory.tablet:
+      return 'lib/assets/tablet (2).png';
+    case DeviceCategory.macos:
+    case DeviceCategory.windows:
+      return 'lib/assets/laptop.png';
+    case DeviceCategory.monitor:
+      return 'lib/assets/imac.png';
+  }
+}
+
 class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
   DeviceCategory _selectedCategory = DeviceCategory.ios;
-
-  String _getCategoryAsset(DeviceCategory cat) {
-    switch (cat) {
-      case DeviceCategory.ios:
-      case DeviceCategory.android:
-        return 'lib/assets/iphone.png';
-      case DeviceCategory.tablet:
-        return 'lib/assets/tablet (2).png';
-      case DeviceCategory.macos:
-      case DeviceCategory.windows:
-        return 'lib/assets/laptop.png';
-      case DeviceCategory.monitor:
-        return 'lib/assets/imac.png';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +77,7 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
                       child: Opacity(
                         opacity: _selectedCategory == cat ? 1.0 : 0.5,
                         child: Image.asset(
-                          _getCategoryAsset(cat),
+                          getCategoryAsset(cat),
                           width: 20,
                           height: 20,
                           fit: BoxFit.contain,
@@ -134,18 +134,27 @@ class _DeviceModelItem extends ConsumerWidget {
           children: model.variants.map((variant) {
             final isActive = activeDevice.id == variant.id;
             return GestureDetector(
-              onTap: () => ref.read(mockupProjectProvider.notifier).setDevice(variant),
+              onTap: () =>
+                  ref.read(mockupProjectProvider.notifier).setDevice(variant),
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: 2),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: AppSpacing.s8),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s8,
+                  vertical: 2,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s8,
+                  vertical: AppSpacing.s8,
+                ),
                 decoration: BoxDecoration(
-                  color: isActive ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
+                  color: isActive
+                      ? AppColors.accent.withValues(alpha: 0.15)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.control),
                 ),
                 child: Row(
                   children: [
                     Image.asset(
-                      variant.assetPath,
+                      getCategoryAsset(model.category),
                       width: 24,
                       height: 24,
                       fit: BoxFit.contain,
@@ -155,7 +164,9 @@ class _DeviceModelItem extends ConsumerWidget {
                       child: Text(
                         variant.colorName,
                         style: AppTypography.uiBody.copyWith(
-                          color: isActive ? AppColors.accent : AppColors.primaryText,
+                          color: isActive
+                              ? AppColors.accent
+                              : AppColors.primaryText,
                         ),
                       ),
                     ),
