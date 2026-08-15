@@ -1,23 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/motion/scene_state.dart';
 import '../models/motion/motion_sequence.dart';
-import '../models/motion/sequence_block.dart';
-import '../models/motion/presets.dart';
+
 import 'mockup_provider.dart';
 
 // Provides the current time in the motion timeline
-final currentPlaybackTimeProvider = StateProvider<Duration>((ref) => Duration.zero);
+final currentPlaybackTimeProvider = StateProvider<Duration>(
+  (ref) => Duration.zero,
+);
 
 // The active motion sequence
 final activeSequenceProvider = StateProvider<MotionSequence>((ref) {
-  return MotionSequence(
-    blocks: [
-      SequenceBlock(
-        name: 'Hero',
-        timeline: MotionPresets.hero(),
-      ),
-    ],
-  );
+  return const MotionSequence(blocks: []);
 });
 
 // The currently selected block index for editing in the inspector
@@ -31,7 +25,7 @@ final animatedSceneStateProvider = Provider<SceneState>((ref) {
 
   // Define the base state from the static editor values
   final baseState = SceneState(
-    positionX: 0.0, 
+    positionX: 0.0,
     positionY: 0.0,
     scale: 1.0,
     rotation: project.rotationZ,
