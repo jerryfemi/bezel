@@ -67,65 +67,64 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
         : currentTime.inMilliseconds / totalDuration.inMilliseconds;
 
     return Container(
-      height: 120,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
-      ),
+      margin: const EdgeInsets.only(bottom: AppSpacing.s32),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s24,
-        vertical: AppSpacing.s16,
+        vertical: AppSpacing.s12,
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              StudioButton(
-                label: '',
-                icon: _controller.isAnimating ? Icons.pause : Icons.play_arrow,
-                onPressed: _togglePlayPause,
-                variant: ButtonVariant.primary,
-              ),
-              const SizedBox(width: AppSpacing.s16),
-              Text(
-                '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
-                style: AppTypography.uiLabel.copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ],
+      decoration: BoxDecoration(
+        color: AppColors.raisedSurface.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: AppColors.border, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(height: AppSpacing.s16),
+        ],
+      ),
+      width: 400,
+      child: Row(
+        children: [
+          StudioButton(
+            label: '',
+            icon: _controller.isAnimating ? Icons.pause : Icons.play_arrow,
+            onPressed: _togglePlayPause,
+            variant: ButtonVariant.primary,
+          ),
+          const SizedBox(width: AppSpacing.s16),
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      trackHeight: 2.0,
-                      activeTrackColor: AppColors.accent,
-                      inactiveTrackColor: AppColors.border,
-                      thumbColor: AppColors.primaryText,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
-                    ),
-                    child: Slider(
-                      value: progress.clamp(0.0, 1.0),
-                      onChanged: (value) {
-                        if (_controller.isAnimating) {
-                          _controller.stop();
-                        }
-                        final newTime = Duration(
-                          milliseconds:
-                              (value * totalDuration.inMilliseconds).round(),
-                        );
-                        _controller.value = value;
-                        ref.read(currentPlaybackTimeProvider.notifier).state =
-                            newTime;
-                      },
-                    ),
-                  ),
-                ),
-              ],
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 2.0,
+                activeTrackColor: AppColors.accent,
+                inactiveTrackColor: AppColors.border,
+                thumbColor: AppColors.primaryText,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+              ),
+              child: Slider(
+                value: progress.clamp(0.0, 1.0),
+                onChanged: (value) {
+                  if (_controller.isAnimating) {
+                    _controller.stop();
+                  }
+                  final newTime = Duration(
+                    milliseconds: (value * totalDuration.inMilliseconds).round(),
+                  );
+                  _controller.value = value;
+                  ref.read(currentPlaybackTimeProvider.notifier).state = newTime;
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.s16),
+          Text(
+            '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
+            style: AppTypography.uiLabel.copyWith(
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: AppColors.secondaryText,
             ),
           ),
         ],

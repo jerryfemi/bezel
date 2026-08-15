@@ -28,6 +28,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   bool _isInitialScaleSet = false;
   EditorMode _currentMode = EditorMode.design;
   bool _isInspectorExpanded = true;
+  bool _isLeftRailExpanded = true;
 
   @override
   void dispose() {
@@ -51,7 +52,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             child: Row(
               children: [
                 // ─── LEFT RAIL ──────────────────────
-                LeftRailWidget(boundaryKey: _repaintBoundaryKey),
+                LeftRailWidget(
+                  isExpanded: _isLeftRailExpanded,
+                  onCollapse: () => setState(() => _isLeftRailExpanded = false),
+                  boundaryKey: _repaintBoundaryKey,
+                ),
 
                 // Thin border between rail and canvas
                 const VerticalDivider(
@@ -103,7 +108,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(
         children: [
-          // LEFT: Project name
+          // LEFT: Left Rail Toggle & Project name
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isLeftRailExpanded = !_isLeftRailExpanded;
+              });
+            },
+            icon: Icon(
+              Icons.format_indent_decrease,
+              color: _isLeftRailExpanded ? AppColors.accent : AppColors.secondaryText,
+            ),
+            tooltip: 'Toggle Assets',
+          ),
+          const SizedBox(width: AppSpacing.s16),
           Text('Untitled Mockup', style: AppTypography.uiBody),
 
           // RIGHT: Inspector Toggle
@@ -253,7 +271,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: TimelinePanel(),
+                  child: Center(child: TimelinePanel()),
                 ),
             ],
           ),
