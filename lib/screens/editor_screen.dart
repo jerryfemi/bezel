@@ -27,6 +27,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       TransformationController(Matrix4.identity()..scale(0.3, 0.3, 1.0));
   bool _isInitialScaleSet = false;
   EditorMode _currentMode = EditorMode.design;
+  bool _isInspectorExpanded = true;
 
   @override
   void dispose() {
@@ -71,6 +72,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
                 // ─── RIGHT INSPECTOR (always visible, collapsible) ───
                 RightInspectorWidget(
+                  isExpanded: _isInspectorExpanded,
                   isMotionMode: _currentMode == EditorMode.motion,
                   boundaryKey: _repaintBoundaryKey,
                 ),
@@ -116,8 +118,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             ),
           ),
 
-          // RIGHT: Empty now that tools are in Left Rail
+          // RIGHT: Inspector Toggle
           const Spacer(),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _isInspectorExpanded = !_isInspectorExpanded;
+              });
+            },
+            icon: Icon(
+              Icons.splitscreen_outlined,
+              color: _isInspectorExpanded ? AppColors.accent : AppColors.secondaryText,
+            ),
+            tooltip: 'Toggle Inspector',
+          ),
         ],
       ),
     );
