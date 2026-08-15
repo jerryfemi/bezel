@@ -43,16 +43,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      body: Column(
+      body: Row(
         children: [
-          // ─── TOP BAR (56px) ─────────────────────────────────
-          _buildTopBar(),
-
-          // ─── MAIN CONTENT ──────────────────────────────────
-          Expanded(
-            child: Row(
-              children: [
-                // ─── LEFT RAIL ──────────────────────
+          // ─── LEFT RAIL ──────────────────────
                 LeftRailWidget(
                   isExpanded: _isLeftRailExpanded,
                   onToggle: () => setState(
@@ -78,50 +71,24 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   color: AppColors.border,
                 ),
 
-                // ─── RIGHT INSPECTOR (always visible, collapsible) ───
-                RightInspectorWidget(
-                  isExpanded: _isInspectorExpanded,
-                  isMotionMode: _currentMode == EditorMode.motion,
-                  onModeChanged: (isMotion) {
-                    setState(
-                      () => _currentMode = isMotion
-                          ? EditorMode.motion
-                          : EditorMode.design,
-                    );
-                  },
-                  onToggle: () {
-                    setState(
-                      () => _isInspectorExpanded = !_isInspectorExpanded,
-                    );
-                  },
-                  boundaryKey: _repaintBoundaryKey,
-                ),
-              ],
-            ),
+          // ─── RIGHT INSPECTOR (always visible, collapsible) ───
+          RightInspectorWidget(
+            isExpanded: _isInspectorExpanded,
+            isMotionMode: _currentMode == EditorMode.motion,
+            onModeChanged: (isMotion) {
+              setState(
+                () => _currentMode = isMotion
+                    ? EditorMode.motion
+                    : EditorMode.design,
+              );
+            },
+            onToggle: () {
+              setState(
+                () => _isInspectorExpanded = !_isInspectorExpanded,
+              );
+            },
+            boundaryKey: _repaintBoundaryKey,
           ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // TOP BAR — 56px, extremely quiet
-  // ═══════════════════════════════════════════════════════════
-  Widget _buildTopBar() {
-    return Container(
-      height: 56,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-      child: Row(
-        children: [
-          // LEFT: Project name
-          Text('Untitled Mockup', style: AppTypography.uiBody),
-
-          // RIGHT: (Empty for now)
-          const Spacer(),
         ],
       ),
     );
@@ -224,6 +191,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
 
               // ─── Floating Canvas Controls (Glass Treatment) ───
+
+              // Project Title — top left of canvas
+              Positioned(
+                top: AppSpacing.s24,
+                left: AppSpacing.s24,
+                child: Text('Untitled Mockup', style: AppTypography.uiBody),
+              ),
 
               // Rotation Dial — top right
               const Positioned(
