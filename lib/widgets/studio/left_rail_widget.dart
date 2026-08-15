@@ -9,16 +9,61 @@ import '../panels/device_selector_panel.dart';
 import '../panels/crop_panel.dart';
 import 'studio_button.dart';
 
-class LeftRailWidget extends ConsumerWidget {
+class LeftRailWidget extends ConsumerStatefulWidget {
+  final bool isExpanded;
+  final VoidCallback onCollapse;
   final GlobalKey boundaryKey;
 
   const LeftRailWidget({
     super.key,
+    required this.isExpanded,
+    required this.onCollapse,
     required this.boundaryKey,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LeftRailWidget> createState() => _LeftRailWidgetState();
+}
+
+class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+  late final Animation<double> _widthFactor;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      value: widget.isExpanded ? 1.0 : 0.0,
+    );
+    _widthFactor = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  @override
+  void didUpdateWidget(LeftRailWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
+        _animController.forward();
+      } else {
+        _animController.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Adapt width based on available space
@@ -26,33 +71,66 @@ class LeftRailWidget extends ConsumerWidget {
             ? constraints.maxWidth.clamp(220.0, 300.0)
             : 260.0;
 
-        return SizedBox(
-          width: panelWidth,
-          child: Container(
-            color: AppColors.surface,
-            child: Column(
-              children: [
-                // Device Selection — takes up available top space
-                const Expanded(
-                  child: DeviceSelectorPanel(isEmbedded: true),
-                ),
-
-                const Divider(height: 1, color: AppColors.border),
-
-                // Screenshot + Crop — sizes to its content at the bottom
-                SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _ScreenshotSection(),
-                    ],
+        return AnimatedBuilder(
+          animation: _widthFactor,
+          builder: (context, child) {
+            return ClipRect(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                widthFactor: _widthFactor.value,
+                child: child,
+              ),
+            );
+          },
+          child: SizedBox(
+            width: panelWidth,
+            child: Container(
+              color: AppColors.surface,
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  const Divider(height: 1, color: AppColors.border),
+                  // Device Selection — takes up available top space
+                  const Expanded(
+                    child: DeviceSelectorPanel(isEmbedded: true),
                   ),
-                ),
-              ],
+
+                  const Divider(height: 1, color: AppColors.border),
+
+                  // Screenshot + Crop — sizes to its content at the bottom
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _ScreenshotSection(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: widget.onCollapse,
+            icon: const Icon(Icons.vertical_split, size: 16, color: AppColors.secondaryText),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(width: AppSpacing.s8),
+          Text('ASSETS', style: AppTypography.panelHeader),
+        ],
+      ),
     );
   }
 }
