@@ -103,81 +103,40 @@ class _DeviceModelItem extends ConsumerWidget {
           ),
           child: Text(model.name, style: AppTypography.uiLabel),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.8,
-            crossAxisSpacing: AppSpacing.s8,
-            mainAxisSpacing: AppSpacing.s8,
-          ),
-          itemCount: model.variants.length,
-          itemBuilder: (ctx, i) {
-              final variant = model.variants[i];
-              final isActive = activeDevice.id == variant.id;
-
-              return GestureDetector(
-                onTap: () {
-                  ref.read(mockupProjectProvider.notifier).setDevice(variant);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
-                  curve: Curves.easeOut,
-                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s4),
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? AppColors.raisedSurface
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: isActive ? AppColors.accent : Colors.transparent,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.control),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.s8),
-                          child: variant.assetPath.isEmpty
-                              ? Icon(
-                                  Icons.smartphone,
-                                  size: 32,
-                                  color: AppColors.secondaryText,
-                                )
-                              : Image.asset(
-                                  variant.assetPath,
-                                  fit: BoxFit.contain,
-                                ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: AppSpacing.s8,
-                          left: AppSpacing.s4,
-                          right: AppSpacing.s4,
-                        ),
-                        child: Text(
-                          variant.colorName,
-                          style: AppTypography.technicalSubtle.copyWith(
-                            fontSize: 10,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                  ),
+        Column(
+          children: model.variants.map((variant) {
+            final isActive = activeDevice.id == variant.id;
+            return GestureDetector(
+              onTap: () => ref.read(mockupProjectProvider.notifier).setDevice(variant),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: AppSpacing.s8),
+                decoration: BoxDecoration(
+                  color: isActive ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.control),
                 ),
-              );
-            },
-          ),
-        const SizedBox(height: AppSpacing.s16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.smartphone,
+                      size: 14,
+                      color: isActive ? AppColors.accent : AppColors.secondaryText,
+                    ),
+                    const SizedBox(width: AppSpacing.s8),
+                    Expanded(
+                      child: Text(
+                        variant.colorName,
+                        style: AppTypography.uiBody.copyWith(
+                          color: isActive ? AppColors.accent : AppColors.primaryText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
