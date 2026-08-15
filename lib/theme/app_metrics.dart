@@ -10,8 +10,8 @@ class AppSpacing {
 }
 
 class AppRadius {
-  static const double control = 6.0;
-  static const double panel = 14.0;
-  static const double modal = 20.0;
+  static const double control = 4.0;
+  static const double panel = 8.0;
+  static const double modal = 12.0;
   static const double pill = 999.0;
 }
