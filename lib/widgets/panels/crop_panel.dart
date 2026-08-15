@@ -9,7 +9,8 @@ import '../studio/studio_button.dart';
 import '../studio/inspector_section.dart';
 
 class CropPanel extends ConsumerWidget {
-  const CropPanel({super.key});
+  final bool isEmbedded;
+  const CropPanel({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,16 +18,18 @@ class CropPanel extends ConsumerWidget {
     final currentScale = project.mediaTransform?.getMaxScaleOnAxis() ?? 1.0;
 
     return Container(
-      width: 280,
-      color: AppColors.surface,
-      padding: const EdgeInsets.all(AppSpacing.s16),
+      width: isEmbedded ? null : 280,
+      color: isEmbedded ? Colors.transparent : AppColors.surface,
+      padding: isEmbedded ? EdgeInsets.zero : const EdgeInsets.all(AppSpacing.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-            child: Text('Crop Media', style: AppTypography.headingMedium),
-          ),
+          if (!isEmbedded)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+              child: Text('Crop Media', style: AppTypography.headingMedium),
+            ),
 
           InspectorSection(
             title: 'Media Zoom',

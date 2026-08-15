@@ -4,38 +4,40 @@ import '../../providers/mockup_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
-import '../studio/studio_slider.dart';
+import '../studio/accordion_slider.dart';
 import '../studio/studio_button.dart';
 import '../studio/inspector_section.dart';
 
 class BackgroundPanel extends ConsumerWidget {
-  const BackgroundPanel({super.key});
+  final bool isEmbedded;
+  const BackgroundPanel({super.key, this.isEmbedded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(mockupProjectProvider);
 
     return Container(
-      width: 280,
+      width: isEmbedded ? null : 280,
       color: AppColors.surface,
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Panel title
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.s24),
-            child: Text('Background', style: AppTypography.headingMedium),
-          ),
+          if (!isEmbedded)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.s24),
+              child: Text('Background', style: AppTypography.headingMedium),
+            ),
 
           // ─── ROTATION ──────────────────────────────────
           InspectorSection(
             title: 'Rotation',
             child: Column(
               children: [
-                StudioSlider(
-                  label: 'X Axis',
-                  valueDisplay: '${(project.rotationX * 57.2958).toStringAsFixed(1)}°',
+                AccordionSlider(
+                  title: 'X Axis',
                   value: project.rotationX,
                   min: -3.14,
                   max: 3.14,
@@ -43,10 +45,8 @@ class BackgroundPanel extends ConsumerWidget {
                     ref.read(mockupProjectProvider.notifier).setRotation(val, project.rotationY, project.rotationZ);
                   },
                 ),
-                const SizedBox(height: AppSpacing.s8),
-                StudioSlider(
-                  label: 'Y Axis',
-                  valueDisplay: '${(project.rotationY * 57.2958).toStringAsFixed(1)}°',
+                AccordionSlider(
+                  title: 'Y Axis',
                   value: project.rotationY,
                   min: -3.14,
                   max: 3.14,
@@ -54,10 +54,8 @@ class BackgroundPanel extends ConsumerWidget {
                     ref.read(mockupProjectProvider.notifier).setRotation(project.rotationX, val, project.rotationZ);
                   },
                 ),
-                const SizedBox(height: AppSpacing.s8),
-                StudioSlider(
-                  label: 'Z Axis',
-                  valueDisplay: '${(project.rotationZ * 57.2958).toStringAsFixed(1)}°',
+                AccordionSlider(
+                  title: 'Z Axis',
                   value: project.rotationZ,
                   min: -3.14,
                   max: 3.14,

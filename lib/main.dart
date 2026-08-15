@@ -4,11 +4,7 @@ import 'theme/app_theme.dart';
 import 'screens/editor_screen.dart';
 
 void main() {
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -19,7 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Bezel',
       theme: AppTheme.darkTheme,
-      home: const EditorScreen(), 
+      debugShowCheckedModeBanner: false,
+      home: const EditorScreen(),
     );
   }
 }

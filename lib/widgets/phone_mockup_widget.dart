@@ -4,8 +4,21 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/mockup_provider.dart';
+import '../providers/motion_provider.dart';
+import '../models/motion/device_renderer.dart';
+import '../models/motion/scene_state.dart';
 
 final videoContainerKey = GlobalKey();
+
+class FakeDeviceRenderer extends DeviceRenderer {
+  const FakeDeviceRenderer();
+
+  @override
+  Widget build(BuildContext context, SceneState scene) {
+    // This will be called from within PhoneMockupWidget which wraps it in Consumer
+    return const SizedBox.shrink(); // We'll move the logic inside PhoneMockupWidget for now to keep ref access simple, or pass what we need.
+  }
+}
 
 class PhoneMockupWidget extends ConsumerWidget {
   const PhoneMockupWidget({super.key});
@@ -14,14 +27,17 @@ class PhoneMockupWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(mockupProjectProvider);
     final device = project.device;
+    final scene = ref.watch(animatedSceneStateProvider);
 
     return Center(
       child: Transform(
         transform: Matrix4.identity()
+          ..translate(scene.positionX, scene.positionY, 0.0)
+          ..scale(scene.scale, scene.scale, 1.0)
           ..setEntry(3, 2, 0.001) // perspective
-          ..rotateX(project.rotationX)
+          ..rotateX(project.rotationX) // Base rotations from project
           ..rotateY(project.rotationY)
-          ..rotateZ(project.rotationZ),
+          ..rotateZ(scene.rotation),
         alignment: FractionalOffset.center,
         child: Stack(
           children: [
