@@ -18,19 +18,19 @@ class AppTypography {
 
   // UI / Body (Inter)
   static TextStyle get uiBody => GoogleFonts.inter(
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
     color: AppColors.primaryText,
   );
 
   static TextStyle get uiBodySecondary => GoogleFonts.inter(
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
     color: AppColors.secondaryText,
   );
 
   static TextStyle get uiLabel => GoogleFonts.inter(
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: FontWeight.w500,
     color: AppColors.primaryText,
   );
@@ -44,13 +44,13 @@ class AppTypography {
 
   // Technical / Numeric (IBM Plex Mono)
   static TextStyle get technical => GoogleFonts.ibmPlexMono(
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: FontWeight.w500,
     color: AppColors.primaryText,
   );
 
   static TextStyle get technicalSubtle => GoogleFonts.ibmPlexMono(
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: FontWeight.w400,
     color: AppColors.secondaryText,
   );
