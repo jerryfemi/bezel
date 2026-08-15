@@ -23,7 +23,7 @@ class RightInspectorWidget extends ConsumerStatefulWidget {
   final bool isMotionMode;
   final GlobalKey boundaryKey;
   final ValueChanged<bool> onModeChanged;
-  final VoidCallback onCollapse;
+  final VoidCallback onToggle;
 
   const RightInspectorWidget({
     super.key,
@@ -31,7 +31,7 @@ class RightInspectorWidget extends ConsumerStatefulWidget {
     required this.isMotionMode,
     required this.boundaryKey,
     required this.onModeChanged,
-    required this.onCollapse,
+    required this.onToggle,
   });
 
   @override
@@ -82,11 +82,35 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
     return AnimatedBuilder(
       animation: _widthFactor,
       builder: (context, child) {
-        return ClipRect(
-          child: Align(
-            alignment: Alignment.centerRight,
-            widthFactor: _widthFactor.value,
-            child: child,
+        final currentWidth = 40.0 + (280.0 - 40.0) * _widthFactor.value;
+        return SizedBox(
+          width: currentWidth,
+          child: Stack(
+            children: [
+              // The main panel
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 280.0,
+                child: Opacity(
+                  opacity: _widthFactor.value,
+                  child: child,
+                ),
+              ),
+              // The sticky tab
+              if (_widthFactor.value < 1.0)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 40.0,
+                  child: Opacity(
+                    opacity: 1.0 - _widthFactor.value,
+                    child: _buildStickyTab(),
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -106,12 +130,33 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
     );
   }
 
+  Widget _buildStickyTab() {
+    return Container(
+      color: AppColors.surface,
+      alignment: Alignment.topCenter,
+      padding: const EdgeInsets.only(top: AppSpacing.s8),
+      child: IconButton(
+        onPressed: widget.onToggle, // will toggle
+        icon: const Icon(Icons.keyboard_arrow_left, size: 20, color: AppColors.primaryText),
+        tooltip: 'Expand Inspector',
+      ),
+    );
+  }
+
   Widget _buildHeader() {
     return Container(
       height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s12),
       child: Row(
         children: [
+          IconButton(
+            onPressed: widget.onToggle,
+            icon: const Icon(Icons.keyboard_arrow_right, size: 20, color: AppColors.secondaryText),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
+            tooltip: 'Collapse Inspector',
+          ),
+          const SizedBox(width: AppSpacing.s8),
           Expanded(
             child: Container(
               height: 28,
@@ -127,13 +172,6 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
                 ],
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.s8),
-          IconButton(
-            onPressed: widget.onCollapse,
-            icon: const Icon(Icons.vertical_split, size: 16, color: AppColors.secondaryText),
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-            padding: EdgeInsets.zero,
           ),
         ],
       ),
