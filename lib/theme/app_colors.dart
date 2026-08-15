@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Base Palette
-  static const Color canvas = Color(0xFF0D0F12);     // Very dark grey/black for canvas
-  static const Color surface = Color(0xFF16181D);    // Panel background
-  static const Color raisedSurface = Color(0xFF22252C); // Buttons/Hover elements
-  static const Color border = Color(0xFF2C3038);     // Subtle dividers
+  static const Color canvas = Color(0xFF121212);     // Very dark grey/black for canvas
+  static const Color surface = Color(0xFF1E1E1E);    // Panel background
+  static const Color raisedSurface = Color(0xFF2C2C2C); // Buttons/Hover elements
+  static const Color border = Color(0xFF383838);     // Subtle dividers
   
   // Typography
   static const Color primaryText = Color(0xFFFFFFFF); // Crisp white
