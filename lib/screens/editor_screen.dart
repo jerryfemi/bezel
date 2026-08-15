@@ -54,7 +54,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 // ─── LEFT RAIL ──────────────────────
                 LeftRailWidget(
                   isExpanded: _isLeftRailExpanded,
-                  onCollapse: () => setState(() => _isLeftRailExpanded = false),
+                  onToggle: () => setState(() => _isLeftRailExpanded = !_isLeftRailExpanded),
                   boundaryKey: _repaintBoundaryKey,
                 ),
 
@@ -80,10 +80,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   isExpanded: _isInspectorExpanded,
                   isMotionMode: _currentMode == EditorMode.motion,
                   onModeChanged: (isMotion) {
-                    setState(() => _currentMode = isMotion ? EditorMode.motion : EditorMode.design);
+                    setState(
+                      () => _currentMode = isMotion
+                          ? EditorMode.motion
+                          : EditorMode.design,
+                    );
                   },
-                  onCollapse: () {
-                    setState(() => _isInspectorExpanded = false);
+                  onToggle: () {
+                    setState(() => _isInspectorExpanded = !_isInspectorExpanded);
                   },
                   boundaryKey: _repaintBoundaryKey,
                 ),
@@ -108,36 +112,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(
         children: [
-          // LEFT: Left Rail Toggle & Project name
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _isLeftRailExpanded = !_isLeftRailExpanded;
-              });
-            },
-            icon: Icon(
-              Icons.format_indent_decrease,
-              color: _isLeftRailExpanded ? AppColors.accent : AppColors.secondaryText,
-            ),
-            tooltip: 'Toggle Assets',
-          ),
-          const SizedBox(width: AppSpacing.s16),
+          // LEFT: Project name
           Text('Untitled Mockup', style: AppTypography.uiBody),
 
-          // RIGHT: Inspector Toggle
+          // RIGHT: (Empty for now)
           const Spacer(),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _isInspectorExpanded = !_isInspectorExpanded;
-              });
-            },
-            icon: Icon(
-              Icons.splitscreen_outlined,
-              color: _isInspectorExpanded ? AppColors.accent : AppColors.secondaryText,
-            ),
-            tooltip: 'Toggle Inspector',
-          ),
         ],
       ),
     );
