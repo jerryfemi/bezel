@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/motion_provider.dart';
@@ -56,7 +57,9 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
     final sequence = ref.watch(activeSequenceProvider);
     final currentTime = ref.watch(currentPlaybackTimeProvider);
 
-    final totalDuration = sequence.totalDuration == Duration.zero ? const Duration(seconds: 5) : sequence.totalDuration;
+    final totalDuration = sequence.totalDuration == Duration.zero
+        ? const Duration(seconds: 5)
+        : sequence.totalDuration;
 
     if (_controller.duration != totalDuration) {
       _controller.duration = totalDuration;
@@ -67,42 +70,69 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
         : currentTime.inMilliseconds / totalDuration.inMilliseconds;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.s32),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s24,
-        vertical: AppSpacing.s12,
-      ),
+      height: 48, // Fixed height for a sleek pill
+      width: 360,
       decoration: BoxDecoration(
-        color: AppColors.raisedSurface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: [
+        color: const Color(0xFF1E1E1E), // Solid dark grey, no cheap blur
+        borderRadius: BorderRadius.circular(24), // Perfect pill
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.05),
+          width: 1,
+        ),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black45,
+            blurRadius: 16,
+            offset: Offset(0, 8),
           ),
         ],
       ),
-      width: 400,
       child: Row(
         children: [
-          StudioButton(
-            label: '',
-            icon: _controller.isAnimating ? Icons.pause : Icons.play_arrow,
-            onPressed: _togglePlayPause,
-            variant: ButtonVariant.primary,
+          // Custom Play Button Block
+          GestureDetector(
+            onTap: _togglePlayPause,
+            child: Container(
+              width: 56,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.accent,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  bottomLeft: Radius.circular(24),
+                  topRight: Radius.circular(
+                    12,
+                  ), // Slight rounding on the inside
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  _controller.isAnimating
+                      ? Icons.pause_rounded
+                      : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: AppSpacing.s16),
+          // Scrubber
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: 2.0,
-                activeTrackColor: AppColors.accent,
-                inactiveTrackColor: AppColors.border,
-                thumbColor: AppColors.primaryText,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12.0),
+                activeTrackColor: Colors.white.withValues(alpha: 0.8),
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                thumbColor: Colors.white,
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 6.0,
+                ),
+                overlayShape: const RoundSliderOverlayShape(
+                  overlayRadius: 14.0,
+                ),
+                trackShape: const RoundedRectSliderTrackShape(), // clean edges
               ),
               child: Slider(
                 value: progress.clamp(0.0, 1.0),
@@ -111,20 +141,30 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
                     _controller.stop();
                   }
                   final newTime = Duration(
-                    milliseconds: (value * totalDuration.inMilliseconds).round(),
+                    milliseconds: (value * totalDuration.inMilliseconds)
+                        .round(),
                   );
                   _controller.value = value;
-                  ref.read(currentPlaybackTimeProvider.notifier).state = newTime;
+                  ref.read(currentPlaybackTimeProvider.notifier).state =
+                      newTime;
                 },
               ),
             ),
           ),
           const SizedBox(width: AppSpacing.s16),
-          Text(
-            '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
-            style: AppTypography.uiLabel.copyWith(
-              fontFeatures: const [FontFeature.tabularFigures()],
-              color: AppColors.secondaryText,
+          // Timestamp
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: Text(
+              '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
+              style: AppTypography.uiLabel.copyWith(
+                fontFamily:
+                    'Inter', // Ensure standard font, but add tabular figures
+                fontFeatures: const [FontFeature.tabularFigures()],
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 11, // Tiny and precise
+                letterSpacing: 0.5,
+              ),
             ),
           ),
         ],

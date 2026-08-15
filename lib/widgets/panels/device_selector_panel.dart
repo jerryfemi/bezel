@@ -20,6 +20,21 @@ class DeviceSelectorPanel extends ConsumerStatefulWidget {
 class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
   DeviceCategory _selectedCategory = DeviceCategory.ios;
 
+  String _getCategoryAsset(DeviceCategory cat) {
+    switch (cat) {
+      case DeviceCategory.ios:
+      case DeviceCategory.android:
+        return 'lib/assets/iphone.png';
+      case DeviceCategory.tablet:
+        return 'lib/assets/tablet (2).png';
+      case DeviceCategory.macos:
+      case DeviceCategory.windows:
+        return 'lib/assets/laptop.png';
+      case DeviceCategory.monitor:
+        return 'lib/assets/imac.png';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final models = DeviceRegistry.devices
@@ -56,7 +71,19 @@ class _DeviceSelectorPanelState extends ConsumerState<DeviceSelectorPanel> {
               child: StudioSegmentedControl<DeviceCategory>(
                 expand: false, // Prevent wrapping / squishing
                 segments: {
-                  for (final cat in DeviceCategory.values) cat: cat.label,
+                  for (final cat in DeviceCategory.values)
+                    cat: Tooltip(
+                      message: cat.label,
+                      child: Opacity(
+                        opacity: _selectedCategory == cat ? 1.0 : 0.5,
+                        child: Image.asset(
+                          _getCategoryAsset(cat),
+                          width: 20,
+                          height: 20,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
                 },
                 selectedValue: _selectedCategory,
                 onValueChanged: (cat) {
