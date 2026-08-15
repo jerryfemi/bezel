@@ -4,6 +4,7 @@ import '../../providers/motion_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
+import 'accordion_slider.dart';
 
 class KeyframeEditor extends ConsumerWidget {
   const KeyframeEditor({super.key});
@@ -38,7 +39,7 @@ class KeyframeEditor extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.s24),
-            _buildPropertySlider(
+            AccordionSlider(
               title: 'Scale',
               value: sceneState.scale,
               min: 0.1,
@@ -53,8 +54,8 @@ class KeyframeEditor extends ConsumerWidget {
                     activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
-            const SizedBox(height: AppSpacing.s16),
-            _buildPropertySlider(
+            const SizedBox(height: AppSpacing.s8),
+            AccordionSlider(
               title: 'Position Y',
               value: sceneState.positionY,
               min: -500.0,
@@ -69,8 +70,8 @@ class KeyframeEditor extends ConsumerWidget {
                     activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
-            const SizedBox(height: AppSpacing.s16),
-            _buildPropertySlider(
+            const SizedBox(height: AppSpacing.s8),
+            AccordionSlider(
               title: 'Rotation',
               value: sceneState.rotation,
               min: -3.14,
@@ -85,51 +86,9 @@ class KeyframeEditor extends ConsumerWidget {
                     activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
-            const SizedBox(height: AppSpacing.s16),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPropertySlider({
-    required String title,
-    required double value,
-    required double min,
-    required double max,
-    required ValueChanged<double> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: AppTypography.uiLabel),
-            Text(
-              value.toStringAsFixed(2),
-              style: AppTypography.uiLabel.copyWith(
-                fontFeatures: const [FontFeature.tabularFigures()],
-                color: AppColors.secondaryText,
-              ),
-            ),
-          ],
-        ),
-        SliderTheme(
-          data: const SliderThemeData(
-            trackHeight: 2.0,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 8.0),
-          ),
-          child: Slider(
-            value: value.clamp(min, max),
-            min: min,
-            max: max,
-            activeColor: AppColors.accent,
-            inactiveColor: AppColors.border,
-            onChanged: onChanged,
-          ),
-        ),
-      ],
     );
   }
 }
