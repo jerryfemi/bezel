@@ -57,141 +57,67 @@ class PresetSelector extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.s16),
-            child: Text('Motion Presets', style: AppTypography.uiBody),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16, vertical: AppSpacing.s12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('MOTION PRESETS', style: AppTypography.panelHeader),
+              ],
+            ),
           ),
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.85,
-                crossAxisSpacing: AppSpacing.s8,
-                mainAxisSpacing: AppSpacing.s8,
-              ),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
               itemCount: MotionPresets.allPresets.length,
               itemBuilder: (context, index) {
                 final presetData = MotionPresets.allPresets[index];
                 final String name = presetData['name'] as String;
-                // timeline is a method returning Timeline or a Timeline object depending on how it's defined
                 final timeline = presetData['timeline'];
                 final bool isSelected = activeTimeline == timeline;
                 final icon = _getIconForPreset(name);
 
-                return Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        // Replace the entire sequence with just this block
-                        final newBlock = SequenceBlock(
-                          name: name,
-                          timeline: timeline,
-                        );
-                        ref.read(activeSequenceProvider.notifier).state =
-                            activeSequence.copyWith(blocks: [newBlock]);
-                        ref.read(activeBlockIndexProvider.notifier).state = 0;
-                        ref.read(currentPlaybackTimeProvider.notifier).state =
-                            Duration.zero;
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.accent.withValues(alpha: 0.15)
-                              : AppColors.raisedSurface,
-                          borderRadius: BorderRadius.circular(
-                            AppRadius.control,
-                          ),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.accent
-                                : AppColors.border,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.smartphone,
-                                    size: 56,
-                                    color: isSelected
-                                        ? AppColors.primaryText
-                                        : AppColors.secondaryText,
-                                  ),
-                                  Positioned(
-                                    right: 0,
-                                    bottom: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.surface,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: AppColors.border,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        icon,
-                                        size: 16,
-                                        color: AppColors.accent,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                return MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      final newBlock = SequenceBlock(name: name, timeline: timeline);
+                      ref.read(activeSequenceProvider.notifier).state =
+                          activeSequence.copyWith(blocks: [newBlock]);
+                      ref.read(activeBlockIndexProvider.notifier).state = 0;
+                      ref.read(currentPlaybackTimeProvider.notifier).state = Duration.zero;
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8, vertical: AppSpacing.s8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppRadius.control),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(icon, size: 14, color: isSelected ? AppColors.accent : AppColors.secondaryText),
+                          const SizedBox(width: AppSpacing.s8),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: AppTypography.uiBody.copyWith(
+                                color: isSelected ? AppColors.accent : AppColors.primaryText,
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(AppSpacing.s8),
-                              child: Text(
-                                name,
-                                style: AppTypography.uiLabel.copyWith(
-                                  color: isSelected
-                                      ? AppColors.accent
-                                      : AppColors.primaryText,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                          ),
+                          if (hasSequence)
+                            GestureDetector(
+                              onTap: () {
+                                final newBlock = SequenceBlock(name: name, timeline: timeline);
+                                ref.read(activeSequenceProvider.notifier).state =
+                                    activeSequence.withAppendedBlock(newBlock);
+                              },
+                              child: const Icon(Icons.add, size: 14, color: AppColors.secondaryText),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
-
-                    // The "Add to Sequence" button, visible if a sequence exists and this isn't the active one
-                    if (hasSequence)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: () {
-                            // Append to sequence
-                            final newBlock = SequenceBlock(
-                              name: name,
-                              timeline: timeline,
-                            );
-                            ref.read(activeSequenceProvider.notifier).state =
-                                activeSequence.withAppendedBlock(newBlock);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              size: 14,
-                              color: AppColors.secondaryText,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 );
               },
             ),
