@@ -117,10 +117,11 @@ class _DeviceModelItem extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.smartphone,
-                      size: 14,
-                      color: isActive ? AppColors.accent : AppColors.secondaryText,
+                    Image.asset(
+                      variant.assetPath,
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(width: AppSpacing.s8),
                     Expanded(
