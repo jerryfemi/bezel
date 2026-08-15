@@ -10,13 +10,17 @@ class KeyframeEditor extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeTimeline = ref.watch(activeTimelineProvider);
+    final activeSequence = ref.watch(activeSequenceProvider);
+    final activeBlockIndex = ref.watch(activeBlockIndexProvider);
     final currentTime = ref.watch(currentPlaybackTimeProvider);
     final sceneState = ref.watch(animatedSceneStateProvider);
 
-    if (activeTimeline == null) {
+    if (activeSequence.blocks.isEmpty || activeBlockIndex >= activeSequence.blocks.length) {
       return const SizedBox.shrink();
     }
+    
+    final activeBlock = activeSequence.blocks[activeBlockIndex];
+    final activeTimeline = activeBlock.timeline;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.s16),
@@ -44,7 +48,9 @@ class KeyframeEditor extends ConsumerWidget {
                   scale: val,
                   time: currentTime,
                 );
-                ref.read(activeTimelineProvider.notifier).state = newTimeline;
+                final newBlock = activeBlock.copyWith(timeline: newTimeline);
+                ref.read(activeSequenceProvider.notifier).state = 
+                    activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
             const SizedBox(height: AppSpacing.s16),
@@ -58,7 +64,9 @@ class KeyframeEditor extends ConsumerWidget {
                   positionY: val,
                   time: currentTime,
                 );
-                ref.read(activeTimelineProvider.notifier).state = newTimeline;
+                final newBlock = activeBlock.copyWith(timeline: newTimeline);
+                ref.read(activeSequenceProvider.notifier).state = 
+                    activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
             const SizedBox(height: AppSpacing.s16),
@@ -72,7 +80,9 @@ class KeyframeEditor extends ConsumerWidget {
                   rotation: val,
                   time: currentTime,
                 );
-                ref.read(activeTimelineProvider.notifier).state = newTimeline;
+                final newBlock = activeBlock.copyWith(timeline: newTimeline);
+                ref.read(activeSequenceProvider.notifier).state = 
+                    activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
               },
             ),
             const SizedBox(height: AppSpacing.s16),
