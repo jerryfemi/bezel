@@ -22,12 +22,16 @@ class RightInspectorWidget extends ConsumerStatefulWidget {
   final bool isExpanded;
   final bool isMotionMode;
   final GlobalKey boundaryKey;
+  final ValueChanged<bool> onModeChanged;
+  final VoidCallback onCollapse;
 
   const RightInspectorWidget({
     super.key,
     required this.isExpanded,
     required this.isMotionMode,
     required this.boundaryKey,
+    required this.onModeChanged,
+    required this.onCollapse,
   });
 
   @override
@@ -91,10 +95,65 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
         color: AppColors.surface,
         child: Column(
           children: [
+            _buildHeader(),
+            const Divider(height: 1, color: AppColors.border),
             Expanded(child: _buildContent()),
             const Divider(height: 1, color: AppColors.border),
             _ExportSection(boundaryKey: widget.boundaryKey),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 28,
+              decoration: BoxDecoration(
+                color: AppColors.canvas,
+                borderRadius: BorderRadius.circular(AppRadius.control),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: Row(
+                children: [
+                  Expanded(child: _buildModeTab('DESIGN', !widget.isMotionMode, () => widget.onModeChanged(false))),
+                  Expanded(child: _buildModeTab('MOTION', widget.isMotionMode, () => widget.onModeChanged(true))),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.s8),
+          IconButton(
+            onPressed: widget.onCollapse,
+            icon: const Icon(Icons.vertical_split, size: 16, color: AppColors.secondaryText),
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(String label, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.control - 2),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.uiLabel.copyWith(
+            color: isSelected ? AppColors.primaryText : AppColors.secondaryText,
+          ),
         ),
       ),
     );

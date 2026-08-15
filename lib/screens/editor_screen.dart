@@ -74,6 +74,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 RightInspectorWidget(
                   isExpanded: _isInspectorExpanded,
                   isMotionMode: _currentMode == EditorMode.motion,
+                  onModeChanged: (isMotion) {
+                    setState(() => _currentMode = isMotion ? EditorMode.motion : EditorMode.design);
+                  },
+                  onCollapse: () {
+                    setState(() => _isInspectorExpanded = false);
+                  },
                   boundaryKey: _repaintBoundaryKey,
                 ),
               ],
@@ -97,26 +103,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
       child: Row(
         children: [
-          // LEFT: Project name and Mode Switcher
+          // LEFT: Project name
           Text('Untitled Mockup', style: AppTypography.uiBody),
-          const SizedBox(width: AppSpacing.s32),
-
-          // Mode Switcher
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.raisedSurface,
-              borderRadius: BorderRadius.circular(AppRadius.control),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildModeTab('DESIGN', EditorMode.design),
-                const SizedBox(width: 4),
-                _buildModeTab('MOTION', EditorMode.motion),
-              ],
-            ),
-          ),
 
           // RIGHT: Inspector Toggle
           const Spacer(),
