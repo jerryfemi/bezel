@@ -3,7 +3,7 @@ import 'keyframe.dart';
 import 'timeline.dart';
 
 class MotionPresets {
-  static const Duration _defaultDuration = Duration(seconds: 5);
+  static const Duration _defaultDuration = Duration(milliseconds: 1500);
 
   static Timeline pushIn() {
     return Timeline(
@@ -60,22 +60,22 @@ class MotionPresets {
       duration: _defaultDuration,
       scale: [
         const Keyframe(time: Duration.zero, value: 0.9),
-        const Keyframe(time: Duration(seconds: 2), value: 1.0, curve: Curves.easeOutCubic),
+        const Keyframe(time: Duration(milliseconds: 1000), value: 1.0, curve: Curves.easeOutCubic),
         Keyframe(time: _defaultDuration, value: 1.0),
       ],
       rotation: [
         const Keyframe(time: Duration.zero, value: -0.104), // ~ -6 degrees
-        const Keyframe(time: Duration(seconds: 2), value: 0.0, curve: Curves.easeOutCubic),
+        const Keyframe(time: Duration(milliseconds: 1000), value: 0.0, curve: Curves.easeOutCubic),
         Keyframe(time: _defaultDuration, value: 0.0),
       ],
       positionY: [
         const Keyframe(time: Duration.zero, value: 50.0),
-        const Keyframe(time: Duration(seconds: 2), value: 0.0, curve: Curves.easeOutCubic),
+        const Keyframe(time: Duration(milliseconds: 1000), value: 0.0, curve: Curves.easeOutCubic),
         Keyframe(time: _defaultDuration, value: 0.0),
       ],
       opacity: [
         const Keyframe(time: Duration.zero, value: 0.0),
-        const Keyframe(time: Duration(seconds: 1), value: 1.0),
+        const Keyframe(time: Duration(milliseconds: 500), value: 1.0),
         Keyframe(time: _defaultDuration, value: 1.0),
       ],
     );
@@ -119,7 +119,7 @@ class MotionPresets {
       duration: _defaultDuration,
       positionY: [
         const Keyframe(time: Duration.zero, value: 0.0),
-        const Keyframe(time: Duration(milliseconds: 2500), value: -20.0, curve: Curves.easeInOutSine),
+        const Keyframe(time: Duration(milliseconds: 750), value: -20.0, curve: Curves.easeInOutSine),
         Keyframe(time: _defaultDuration, value: 0.0, curve: Curves.easeInOutSine),
       ],
     );
@@ -148,8 +148,8 @@ class MotionPresets {
       duration: _defaultDuration,
       positionX: [
         const Keyframe(time: Duration.zero, value: 800.0),
-        const Keyframe(time: Duration(milliseconds: 600), value: -20.0, curve: Curves.easeOutExpo),
-        const Keyframe(time: Duration(milliseconds: 1000), value: 0.0, curve: Curves.easeOutSine),
+        const Keyframe(time: Duration(milliseconds: 400), value: -20.0, curve: Curves.easeOutExpo),
+        const Keyframe(time: Duration(milliseconds: 800), value: 0.0, curve: Curves.easeOutSine),
         Keyframe(time: _defaultDuration, value: 0.0),
       ],
     );
