@@ -99,6 +99,62 @@ class MotionPresets {
     );
   }
 
+  static Timeline slam() {
+    return Timeline(
+      duration: _defaultDuration,
+      scale: [
+        const Keyframe(time: Duration.zero, value: 3.0),
+        const Keyframe(time: Duration(milliseconds: 800), value: 0.9, curve: Curves.easeOutBack),
+        Keyframe(time: _defaultDuration, value: 1.0),
+      ],
+      opacity: [
+        const Keyframe(time: Duration.zero, value: 0.0),
+        const Keyframe(time: Duration(milliseconds: 300), value: 1.0),
+      ],
+    );
+  }
+
+  static Timeline float() {
+    return Timeline(
+      duration: _defaultDuration,
+      positionY: [
+        const Keyframe(time: Duration.zero, value: 0.0),
+        const Keyframe(time: Duration(milliseconds: 2500), value: -20.0, curve: Curves.easeInOutSine),
+        Keyframe(time: _defaultDuration, value: 0.0, curve: Curves.easeInOutSine),
+      ],
+    );
+  }
+
+  static Timeline isometricSlide() {
+    return Timeline(
+      duration: _defaultDuration,
+      rotation: [
+        const Keyframe(time: Duration.zero, value: -0.261), // ~ -15 degrees
+        Keyframe(time: _defaultDuration, value: -0.261),
+      ],
+      scale: [
+        const Keyframe(time: Duration.zero, value: 0.8),
+        Keyframe(time: _defaultDuration, value: 0.85),
+      ],
+      positionY: [
+        const Keyframe(time: Duration.zero, value: 100.0),
+        Keyframe(time: _defaultDuration, value: -100.0),
+      ],
+    );
+  }
+
+  static Timeline whipPan() {
+    return Timeline(
+      duration: _defaultDuration,
+      positionX: [
+        const Keyframe(time: Duration.zero, value: 800.0),
+        const Keyframe(time: Duration(milliseconds: 600), value: -20.0, curve: Curves.easeOutExpo),
+        const Keyframe(time: Duration(milliseconds: 1000), value: 0.0, curve: Curves.easeOutSine),
+        Keyframe(time: _defaultDuration, value: 0.0),
+      ],
+    );
+  }
+
   static final List<Map<String, dynamic>> allPresets = [
     {'name': 'Push In', 'timeline': pushIn()},
     {'name': 'Pull Out', 'timeline': pullOut()},
@@ -107,5 +163,9 @@ class MotionPresets {
     {'name': 'Twist', 'timeline': twist()},
     {'name': 'Reveal', 'timeline': reveal()},
     {'name': 'Hero', 'timeline': hero()},
+    {'name': 'Slam', 'timeline': slam()},
+    {'name': 'Float', 'timeline': float()},
+    {'name': 'Iso Slide', 'timeline': isometricSlide()},
+    {'name': 'Whip Pan', 'timeline': whipPan()},
   ];
 }

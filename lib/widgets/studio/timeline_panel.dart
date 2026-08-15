@@ -53,14 +53,15 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
 
   @override
   Widget build(BuildContext context) {
-    final timeline = ref.watch(activeTimelineProvider);
+    final sequence = ref.watch(activeSequenceProvider);
     final currentTime = ref.watch(currentPlaybackTimeProvider);
 
-    if (timeline != null && _controller.duration != timeline.duration) {
-      _controller.duration = timeline.duration;
+    final totalDuration = sequence.totalDuration == Duration.zero ? const Duration(seconds: 5) : sequence.totalDuration;
+
+    if (_controller.duration != totalDuration) {
+      _controller.duration = totalDuration;
     }
 
-    final totalDuration = timeline?.duration ?? const Duration(seconds: 5);
     final progress = totalDuration.inMilliseconds == 0
         ? 0.0
         : currentTime.inMilliseconds / totalDuration.inMilliseconds;

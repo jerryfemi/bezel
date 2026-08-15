@@ -8,6 +8,7 @@ import '../../theme/app_typography.dart';
 import '../panels/background_panel.dart';
 import 'preset_selector.dart';
 import 'keyframe_editor.dart';
+import 'sequence_track_widget.dart';
 import 'studio_button.dart';
 import 'package:bezel/services/export/image_export_service.dart';
 import 'package:bezel/screens/export_progress_screen.dart';
@@ -18,11 +19,13 @@ import 'package:bezel/screens/export_progress_screen.dart';
 ///
 /// Collapsible via a toggle button that hangs off the left edge.
 class RightInspectorWidget extends ConsumerStatefulWidget {
+  final bool isExpanded;
   final bool isMotionMode;
   final GlobalKey boundaryKey;
 
   const RightInspectorWidget({
     super.key,
+    required this.isExpanded,
     required this.isMotionMode,
     required this.boundaryKey,
   });
@@ -34,7 +37,6 @@ class RightInspectorWidget extends ConsumerStatefulWidget {
 
 class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
     with SingleTickerProviderStateMixin {
-  bool _isExpanded = true;
 
   late final AnimationController _animController;
   late final Animation<double> _widthFactor;
@@ -59,77 +61,40 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
     super.dispose();
   }
 
-  void _toggle() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (_isExpanded) {
+  @override
+  void didUpdateWidget(RightInspectorWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != oldWidget.isExpanded) {
+      if (widget.isExpanded) {
         _animController.forward();
       } else {
         _animController.reverse();
       }
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Collapse / Expand toggle
-        _buildToggleTab(),
-
-        // Animated panel
-        AnimatedBuilder(
-          animation: _widthFactor,
-          builder: (context, child) {
-            return ClipRect(
-              child: Align(
-                alignment: Alignment.centerRight,
-                widthFactor: _widthFactor.value,
-                child: child,
-              ),
-            );
-          },
-          child: Container(
-            width: 280,
-            color: AppColors.surface,
-            child: Column(
-              children: [
-                Expanded(child: _buildContent()),
-                const Divider(height: 1, color: AppColors.border),
-                _ExportSection(boundaryKey: widget.boundaryKey),
-              ],
-            ),
+    return AnimatedBuilder(
+      animation: _widthFactor,
+      builder: (context, child) {
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.centerRight,
+            widthFactor: _widthFactor.value,
+            child: child,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToggleTab() {
-    return GestureDetector(
-      onTap: _toggle,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          width: 24,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(8),
-            ),
-            border: Border(
-              left: BorderSide(color: AppColors.border, width: 1),
-              top: BorderSide(color: AppColors.border, width: 1),
-              bottom: BorderSide(color: AppColors.border, width: 1),
-            ),
-          ),
-          child: Icon(
-            _isExpanded ? Icons.chevron_right : Icons.chevron_left,
-            size: 16,
-            color: AppColors.secondaryText,
-          ),
+        );
+      },
+      child: Container(
+        width: 280,
+        color: AppColors.surface,
+        child: Column(
+          children: [
+            Expanded(child: _buildContent()),
+            const Divider(height: 1, color: AppColors.border),
+            _ExportSection(boundaryKey: widget.boundaryKey),
+          ],
         ),
       ),
     );
@@ -137,8 +102,8 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
 
   Widget _buildContent() {
     if (widget.isMotionMode) {
-      final activeTimeline = ref.watch(activeTimelineProvider);
-      final hasPreset = activeTimeline != null;
+      final activeSequence = ref.watch(activeSequenceProvider);
+      final hasPreset = activeSequence.blocks.isNotEmpty;
 
       return Column(
         children: [
@@ -146,6 +111,8 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
           Expanded(flex: hasPreset ? 3 : 1, child: PresetSelector()),
 
           if (hasPreset) ...[
+            const Divider(height: 1, color: AppColors.border),
+            const SequenceTrackWidget(),
             const Divider(height: 1, color: AppColors.border),
             // Keyframe Editor
             Expanded(flex: 2, child: KeyframeEditor()),
