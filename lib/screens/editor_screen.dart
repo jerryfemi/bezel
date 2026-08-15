@@ -11,6 +11,7 @@ import '../theme/app_typography.dart';
 import '../widgets/studio/rotation_dial.dart';
 import '../widgets/studio/timeline_panel.dart';
 import '../widgets/studio/checkerboard_painter.dart';
+import '../widgets/studio/draggable_island.dart';
 
 enum EditorMode { design, motion }
 
@@ -54,7 +55,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 // ─── LEFT RAIL ──────────────────────
                 LeftRailWidget(
                   isExpanded: _isLeftRailExpanded,
-                  onToggle: () => setState(() => _isLeftRailExpanded = !_isLeftRailExpanded),
+                  onToggle: () => setState(
+                    () => _isLeftRailExpanded = !_isLeftRailExpanded,
+                  ),
                   boundaryKey: _repaintBoundaryKey,
                 ),
 
@@ -87,7 +90,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     );
                   },
                   onToggle: () {
-                    setState(() => _isInspectorExpanded = !_isInspectorExpanded);
+                    setState(
+                      () => _isInspectorExpanded = !_isInspectorExpanded,
+                    );
                   },
                   boundaryKey: _repaintBoundaryKey,
                 ),
@@ -228,29 +233,33 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
 
               // Zoom slider — bottom left
-              Positioned(
-                bottom: AppSpacing.s32,
-                left: AppSpacing.s32,
+              DraggableIsland(
+                initialOffset: Offset(
+                  AppSpacing.s32,
+                  constraints.maxHeight - 80,
+                ),
                 child: _buildZoomSlider(canvasCenterX, canvasCenterY),
               ),
 
               // Video playback controls — bottom center
               if (ref.watch(mockupProjectProvider).isVideo &&
                   _currentMode == EditorMode.design)
-                const Positioned(
-                  bottom: 32,
-                  left: 0,
-                  right: 0,
-                  child: Center(child: VideoPlaybackControls()),
+                DraggableIsland(
+                  initialOffset: Offset(
+                    (constraints.maxWidth - 300) / 2,
+                    constraints.maxHeight - 100,
+                  ),
+                  child: const VideoPlaybackControls(),
                 ),
 
               // Motion Timeline Panel — bottom
               if (_currentMode == EditorMode.motion)
-                const Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Center(child: TimelinePanel()),
+                DraggableIsland(
+                  initialOffset: Offset(
+                    (constraints.maxWidth - 400) / 2,
+                    constraints.maxHeight - 120,
+                  ),
+                  child: const TimelinePanel(),
                 ),
             ],
           ),
@@ -328,28 +337,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
           Icon(Icons.zoom_in, size: 16, color: AppColors.secondaryText),
         ],
-      ),
-    );
-  }
-
-  Widget _buildModeTab(String title, EditorMode mode) {
-    final isSelected = _currentMode == mode;
-    return GestureDetector(
-      onTap: () => setState(() => _currentMode = mode),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.control - 2),
-        ),
-        child: Text(
-          title,
-          style: AppTypography.uiLabel.copyWith(
-            color: isSelected ? Colors.black : AppColors.secondaryText,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          ),
-        ),
       ),
     );
   }
