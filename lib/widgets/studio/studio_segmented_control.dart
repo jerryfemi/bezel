@@ -4,7 +4,7 @@ import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
 
 class StudioSegmentedControl<T> extends StatelessWidget {
-  final Map<T, String> segments;
+  final Map<T, Widget> segments;
   final T selectedValue;
   final ValueChanged<T> onValueChanged;
   final bool expand;
@@ -50,12 +50,7 @@ class StudioSegmentedControl<T> extends StatelessWidget {
                 ),
               ),
               child: Center(
-                child: Text(
-                  entry.value,
-                  style: AppTypography.uiLabel.copyWith(
-                    color: isSelected ? AppColors.primaryText : AppColors.secondaryText,
-                  ),
-                ),
+                child: entry.value,
               ),
             ),
           );
