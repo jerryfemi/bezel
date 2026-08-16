@@ -194,13 +194,14 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
 }
 
 class _ScreenshotSection extends ConsumerWidget {
-  Future<void> _pickMedia(WidgetRef ref, BuildContext context, bool isVideo) async {
+  Future<void> _pickMedia(WidgetRef ref, BuildContext context) async {
     final picker = ImagePicker();
-    final XFile? file = isVideo
-        ? await picker.pickVideo(source: ImageSource.gallery)
-        : await picker.pickImage(source: ImageSource.gallery);
+    final XFile? file = await picker.pickMedia();
 
     if (file != null) {
+      final path = file.path.toLowerCase();
+      final isVideo = path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi');
+
       ref
           .read(mockupProjectProvider.notifier)
           .setSourceImage(file.path, isVideo: isVideo);
@@ -218,30 +219,43 @@ class _ScreenshotSection extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('SCREENSHOT', style: AppTypography.panelHeader),
-          const SizedBox(height: AppSpacing.s12),
-          Row(
-            children: [
-              Expanded(
-                child: StudioButton(
-                  label: 'Image',
-                  icon: Icons.image_outlined,
-                  variant: ButtonVariant.secondary,
-                  onPressed: () => _pickMedia(ref, context, false),
+          // The new "Drop Zone" UI
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _pickMedia(ref, context),
+              borderRadius: BorderRadius.circular(AppRadius.panel),
+              child: Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.canvas,
+                  borderRadius: BorderRadius.circular(AppRadius.panel),
+                  border: Border.all(
+                    color: AppColors.border,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.cloud_upload_outlined,
+                      color: AppColors.secondaryText,
+                      size: 24,
+                    ),
+                    const SizedBox(height: AppSpacing.s8),
+                    Text(
+                      'Click to browse media',
+                      style: AppTypography.uiLabel.copyWith(
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.s8),
-              Expanded(
-                child: StudioButton(
-                  label: 'Video',
-                  icon: Icons.videocam_outlined,
-                  variant: ButtonVariant.secondary,
-                  onPressed: () => _pickMedia(ref, context, true),
-                ),
-              ),
-            ],
+            ),
           ),
           if (project.sourceImagePath?.isNotEmpty ?? false) ...[
             const SizedBox(height: AppSpacing.s16),
