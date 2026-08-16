@@ -15,6 +15,10 @@ class MockupProjectNotifier extends Notifier<MockupProject> {
     state = state.copyWith(device: device);
   }
 
+  void setTitle(String newTitle) {
+    state = state.copyWith(title: newTitle);
+  }
+
   void setSourceImage(String path, {bool isVideo = false}) {
     state = state.copyWith(sourceImagePath: path, isVideo: isVideo);
   }
