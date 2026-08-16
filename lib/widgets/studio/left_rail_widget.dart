@@ -235,10 +235,7 @@ class _ScreenshotSection extends ConsumerWidget {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: () => _pickMedia(ref, context),
-              icon: const Icon(
-                Icons.add_photo_alternate_outlined,
-                size: 18,
-              ),
+              icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
               label: Text('Add Media', style: AppTypography.uiBody),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primaryText,
