@@ -37,11 +37,19 @@ class Timeline {
     );
   }
 
-  List<Keyframe<double>> _upsertKeyframe(List<Keyframe<double>> list, Duration time, double value) {
+  List<Keyframe<double>> _upsertKeyframe(
+    List<Keyframe<double>> list,
+    Duration time,
+    double value,
+  ) {
     final newList = List<Keyframe<double>>.from(list);
     final index = newList.indexWhere((k) => k.time == time);
     if (index >= 0) {
-      newList[index] = Keyframe(time: time, value: value, curve: newList[index].curve);
+      newList[index] = Keyframe(
+        time: time,
+        value: value,
+        curve: newList[index].curve,
+      );
     } else {
       newList.add(Keyframe(time: time, value: value));
       newList.sort((a, b) => a.time.compareTo(b.time));
@@ -58,11 +66,48 @@ class Timeline {
     required Duration time,
   }) {
     return copyWith(
-      positionX: positionX != null ? _upsertKeyframe(this.positionX, time, positionX) : null,
-      positionY: positionY != null ? _upsertKeyframe(this.positionY, time, positionY) : null,
+      positionX: positionX != null
+          ? _upsertKeyframe(this.positionX, time, positionX)
+          : null,
+      positionY: positionY != null
+          ? _upsertKeyframe(this.positionY, time, positionY)
+          : null,
       scale: scale != null ? _upsertKeyframe(this.scale, time, scale) : null,
-      rotation: rotation != null ? _upsertKeyframe(this.rotation, time, rotation) : null,
-      opacity: opacity != null ? _upsertKeyframe(this.opacity, time, opacity) : null,
+      rotation: rotation != null
+          ? _upsertKeyframe(this.rotation, time, rotation)
+          : null,
+      opacity: opacity != null
+          ? _upsertKeyframe(this.opacity, time, opacity)
+          : null,
+    );
+  }
+
+  /// Rescales all keyframe timestamps proportionally so the animation
+  /// spans the entire [newDuration] with zero dead time.
+  Timeline withScaledDuration(Duration newDuration) {
+    if (duration.inMicroseconds == 0) return copyWith(duration: newDuration);
+
+    final ratio = newDuration.inMicroseconds / duration.inMicroseconds;
+
+    List<Keyframe<double>> scaleKfs(List<Keyframe<double>> kfs) {
+      return kfs.map((k) {
+        return Keyframe<double>(
+          time: Duration(
+            microseconds: (k.time.inMicroseconds * ratio).round(),
+          ),
+          value: k.value,
+          curve: k.curve,
+        );
+      }).toList();
+    }
+
+    return Timeline(
+      positionX: scaleKfs(positionX),
+      positionY: scaleKfs(positionY),
+      scale: scaleKfs(scale),
+      rotation: scaleKfs(rotation),
+      opacity: scaleKfs(opacity),
+      duration: newDuration,
     );
   }
 
@@ -105,7 +150,8 @@ class Timeline {
 
       if (time >= kf1.time && time <= kf2.time) {
         // Calculate the raw progress between the two keyframes
-        final segmentDuration = kf2.time.inMicroseconds - kf1.time.inMicroseconds;
+        final segmentDuration =
+            kf2.time.inMicroseconds - kf1.time.inMicroseconds;
         final elapsedTime = time.inMicroseconds - kf1.time.inMicroseconds;
         final rawProgress = elapsedTime / segmentDuration;
 
