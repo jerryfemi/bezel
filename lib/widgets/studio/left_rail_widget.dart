@@ -7,7 +7,6 @@ import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
 import '../panels/device_selector_panel.dart';
 import '../panels/crop_panel.dart';
-import 'studio_button.dart';
 
 class LeftRailWidget extends ConsumerStatefulWidget {
   final bool isExpanded;
@@ -29,7 +28,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<double> _widthFactor;
-  
+
   double _devicePanelHeight = 300.0;
 
   @override
@@ -76,7 +75,8 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
         return AnimatedBuilder(
           animation: _widthFactor,
           builder: (context, child) {
-            final currentWidth = 40.0 + (panelWidth - 40.0) * _widthFactor.value;
+            final currentWidth =
+                40.0 + (panelWidth - 40.0) * _widthFactor.value;
             return SizedBox(
               width: currentWidth,
               child: Stack(
@@ -87,10 +87,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                     top: 0,
                     bottom: 0,
                     width: panelWidth,
-                    child: Opacity(
-                      opacity: _widthFactor.value,
-                      child: child,
-                    ),
+                    child: Opacity(opacity: _widthFactor.value, child: child),
                   ),
                   // The sticky tab
                   if (_widthFactor.value < 1.0)
@@ -127,7 +124,10 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                     onVerticalDragUpdate: (details) {
                       setState(() {
                         _devicePanelHeight += details.delta.dy;
-                        _devicePanelHeight = _devicePanelHeight.clamp(100.0, 800.0);
+                        _devicePanelHeight = _devicePanelHeight.clamp(
+                          100.0,
+                          800.0,
+                        );
                       });
                     },
                     child: Container(
@@ -145,9 +145,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ScreenshotSection(),
-                      ],
+                      children: [_ScreenshotSection()],
                     ),
                   ),
                 ),
@@ -166,7 +164,11 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
       padding: const EdgeInsets.only(top: AppSpacing.s8),
       child: IconButton(
         onPressed: widget.onToggle, // will toggle
-        icon: const Icon(Icons.keyboard_arrow_right, size: 20, color: AppColors.primaryText),
+        icon: const Icon(
+          Icons.keyboard_arrow_right,
+          size: 20,
+          color: AppColors.primaryText,
+        ),
         tooltip: 'Expand Assets',
       ),
     );
@@ -182,7 +184,11 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
           const Spacer(),
           IconButton(
             onPressed: widget.onToggle,
-            icon: const Icon(Icons.keyboard_arrow_left, size: 20, color: AppColors.secondaryText),
+            icon: const Icon(
+              Icons.keyboard_arrow_left,
+              size: 20,
+              color: AppColors.secondaryText,
+            ),
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             padding: EdgeInsets.zero,
             tooltip: 'Collapse Assets',
@@ -200,7 +206,10 @@ class _ScreenshotSection extends ConsumerWidget {
 
     if (file != null) {
       final path = file.path.toLowerCase();
-      final isVideo = path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi');
+      final isVideo =
+          path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.avi');
 
       ref
           .read(mockupProjectProvider.notifier)
@@ -221,38 +230,24 @@ class _ScreenshotSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // The new "Drop Zone" UI
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _pickMedia(ref, context),
-              borderRadius: BorderRadius.circular(AppRadius.panel),
-              child: Container(
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppColors.canvas,
-                  borderRadius: BorderRadius.circular(AppRadius.panel),
-                  border: Border.all(
-                    color: AppColors.border,
-                    width: 1,
-                  ),
+          // Compact Add Media button
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _pickMedia(ref, context),
+              icon: const Icon(
+                Icons.add_photo_alternate_outlined,
+                size: 18,
+              ),
+              label: Text('Add Media', style: AppTypography.uiBody),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primaryText,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.s12,
+                  vertical: AppSpacing.s12,
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cloud_upload_outlined,
-                      color: AppColors.secondaryText,
-                      size: 24,
-                    ),
-                    const SizedBox(height: AppSpacing.s8),
-                    Text(
-                      'Click to browse media',
-                      style: AppTypography.uiLabel.copyWith(
-                        color: AppColors.secondaryText,
-                      ),
-                    ),
-                  ],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.panel),
                 ),
               ),
             ),
@@ -266,4 +261,3 @@ class _ScreenshotSection extends ConsumerWidget {
     );
   }
 }
-
