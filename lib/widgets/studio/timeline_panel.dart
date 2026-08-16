@@ -70,22 +70,16 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
         : currentTime.inMilliseconds / totalDuration.inMilliseconds;
 
     return Container(
-      height: 48, // Fixed height for a sleek pill
-      width: 360,
+      height: 48, // Fixed height
+      width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E), // Solid dark grey, no cheap blur
-        borderRadius: BorderRadius.circular(24), // Perfect pill
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
-          width: 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black45,
-            blurRadius: 16,
-            offset: Offset(0, 8),
+        border: Border(
+          top: BorderSide(
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 1,
           ),
-        ],
+        ),
       ),
       child: Row(
         children: [
@@ -95,16 +89,8 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
             child: Container(
               width: 56,
               height: 48,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.accent,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  bottomLeft: Radius.circular(24),
-                  topRight: Radius.circular(
-                    12,
-                  ), // Slight rounding on the inside
-                  bottomRight: Radius.circular(12),
-                ),
               ),
               child: Center(
                 child: Icon(

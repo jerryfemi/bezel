@@ -20,3 +20,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+// motion timing, animation, timeline tush background(screen), color for phones, expand slider position, radial drag
