@@ -209,8 +209,6 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
 
           if (hasPreset) ...[
             const Divider(height: 1, color: AppColors.border),
-            const SequenceTrackWidget(),
-            const Divider(height: 1, color: AppColors.border),
             // Keyframe Editor
             Expanded(flex: 2, child: KeyframeEditor()),
           ],

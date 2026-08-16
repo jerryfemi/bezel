@@ -40,6 +40,21 @@ class KeyframeEditor extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.s24),
             AccordionSlider(
+              title: 'Duration (s)',
+              value: activeTimeline.duration.inMilliseconds / 1000.0,
+              min: 0.1,
+              max: 5.0,
+              onChanged: (val) {
+                final newTimeline = activeTimeline.copyWith(
+                  duration: Duration(milliseconds: (val * 1000).round()),
+                );
+                final newBlock = activeBlock.copyWith(timeline: newTimeline);
+                ref.read(activeSequenceProvider.notifier).state = 
+                    activeSequence.withUpdatedBlock(activeBlockIndex, newBlock);
+              },
+            ),
+            const SizedBox(height: AppSpacing.s8),
+            AccordionSlider(
               title: 'Scale',
               value: sceneState.scale,
               min: 0.1,

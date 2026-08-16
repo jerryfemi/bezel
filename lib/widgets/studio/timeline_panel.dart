@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
 import 'studio_button.dart';
+import 'sequence_track_widget.dart';
 
 class TimelinePanel extends ConsumerStatefulWidget {
   const TimelinePanel({super.key});
@@ -70,7 +71,6 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
         : currentTime.inMilliseconds / totalDuration.inMilliseconds;
 
     return Container(
-      height: 48, // Fixed height
       width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E), // Solid dark grey, no cheap blur
@@ -81,78 +81,94 @@ class _TimelinePanelState extends ConsumerState<TimelinePanel>
           ),
         ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Custom Play Button Block
-          GestureDetector(
-            onTap: _togglePlayPause,
-            child: Container(
-              width: 56,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: AppColors.accent,
-              ),
-              child: Center(
-                child: Icon(
-                  _controller.isAnimating
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
-                  color: Colors.white,
-                  size: 24,
+          // Row 1: Playback Scrubber
+          SizedBox(
+            height: 48,
+            child: Row(
+              children: [
+                // Custom Play Button Block
+                GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    width: 56,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      color: AppColors.accent,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _controller.isAnimating
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: AppSpacing.s16),
+                // Scrubber
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 2.0,
+                      activeTrackColor: Colors.white.withValues(alpha: 0.8),
+                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                      thumbColor: Colors.white,
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6.0,
+                      ),
+                      overlayShape: const RoundSliderOverlayShape(
+                        overlayRadius: 14.0,
+                      ),
+                      trackShape: const RoundedRectSliderTrackShape(), // clean edges
+                    ),
+                    child: Slider(
+                      value: progress.clamp(0.0, 1.0),
+                      onChanged: (value) {
+                        if (_controller.isAnimating) {
+                          _controller.stop();
+                        }
+                        final newTime = Duration(
+                          milliseconds: (value * totalDuration.inMilliseconds)
+                              .round(),
+                        );
+                        _controller.value = value;
+                        ref.read(currentPlaybackTimeProvider.notifier).state =
+                            newTime;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.s16),
+                // Timestamp
+                Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: Text(
+                    '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
+                    style: AppTypography.uiLabel.copyWith(
+                      fontFamily:
+                          'Inter', // Ensure standard font, but add tabular figures
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 11, // Tiny and precise
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: AppSpacing.s16),
-          // Scrubber
-          Expanded(
-            child: SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                trackHeight: 2.0,
-                activeTrackColor: Colors.white.withValues(alpha: 0.8),
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
-                thumbColor: Colors.white,
-                thumbShape: const RoundSliderThumbShape(
-                  enabledThumbRadius: 6.0,
-                ),
-                overlayShape: const RoundSliderOverlayShape(
-                  overlayRadius: 14.0,
-                ),
-                trackShape: const RoundedRectSliderTrackShape(), // clean edges
-              ),
-              child: Slider(
-                value: progress.clamp(0.0, 1.0),
-                onChanged: (value) {
-                  if (_controller.isAnimating) {
-                    _controller.stop();
-                  }
-                  final newTime = Duration(
-                    milliseconds: (value * totalDuration.inMilliseconds)
-                        .round(),
-                  );
-                  _controller.value = value;
-                  ref.read(currentPlaybackTimeProvider.notifier).state =
-                      newTime;
-                },
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.s16),
-          // Timestamp
-          Padding(
-            padding: const EdgeInsets.only(right: 20.0),
-            child: Text(
-              '${_formatDuration(currentTime)} / ${_formatDuration(totalDuration)}',
-              style: AppTypography.uiLabel.copyWith(
-                fontFamily:
-                    'Inter', // Ensure standard font, but add tabular figures
-                fontFeatures: const [FontFeature.tabularFigures()],
-                color: Colors.white.withValues(alpha: 0.5),
-                fontSize: 11, // Tiny and precise
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
+          
+          // Row 2: Sequence Track (Preset Chips)
+          if (sequence.blocks.isNotEmpty) ...[
+            const Divider(height: 1, color: AppColors.border),
+            const SequenceTrackWidget(),
+          ],
         ],
       ),
     );
