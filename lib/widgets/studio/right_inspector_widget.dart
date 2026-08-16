@@ -8,7 +8,6 @@ import '../../theme/app_typography.dart';
 import '../panels/background_panel.dart';
 import 'preset_selector.dart';
 import 'keyframe_editor.dart';
-import 'sequence_track_widget.dart';
 import 'studio_button.dart';
 import 'package:bezel/services/export/image_export_service.dart';
 import 'package:bezel/screens/export_progress_screen.dart';
