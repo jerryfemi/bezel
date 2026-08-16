@@ -46,30 +46,29 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       body: Row(
         children: [
           // ─── LEFT RAIL ──────────────────────
-                LeftRailWidget(
-                  isExpanded: _isLeftRailExpanded,
-                  onToggle: () => setState(
-                    () => _isLeftRailExpanded = !_isLeftRailExpanded,
-                  ),
-                  boundaryKey: _repaintBoundaryKey,
-                ),
+          LeftRailWidget(
+            isExpanded: _isLeftRailExpanded,
+            onToggle: () =>
+                setState(() => _isLeftRailExpanded = !_isLeftRailExpanded),
+            boundaryKey: _repaintBoundaryKey,
+          ),
 
-                // Thin border between rail and canvas
-                const VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                  color: AppColors.border,
-                ),
+          // Thin border between rail and canvas
+          const VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: AppColors.border,
+          ),
 
-                // ─── CANVAS (Dominant) ────────────────
-                Expanded(child: _buildCanvas(project)),
+          // ─── CANVAS (Dominant) ────────────────
+          Expanded(child: _buildCanvas(project)),
 
-                // Thin border between canvas and inspector
-                const VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                  color: AppColors.border,
-                ),
+          // Thin border between canvas and inspector
+          const VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color: AppColors.border,
+          ),
 
           // ─── RIGHT INSPECTOR (always visible, collapsible) ───
           RightInspectorWidget(
@@ -83,9 +82,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               );
             },
             onToggle: () {
-              setState(
-                () => _isInspectorExpanded = !_isInspectorExpanded,
-              );
+              setState(() => _isInspectorExpanded = !_isInspectorExpanded);
             },
             boundaryKey: _repaintBoundaryKey,
           ),
@@ -196,7 +193,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               Positioned(
                 top: AppSpacing.s24,
                 left: AppSpacing.s24,
-                child: Text('Untitled Mockup', style: AppTypography.uiBody),
+                child: const EditableProjectTitle(),
               ),
 
               // Rotation Dial — top right
@@ -226,14 +223,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                   child: const VideoPlaybackControls(),
                 ),
 
-              // Motion Timeline Panel — bottom
+              // Motion Timeline Panel — docked at bottom
               if (_currentMode == EditorMode.motion)
-                DraggableIsland(
-                  initialOffset: Offset(
-                    (constraints.maxWidth - 400) / 2,
-                    constraints.maxHeight - 120,
-                  ),
-                  child: const TimelinePanel(),
+                const Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: TimelinePanel(),
                 ),
             ],
           ),
@@ -255,13 +251,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         border: Border.all(
           color: AppColors.primaryText.withValues(alpha: 0.08),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black45,
-            blurRadius: 32,
-            offset: Offset(0, 8),
-          ),
-        ],
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
@@ -311,6 +300,97 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
           Icon(Icons.zoom_in, size: 16, color: AppColors.secondaryText),
         ],
+      ),
+    );
+  }
+}
+
+class EditableProjectTitle extends ConsumerStatefulWidget {
+  const EditableProjectTitle({super.key});
+
+  @override
+  ConsumerState<EditableProjectTitle> createState() =>
+      _EditableProjectTitleState();
+}
+
+class _EditableProjectTitleState extends ConsumerState<EditableProjectTitle> {
+  bool _isEditing = false;
+  late TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    final title = ref.read(mockupProjectProvider).title;
+    _controller = TextEditingController(text: title);
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _commitTitle();
+      }
+    });
+  }
+
+  void _commitTitle() {
+    final newTitle = _controller.text.trim();
+    if (newTitle.isNotEmpty) {
+      ref.read(mockupProjectProvider.notifier).setTitle(newTitle);
+    } else {
+      // Revert if empty
+      _controller.text = ref.read(mockupProjectProvider).title;
+    }
+    setState(() => _isEditing = false);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = ref.watch(mockupProjectProvider.select((p) => p.title));
+
+    if (!_isEditing) {
+      return GestureDetector(
+        onTap: () {
+          setState(() => _isEditing = true);
+          _controller.text = title;
+          _focusNode.requestFocus();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            title,
+            style: AppTypography.uiBody.copyWith(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 200,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.accent),
+      ),
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        style: AppTypography.uiBody.copyWith(color: Colors.white),
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+          border: InputBorder.none,
+        ),
+        onSubmitted: (_) => _commitTitle(),
       ),
     );
   }
