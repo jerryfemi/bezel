@@ -203,13 +203,25 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: RotationDial(),
               ),
 
-              // Zoom slider — bottom left
-              DraggableIsland(
-                initialOffset: Offset(
-                  AppSpacing.s32,
-                  constraints.maxHeight - 80,
+              // Zoom slider — top center
+              Positioned(
+                top: AppSpacing.s24,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _buildZoomSlider(
+                    canvasCenterX,
+                    canvasCenterY,
+                    () {
+                      final currentScale = _transformationController.value.getMaxScaleOnAxis();
+                      _updateZoom((currentScale + 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
+                    },
+                    () {
+                      final currentScale = _transformationController.value.getMaxScaleOnAxis();
+                      _updateZoom((currentScale - 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
+                    },
+                  ),
                 ),
-                child: _buildZoomSlider(canvasCenterX, canvasCenterY),
               ),
 
               // Video playback controls — bottom center
@@ -240,18 +252,26 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   // Inspector Panel removed in favor of RightInspectorWidget
 
+  void _updateZoom(double newScale, double centerX, double centerY) {
+    final current = _transformationController.value.clone();
+    final currentScale = current.getMaxScaleOnAxis();
+    final ratio = newScale / currentScale;
+    current.translate(centerX, centerY, 0.0);
+    current.scale(ratio, ratio, 1.0);
+    current.translate(-centerX, -centerY, 0.0);
+    _transformationController.value = current;
+  }
+
   // ═══════════════════════════════════════════════════════════
   // FLOATING ZOOM SLIDER — Glass Treatment
   // ═══════════════════════════════════════════════════════════
-  Widget _buildZoomSlider(double centerX, double centerY) {
+  Widget _buildZoomSlider(
+    double centerX,
+    double centerY,
+    VoidCallback increment,
+    VoidCallback decrement,
+  ) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(AppRadius.panel),
-        border: Border.all(
-          color: AppColors.primaryText.withValues(alpha: 0.08),
-        ),
-      ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.s16,
         vertical: AppSpacing.s8,
@@ -259,7 +279,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.zoom_out, size: 16, color: AppColors.secondaryText),
+          IconButton(
+            onPressed: decrement,
+            icon: const Icon(
+              Icons.zoom_out,
+              size: 16,
+              color: AppColors.secondaryText,
+            ),
+          ),
           SizedBox(
             width: 150,
             child: ValueListenableBuilder<Matrix4>(
@@ -284,21 +311,21 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     min: 0.1,
                     max: 4.0,
                     onChanged: (newScale) {
-                      final current = _transformationController.value.clone();
-                      final currentScale = current.getMaxScaleOnAxis();
-                      final ratio = newScale / currentScale;
-                      current.translate(centerX, centerY, 0.0);
-                      current.scale(ratio, ratio, 1.0);
-                      current.translate(-centerX, -centerY, 0.0);
-
-                      _transformationController.value = current;
+                      _updateZoom(newScale, centerX, centerY);
                     },
                   ),
                 );
               },
             ),
           ),
-          Icon(Icons.zoom_in, size: 16, color: AppColors.secondaryText),
+          IconButton(
+            onPressed: increment,
+            icon: const Icon(
+              Icons.zoom_in,
+              size: 16,
+              color: AppColors.secondaryText,
+            ),
+          ),
         ],
       ),
     );
