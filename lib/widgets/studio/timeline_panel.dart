@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/motion_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
-import 'studio_button.dart';
 import 'sequence_track_widget.dart';
 
 class TimelinePanel extends ConsumerStatefulWidget {
