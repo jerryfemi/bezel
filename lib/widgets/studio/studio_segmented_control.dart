@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_metrics.dart';
-import '../../theme/app_typography.dart';
 
 class StudioSegmentedControl<T> extends StatelessWidget {
   final Map<T, Widget> segments;
@@ -49,9 +48,7 @@ class StudioSegmentedControl<T> extends StatelessWidget {
                   right: Radius.circular(isLast ? AppRadius.control - 1 : 0),
                 ),
               ),
-              child: Center(
-                child: entry.value,
-              ),
+              child: Center(child: entry.value),
             ),
           );
 
