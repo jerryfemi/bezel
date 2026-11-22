@@ -37,7 +37,7 @@ class PosePanel extends ConsumerWidget {
                 PoseTile(
                   preset: preset,
                   selected: _near(pose, preset.pose),
-                  onTap: () => scene.setPose(preset.pose),
+                  onTap: () => scene.setPose(preset.pose.copyWith(zoom: pose.zoom)),
                 ),
             ],
           ),
@@ -50,9 +50,14 @@ class PosePanel extends ConsumerWidget {
             label: 'Tilt', value: pose.tilt, min: -30, max: 60,
             format: _deg, onChanged: (v) => scene.setPose(pose.copyWith(tilt: v)),
           ),
+          SliderRow(
+            label: 'Zoom', value: pose.zoom, min: 0.5, max: 2.5,
+            format: (v) => '${(v * 100).round()}%',
+            onChanged: (v) => scene.setPose(pose.copyWith(zoom: v)),
+          ),
           const SizedBox(height: 6),
           Text(
-            'Or drag the phone itself. It turns all the way round; past 70° it '
+            'Or drag the phone itself, and scroll or pinch to zoom. It turns all the way round; past 70° it '
             'resists a little so the back only shows when you mean it.',
             style: BezelType.label.copyWith(color: BezelColors.textSecondary, height: 1.45),
           ),
