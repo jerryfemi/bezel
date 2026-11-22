@@ -18,8 +18,12 @@ class SceneController {
         return;
       }
       final b = jsonDecode(json.toDart) as Map<String, dynamic>;
-      double n(String k) => (b[k] as num).toDouble();
-      captionBounds.value = Rect.fromLTWH(n('x'), n('y'), n('w'), n('h'));
+      Rect? rect(Object? r) {
+        if (r is! Map) return null;
+        double n(String k) => (r[k] as num).toDouble();
+        return Rect.fromLTWH(n('x'), n('y'), n('w'), n('h'));
+      }
+      captionBounds.value = (head: rect(b['head']), sub: rect(b['sub']));
     }
     _handle.onCaptionBounds(bounds.toJS);
   }
@@ -33,8 +37,9 @@ class SceneController {
   final time = ValueNotifier(0.0);
   final playing = ValueNotifier(false);
 
-  /// Where the caption text sits, as fractions of the frame; null when hidden.
-  final captionBounds = ValueNotifier<Rect?>(null);
+  /// Where the headline and subtitle sit, as fractions of the frame; null when
+  /// the caption is off.
+  final captionBounds = ValueNotifier<({Rect? head, Rect? sub})?>(null);
 
   Future<DeviceProfile> loadDevice(String baseUrl, {String? finishId}) async {
     final json = await _handle.loadDevice(baseUrl, finishId).toDart;
@@ -75,6 +80,9 @@ class SceneController {
   }
 
   void cancelExport() => _handle.cancelExport();
+
+  /// A small JPEG data URL of the current frame, or null mid-export.
+  String? snapshot({int width = 320}) => _handle.snapshot(width)?.toDart;
 
   void dispose() {
     _handle.dispose();
