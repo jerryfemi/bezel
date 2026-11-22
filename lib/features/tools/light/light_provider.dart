@@ -4,8 +4,12 @@ import '../../editor/state/scene_provider.dart';
 import '../../scene3d/scene_specs.dart';
 
 class LightNotifier extends Notifier<LightSpec> {
+  static const defaults = LightSpec(angle: 315, intensity: 0.6, reflections: true);
+
   @override
-  LightSpec build() => const LightSpec(angle: 315, intensity: 0.6, reflections: true);
+  LightSpec build() => defaults;
+
+  void reset() => _set(defaults);
 
   void setAngle(double v) =>
       _set(LightSpec(angle: v, intensity: state.intensity, reflections: state.reflections));
