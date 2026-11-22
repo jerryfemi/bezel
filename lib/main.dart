@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'theme/app_theme.dart';
-import 'screens/editor_screen.dart';
 
-void main() {
-  runApp(const ProviderScope(child: MyApp()));
+import 'app/theme/bezel_theme.dart';
+import 'features/editor/editor_page.dart';
+import 'features/projects/data/project_store.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ProjectStore.init();
+  runApp(const ProviderScope(child: BezelApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BezelApp extends StatelessWidget {
+  const BezelApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bezel',
-      theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      home: const EditorScreen(),
+      theme: buildBezelTheme(),
+      home: const EditorPage(),
     );
   }
 }
-
-// motion timing, animation, timeline tush background(screen), color for phones, expand slider position, radial drag

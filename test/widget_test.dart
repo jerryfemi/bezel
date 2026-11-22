@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:bezel/main.dart';
+import 'package:bezel/features/editor/state/frame_shape.dart';
+import 'package:bezel/features/scene3d/device_profile.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('DeviceProfile reads a prepared profile.json', () {
+    final profile = DeviceProfile.fromJson({
+      'id': 'iphone-13-pro-max',
+      'name': 'iPhone 13 Pro Max',
+      'screens': [
+        {'id': 'front', 'aspect': 0.4654},
+      ],
+      'finishes': [
+        {'id': 'graphite', 'name': 'Graphite', 'body': '#54524F', 'frame': '#4A4946'},
+      ],
+      'defaultFinish': 'graphite',
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(profile.name, 'iPhone 13 Pro Max');
+    expect(profile.screenAspect, closeTo(0.4654, 1e-9));
+    expect(profile.finishes.single.body.toARGB32(), 0xFF54524F);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('Frame shapes have the aspect their label says', () {
+    for (final shape in FrameShape.values) {
+      final parts = shape.label.split(':').map(double.parse).toList();
+      expect(shape.aspect, closeTo(parts[0] / parts[1], 1e-9));
+    }
   });
 }

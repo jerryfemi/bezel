@@ -1,0 +1,11 @@
+{
+  "name": "bezel-three-vendor",
+  "private": true,
+  "type": "module",
+  "description": "Builds web/scene/vendor/three_bundle.js (Three.js + GLTFLoader + RoomEnvironment).",
+  "scripts": {
+    "build": "esbuild entry.js --bundle --format=esm --minify --legal-comments=none --outfile=../../web/scene/vendor/three_bundle.js"
+  },
+  "dependencies": { "three": "0.187.0" },
+  "devDependencies": { "esbuild": "^0.25.0" }
+}

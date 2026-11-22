@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Bezel: raw device downloads (prepared copies live in web/devices/)
+/assets/devices/
+/tool/device_prep/node_modules/
+/tool/three_vendor/node_modules/

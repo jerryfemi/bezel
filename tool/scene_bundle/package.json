@@ -1,0 +1,8 @@
+{
+  "name": "bezel-scene-bundle",
+  "private": true,
+  "type": "module",
+  "description": "Bundles web/scene into one versioned file inside build/web after `flutter build web`.",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "esbuild": "^0.25.0" }
+}
