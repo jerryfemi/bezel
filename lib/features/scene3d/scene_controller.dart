@@ -51,6 +51,16 @@ class SceneController {
 
   void seek(double seconds) => _handle.seek(seconds);
 
+  /// Renders and downloads the clip. Returns the file name, or null if cancelled.
+  Future<String?> exportClip(String settingsJson, void Function(int frame, int total) onProgress) async {
+    void progress(JSNumber frame, JSNumber total) => onProgress(frame.toDartInt, total.toDartInt);
+    final result = await _handle.exportClip(settingsJson, progress.toJS).toDart;
+    final decoded = jsonDecode(result.toDart);
+    return decoded == null ? null : (decoded as Map<String, dynamic>)['filename'] as String;
+  }
+
+  void cancelExport() => _handle.cancelExport();
+
   void dispose() {
     _handle.dispose();
     pose.dispose();
