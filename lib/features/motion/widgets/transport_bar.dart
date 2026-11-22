@@ -6,8 +6,11 @@ import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/chip_button.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../editor/state/scene_provider.dart';
+import '../state/segment_loop_provider.dart';
 import '../state/timeline_provider.dart';
 import 'format_time.dart';
+import 'loop_chip.dart';
+import 'timeline_zoom_controls.dart';
 
 /// Play / pause, the clock, Add keyframe and Loop.
 class TransportBar extends ConsumerWidget {
@@ -26,7 +29,13 @@ class TransportBar extends ConsumerWidget {
         ValueListenableBuilder<bool>(
           valueListenable: scene.playing,
           builder: (_, playing, __) => Pressable(
-            onTap: timeline.isEmpty ? null : (playing ? scene.pause : scene.play),
+            onTap: timeline.isEmpty
+                ? null
+                : () {
+                    if (playing) return scene.pause();
+                    ref.read(segmentLoopProvider.notifier).stop(); // play the whole clip
+                    scene.play();
+                  },
             label: playing ? 'Pause' : 'Play',
             child: Container(
               width: 34,
@@ -54,7 +63,11 @@ class TransportBar extends ConsumerWidget {
           label: 'Add keyframe',
           onTap: () => notifier.addKeyframeAt(scene.time.value),
         ),
+        const SizedBox(width: 12),
+        const LoopChip(),
         const Spacer(),
+        const TimelineZoomControls(),
+        const SizedBox(width: 12),
         Text('Loop', style: BezelType.label.copyWith(color: BezelColors.textSecondary)),
         const SizedBox(width: 6),
         Switch(
