@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/pointer_shield.dart';
+import '../../scene3d/scene_specs.dart';
 import '../../tools/text/caption_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_tool.dart';
 import '../state/scene_provider.dart';
 import 'caption_box.dart';
 
-/// Lays a hit box over the caption drawn in the 3D view, so the text can be
-/// selected, dragged, resized and edited right on the canvas.
+/// Lays hit boxes over the headline and subtitle drawn in the 3D view, so
+/// each can be selected, dragged, resized and edited right on the canvas.
 class CaptionOverlay extends ConsumerWidget {
   const CaptionOverlay({super.key});
 
@@ -22,18 +23,26 @@ class CaptionOverlay extends ConsumerWidget {
 
     return LayoutBuilder(builder: (context, box) {
       final frame = box.biggest;
-      return ValueListenableBuilder<Rect?>(
+      Rect onScreen(Rect r) => Rect.fromLTWH(r.left * frame.width, r.top * frame.height,
+              r.width * frame.width, r.height * frame.height)
+          .inflate(CaptionBox.pad);
+
+      return ValueListenableBuilder(
         valueListenable: scene.captionBounds,
-        builder: (context, b, _) {
-          if (b == null) return const SizedBox.shrink();
-          final rect = Rect.fromLTWH(
-                  b.left * frame.width, b.top * frame.height, b.width * frame.width, b.height * frame.height)
-              .inflate(10);
+        builder: (context, bounds, _) {
+          if (bounds == null) return const SizedBox.shrink();
           return Stack(children: [
-            Positioned.fromRect(
-              rect: rect,
-              child: PointerShield(child: CaptionBox(frame: frame, selected: selected)),
-            ),
+            for (final (part, rect) in [
+              (CaptionPart.headline, bounds.head),
+              (CaptionPart.subtitle, bounds.sub),
+            ])
+              if (rect != null)
+                Positioned.fromRect(
+                  rect: onScreen(rect),
+                  child: PointerShield(
+                    child: CaptionBox(part: part, frame: frame, selected: selected),
+                  ),
+                ),
           ]);
         },
       );
