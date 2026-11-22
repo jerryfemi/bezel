@@ -60,6 +60,7 @@ function mount(host, onPose, onTime) {
     setLight(json) { applyLight(stage, JSON.parse(json)); },
     /** JSON: {loop, keyframes: [{time, turn, tilt, zoom, easing: {kind, bounce}}]}. */
     setTimeline(json) { player.setTimeline(JSON.parse(json)); },
+    setLoopRange(start, end) { player.setLoopRange(start, end); },
     play() { player.play(); },
     pause() { player.pause(); },
     seek(seconds) { player.seek(seconds); },
