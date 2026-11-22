@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../scene3d/scene_controller.dart';
 import '../../scene3d/scene_pose.dart';
+import '../../motion/state/timeline_provider.dart';
 import '../../tools/background/background_provider.dart';
 import '../../tools/device/device_selection.dart';
 import '../../tools/light/light_provider.dart';
@@ -20,4 +21,5 @@ Future<void> attachScene(WidgetRef ref, SceneController scene) async {
   final device = ref.read(deviceSelectionProvider).entry;
   await ref.read(deviceSelectionProvider.notifier).select(device);
   scene.setPose(heroPose);
+  ref.read(timelineProvider.notifier).apply();
 }
