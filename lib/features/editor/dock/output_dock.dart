@@ -6,9 +6,10 @@ import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/floating_surface.dart';
 import '../../../core/widgets/pressable.dart';
 import 'frame_shape_menu.dart';
+import 'motion_summary.dart';
 
 /// Bottom-left dock: frame shape, motion summary and Export.
-/// Motion (phase 5) and Export (phase 6) are shown but not active yet.
+/// Export becomes active in phase 6.
 class OutputDock extends StatelessWidget {
   const OutputDock({super.key});
 
@@ -19,24 +20,11 @@ class OutputDock extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         const FrameShapeMenu(),
         _divider(),
-        Tooltip(
-          message: 'Motion editing is coming next',
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('No motion yet', style: BezelType.label),
-                Text('Still image', style: BezelType.caption),
-              ],
-            ),
-          ),
-        ),
+        const MotionSummary(),
         _divider(),
         const SizedBox(width: BezelSpace.s8),
         Tooltip(
-          message: 'Export arrives with motion',
+          message: 'Export arrives in the next phase',
           child: Pressable(
             onTap: null,
             label: 'Export',
