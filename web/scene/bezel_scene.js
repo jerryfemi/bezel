@@ -60,10 +60,10 @@ function mount(host, onPose, onTime) {
     setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
     /**
      * JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right', font,
-     * size, align: 'left'|'center'|'right', dx, dy, hidden}.
+     * align, size, subSize, dx, dy, subDx, subDy, hidden}. See caption.js.
      */
     setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
-    /** fn(json | null): caption bounds {x, y, w, h} as fractions of the frame. */
+    /** fn(json | null): {head, sub} bounds {x, y, w, h} as fractions of the frame. */
     onCaptionBounds(fn) { backdrop.onCaptionBounds(fn); },
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
     setLight(json) { applyLight(stage, JSON.parse(json)); },
@@ -88,6 +88,18 @@ function mount(host, onPose, onTime) {
       return JSON.stringify(result);
     },
     cancelExport() { exportCancelled = true; },
+    /** A small JPEG of the current frame as a data URL (project thumbnails). */
+    snapshot(width) {
+      if (stage.locked) return null;
+      stage.renderer.render(stage.scene, stage.camera);
+      const src = stage.renderer.domElement;
+      if (!src.width || !src.height) return null;
+      const c = document.createElement('canvas');
+      c.width = width;
+      c.height = Math.round((width * src.height) / src.width);
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', 0.8);
+    },
     dispose() {
       orbit.dispose();
       zoom.dispose();
