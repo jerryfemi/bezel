@@ -8,15 +8,21 @@ import { createScreenMedia } from './screen_media.js';
 import { createOrbit } from './orbit.js';
 import { createBackdrop } from './backdrop.js';
 import { applyLight } from './lighting.js';
+import { createZoom } from './zoom.js';
 
 function mount(host, onPose) {
   const stage = createStage(host);
+  // pivot: layout position + rotation. zoomGroup (inside it): the user's zoom.
   const pivot = new THREE.Group();
+  const zoomGroup = new THREE.Group();
+  pivot.add(zoomGroup);
   stage.scene.add(pivot);
+  const report = () => onPose?.(orbit.pose.turn, orbit.pose.tilt, zoom.value);
+  const zoom = createZoom(stage, zoomGroup, () => report());
   const orbit = createOrbit(stage, (turn, tilt) => {
     pivot.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(turn), 0, 'YXZ');
-    onPose?.(turn, tilt);
-  });
+    report();
+  }, zoom.pinching);
   const backdrop = createBackdrop(stage, pivot);
   stage.resize();
   let device = null;
@@ -26,9 +32,9 @@ function mount(host, onPose) {
     /** Resolves with the device profile as a JSON string. */
     async loadDevice(baseUrl, finishId) {
       const next = await loadDevice(baseUrl);
-      if (device) { pivot.remove(device.root); media.dispose(); disposeDevice(device); }
+      if (device) { zoomGroup.remove(device.root); media.dispose(); disposeDevice(device); }
       device = next;
-      pivot.add(device.root);
+      zoomGroup.add(device.root);
       media = createScreenMedia(stage, device);
       applyFinish(device, finishId);
       stage.invalidate();
@@ -37,7 +43,10 @@ function mount(host, onPose) {
     setFinish(finishId) { if (device) { applyFinish(device, finishId); stage.invalidate(); } },
     setScreenImage(url) { return media?.setImage(url); },
     setScreenVideo(url) { return media?.setVideo(url); },
-    setPose(turn, tilt) { orbit.setPose(turn, tilt); },
+    setPose(turn, tilt, zoomLevel) {
+      if (zoomLevel != null) zoom.set(zoomLevel);
+      orbit.setPose(turn, tilt);
+    },
     /** JSON: {style: 'solid'|'spotlight'|'image', color: '#rrggbb', imageUrl?}. */
     setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
     /** JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right'}. */
@@ -46,6 +55,7 @@ function mount(host, onPose) {
     setLight(json) { applyLight(stage, JSON.parse(json)); },
     dispose() {
       orbit.dispose();
+      zoom.dispose();
       media?.dispose();
       backdrop.dispose();
       if (device) disposeDevice(device);
