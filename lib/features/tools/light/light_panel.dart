@@ -24,6 +24,15 @@ class LightPanel extends ConsumerWidget {
       ),
       ToggleRow(
         label: 'Reflections', value: light.reflections, onChanged: notifier.setReflections),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: notifier.reset,
+          icon: const Icon(Icons.restart_alt, size: 16),
+          label: const Text('Reset light'),
+        ),
+      ),
     ]);
   }
 
