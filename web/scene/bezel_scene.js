@@ -9,8 +9,9 @@ import { createOrbit } from './orbit.js';
 import { createBackdrop } from './backdrop.js';
 import { applyLight } from './lighting.js';
 import { createZoom } from './zoom.js';
+import { createPlayer } from './player.js';
 
-function mount(host, onPose) {
+function mount(host, onPose, onTime) {
   const stage = createStage(host);
   // pivot: layout position + rotation. zoomGroup (inside it): the user's zoom.
   const pivot = new THREE.Group();
@@ -23,6 +24,10 @@ function mount(host, onPose) {
     pivot.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(turn), 0, 'YXZ');
     report();
   }, zoom.pinching);
+  const player = createPlayer(stage, (p) => {
+    zoom.set(p.zoom);
+    orbit.setPose(p.turn, p.tilt);
+  }, (time, playing) => onTime?.(time, playing));
   const backdrop = createBackdrop(stage, pivot);
   stage.resize();
   let device = null;
@@ -53,6 +58,11 @@ function mount(host, onPose) {
     setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
     setLight(json) { applyLight(stage, JSON.parse(json)); },
+    /** JSON: {loop, keyframes: [{time, turn, tilt, zoom, easing: {kind, bounce}}]}. */
+    setTimeline(json) { player.setTimeline(JSON.parse(json)); },
+    play() { player.play(); },
+    pause() { player.pause(); },
+    seek(seconds) { player.seek(seconds); },
     dispose() {
       orbit.dispose();
       zoom.dispose();
