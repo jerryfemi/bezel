@@ -31,3 +31,27 @@ export function blankScreen(doc) {
       .setRoughnessFactor(0.25);
   }
 }
+
+/** Gives glass meshes over the screen their own material so it can be kept faint. */
+export function splitScreenGlass(doc, meshNames = []) {
+  const meshes = doc.getRoot().listMeshes().filter((m) => meshNames.includes(m.getName()));
+  if (meshes.length !== meshNames.length) throw new Error(`Screen glass meshes not found: ${meshNames}`);
+  for (const mesh of meshes) {
+    for (const prim of mesh.listPrimitives()) {
+      prim.setMaterial(prim.getMaterial().clone().setName(CANONICAL.screenGlass));
+    }
+  }
+}
+
+/**
+ * Removes real-time transmission (see-through glass). In the browser it costs
+ * a second render of the whole scene; plain blended glass looks the same here.
+ */
+export function stripTransmission(doc) {
+  for (const m of doc.getRoot().listMaterials()) {
+    const ext = m.getExtension('KHR_materials_transmission');
+    if (!ext) continue;
+    m.setExtension('KHR_materials_transmission', null);
+    if (m.getAlphaMode() === 'OPAQUE') m.setAlphaMode('BLEND');
+  }
+}
