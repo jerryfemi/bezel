@@ -6,8 +6,10 @@ import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/floating_surface.dart';
 import 'mode_switch.dart';
 import 'project_title.dart';
+import 'zoom_indicator.dart';
 
-/// Brand and project name on the left, mode switch in the centre.
+/// Brand and project name on the left, mode switch in the centre, device
+/// zoom on the right.
 class TopBar extends StatelessWidget {
   const TopBar({super.key});
 
@@ -36,6 +38,7 @@ class TopBar extends StatelessWidget {
           ),
         ),
         const ModeSwitch(),
+        const Align(alignment: Alignment.centerRight, child: ZoomIndicator()),
       ],
     );
   }
