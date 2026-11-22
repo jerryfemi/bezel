@@ -39,7 +39,11 @@ class _SceneViewState extends State<SceneView> {
     late final SceneController controller;
     void onPose(JSNumber turn, JSNumber tilt, JSNumber zoom) => controller.pose.value =
         ScenePose(turn: turn.toDartDouble, tilt: tilt.toDartDouble, zoom: zoom.toDartDouble);
-    controller = SceneController(bezelSceneApi!.mount(host, onPose.toJS));
+    void onTime(JSNumber seconds, JSBoolean playing) {
+      controller.time.value = seconds.toDartDouble;
+      controller.playing.value = playing.toDart;
+    }
+    controller = SceneController(bezelSceneApi!.mount(host, onPose.toJS, onTime.toJS));
     _controller = controller;
     widget.onReady(controller);
   }
