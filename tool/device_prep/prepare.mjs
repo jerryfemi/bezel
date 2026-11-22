@@ -7,7 +7,9 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { devices } from './devices.config.mjs';
 import { orient } from './orient.mjs';
-import { canonicaliseMaterials, blankScreen } from './materials.mjs';
+import {
+  canonicaliseMaterials, blankScreen, splitScreenGlass, stripTransmission,
+} from './materials.mjs';
 import { planarScreenUVs } from './screen_uv.mjs';
 import { optimize } from './optimize.mjs';
 import { buildProfile } from './profile.mjs';
@@ -19,7 +21,9 @@ const only = process.argv[2];
 for (const device of devices.filter((d) => !only || d.id === only)) {
   const doc = await io.read(join(repoRoot, device.source));
   const size = await orient(doc, device.frontAxis);
+  splitScreenGlass(doc, device.screenGlassMeshes);
   canonicaliseMaterials(doc, device.materials);
+  stripTransmission(doc);
   blankScreen(doc);
   const aspect = planarScreenUVs(doc);
   await optimize(doc);
