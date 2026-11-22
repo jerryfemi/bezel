@@ -38,7 +38,9 @@ class KeyframeInspector extends ConsumerWidget {
                   maxTime: timeline.duration + 3,
                   onChanged: (next) {
                     ref.read(timelineProvider.notifier).update(next);
-                    ref.read(sceneControllerProvider)?.seek(next.time);
+                    // While a move loops, keep it playing so the edit is seen in motion.
+                    final scene = ref.read(sceneControllerProvider);
+                    if (scene != null && !scene.playing.value) scene.seek(next.time);
                   },
                 ),
                 const SizedBox(height: 8),
