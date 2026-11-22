@@ -1,5 +1,5 @@
 name: bezel
-description: "A new Flutter project."
+description: "Turns app screenshots and screen recordings into animated 3D device clips."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -37,10 +37,6 @@ dependencies:
   flutter_riverpod: ^2.6.1
   hive_flutter: ^1.1.0
   image_picker: ^1.2.3
-  path_provider: ^2.1.6
-  ffmpeg_wasm: ^1.0.3
-  video_player: ^2.11.1
-  vector_math: ^2.2.0
   google_fonts: ^8.2.1
 
 dev_dependencies:
@@ -66,8 +62,6 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - lib/assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
