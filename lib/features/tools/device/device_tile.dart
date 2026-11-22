@@ -4,19 +4,22 @@ import '../../../app/theme/bezel_colors.dart';
 import '../../../app/theme/bezel_metrics.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/pressable.dart';
+import 'device_preview.dart';
 
-/// One device in the picker grid.
+/// One device in the picker: a preview on a soft stage, then its name.
 class DeviceTile extends StatelessWidget {
   const DeviceTile({
     super.key,
     required this.label,
     required this.meta,
+    required this.bodyColor,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final String meta;
+  final Color bodyColor;
   final bool selected;
   final VoidCallback? onTap;
 
@@ -27,25 +30,34 @@ class DeviceTile extends StatelessWidget {
       label: label,
       selected: selected,
       child: Container(
-        height: 60,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
           color: selected ? BezelColors.accentSoft : const Color(0x08FFFFFF),
-          borderRadius: BorderRadius.circular(BezelRadius.control + 2),
+          borderRadius: BorderRadius.circular(BezelRadius.control + 4),
           border: Border.all(color: selected ? BezelColors.accentLine : BezelColors.stroke),
         ),
-        child: Row(children: [
-          const Icon(Icons.phone_iphone_outlined, size: 22, color: BezelColors.textSecondary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: BezelType.label, maxLines: 2),
-                Text(meta, style: BezelType.caption),
-              ],
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Container(
+            height: 92,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(BezelRadius.control),
+              gradient: const RadialGradient(
+                center: Alignment(0, -0.3),
+                radius: 0.9,
+                colors: [Color(0xFF2B3447), Color(0xFF161A22)],
+              ),
             ),
+            child: DevicePreview(bodyColor: bodyColor),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 2),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: BezelType.label.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 2),
+              Text(meta, style: BezelType.caption),
+            ]),
           ),
         ]),
       ),
