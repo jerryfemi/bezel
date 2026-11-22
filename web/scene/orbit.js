@@ -8,7 +8,7 @@ const TILT_MAX = 60;
 const FRICTION = 0.92; // momentum kept per frame
 const SPRING = 0.18; // pull back into the tilt range per frame
 
-export function createOrbit(stage, onChange) {
+export function createOrbit(stage, onChange, isPinching = () => false) {
   const el = stage.renderer.domElement;
   const pose = { turn: 0, tilt: 0 };
   const velocity = { turn: 0, tilt: 0 };
@@ -29,6 +29,7 @@ export function createOrbit(stage, onChange) {
   };
   const onMove = (e) => {
     if (!drag) return;
+    if (isPinching()) { drag = null; return; }
     const now = performance.now();
     const dt = Math.max(1, now - drag.t);
     const dTurn = resist(pose.turn, (e.clientX - drag.x) * DEG_PER_PX, TURN_SOFT_LIMIT);
