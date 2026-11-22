@@ -6,6 +6,8 @@ import { loadDevice, disposeDevice } from './device.js';
 import { applyFinish } from './finish.js';
 import { createScreenMedia } from './screen_media.js';
 import { createOrbit } from './orbit.js';
+import { createBackdrop } from './backdrop.js';
+import { applyLight } from './lighting.js';
 
 function mount(host, onPose) {
   const stage = createStage(host);
@@ -15,6 +17,8 @@ function mount(host, onPose) {
     pivot.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(turn), 0, 'YXZ');
     onPose?.(turn, tilt);
   });
+  const backdrop = createBackdrop(stage, pivot);
+  stage.resize();
   let device = null;
   let media = null;
 
@@ -34,10 +38,16 @@ function mount(host, onPose) {
     setScreenImage(url) { return media?.setImage(url); },
     setScreenVideo(url) { return media?.setVideo(url); },
     setPose(turn, tilt) { orbit.setPose(turn, tilt); },
-    setBackground(hex) { stage.scene.background.set(hex); stage.invalidate(); },
+    /** JSON: {style: 'solid'|'spotlight'|'image', color: '#rrggbb', imageUrl?}. */
+    setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
+    /** JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right'}. */
+    setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
+    /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
+    setLight(json) { applyLight(stage, JSON.parse(json)); },
     dispose() {
       orbit.dispose();
       media?.dispose();
+      backdrop.dispose();
       if (device) disposeDevice(device);
       stage.dispose();
     },
