@@ -64,6 +64,17 @@ class TimelineNotifier extends Notifier<MotionTimeline> {
     ref.read(selectedKeyframeProvider.notifier).state = null;
   }
 
+  /// Replaces the whole clip (opening a saved project).
+  void load(Map<String, dynamic>? saved) {
+    final keys = [
+      for (final k in (saved?['keyframes'] as List?) ?? const [])
+        Keyframe.fromMap(_id(), (k as Map).cast<String, dynamic>()),
+    ];
+    state = MotionTimeline(loop: saved?['loop'] != false).withKeyframes(keys);
+    ref.read(selectedKeyframeProvider.notifier).state = null;
+    _push();
+  }
+
   void setLoop(bool loop) {
     state = state.withLoop(loop);
     _push();
