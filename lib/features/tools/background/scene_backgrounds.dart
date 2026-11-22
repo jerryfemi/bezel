@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 
-/// Solid scene backgrounds. Gradients and images come with the Background phase.
+/// Base colours for the scene background (used flat, as a spotlight, or
+/// behind an image).
 class SceneBackground {
   const SceneBackground(this.name, this.color);
 
@@ -11,8 +12,10 @@ class SceneBackground {
       '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 }
 
+const defaultBackground = SceneBackground('Dusk', Color(0xFF1A1F2B));
+
 const sceneBackgrounds = [
-  SceneBackground('Dusk', Color(0xFF1A1F2B)),
+  defaultBackground,
   SceneBackground('Paper', Color(0xFFEDEBE6)),
   SceneBackground('Plum', Color(0xFF2A1F3D)),
   SceneBackground('Sand', Color(0xFFE8DCCB)),
