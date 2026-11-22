@@ -45,6 +45,22 @@ export function createScreenMedia(stage, device) {
       show(new THREE.VideoTexture(video), video.videoWidth / video.videoHeight);
       stage.alwaysRender = true;
     },
+    /** Export: pauses a playing video and shows its frame at `seconds`. */
+    async seekVideo(seconds) {
+      if (!video) return;
+      video.pause();
+      const target = seconds % (video.duration || 1);
+      if (Math.abs(video.currentTime - target) > 0.001) {
+        await new Promise((resolve) => {
+          const done = () => { clearTimeout(timer); resolve(); };
+          const timer = setTimeout(done, 2000); // never stall an export on one frame
+          video.addEventListener('seeked', done, { once: true });
+          video.currentTime = target;
+        });
+      }
+      if (material.map) material.map.needsUpdate = true;
+    },
+    resumeVideo() { video?.play().catch(() => {}); },
     dispose() { stopVideo(); material.map?.dispose(); material.dispose(); },
   };
 }
