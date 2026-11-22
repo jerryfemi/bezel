@@ -6,14 +6,14 @@ import '../../../app/theme/bezel_metrics.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/floating_surface.dart';
 import '../state/timeline_provider.dart';
-import 'timeline_track.dart';
+import 'timeline_viewport.dart';
 import 'transport_bar.dart';
 
 /// The docked timeline at the bottom of Motion mode.
 class TimelinePanel extends ConsumerWidget {
   const TimelinePanel({super.key});
 
-  static const height = 150.0;
+  static const height = 158.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,10 +34,7 @@ class TimelinePanel extends ConsumerWidget {
                       style: BezelType.label.copyWith(color: BezelColors.textSecondary),
                     ),
                   )
-                : const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: TimelineTrack(),
-                  ),
+                : const TimelineViewport(),
           ),
         ]),
       ),
