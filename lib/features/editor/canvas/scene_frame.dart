@@ -5,6 +5,7 @@ import '../../../app/theme/bezel_colors.dart';
 import '../../scene3d/scene_view.dart';
 import '../state/frame_shape.dart';
 import '../state/scene_bootstrap.dart';
+import 'caption_overlay.dart';
 
 /// The export frame: the 3D view, sized to the chosen shape and centred.
 class SceneFrame extends ConsumerWidget {
@@ -28,10 +29,15 @@ class SceneFrame extends ConsumerWidget {
               BoxShadow(color: Color(0x73000000), blurRadius: 80, offset: Offset(0, 30)),
             ],
           ),
-          child: SceneView(
-            cornerRadius: _radius,
-            onReady: (scene) => attachScene(ref, scene),
-          ),
+          child: Stack(children: [
+            Positioned.fill(
+              child: SceneView(
+                cornerRadius: _radius,
+                onReady: (scene) => attachScene(ref, scene),
+              ),
+            ),
+            const Positioned.fill(child: CaptionOverlay()),
+          ]),
         ),
       );
     });
