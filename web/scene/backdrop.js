@@ -31,7 +31,8 @@ export function createBackdrop(stage, pivot) {
     if (side !== 'none') {
       const colors = textColors(background, image);
       const b = drawCaption(g, caption, captionBox(side, w, h), side === 'above' ? 'center' : 'left', colors);
-      bounds = { x: b.x / w, y: b.y / h, w: b.w / w, h: b.h / h };
+      const frac = (r) => (r ? { x: r.x / w, y: r.y / h, w: r.w / w, h: r.h / h } : null);
+      bounds = { head: frac(b.head), sub: frac(b.sub) };
     }
     if (!stage.locked) onBounds?.(bounds ? JSON.stringify(bounds) : null);
     texture.needsUpdate = true;
