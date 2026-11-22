@@ -1,0 +1,49 @@
+{
+  "id": "iphone-13-pro-max",
+  "name": "iPhone 13 Pro Max",
+  "model": "model.glb",
+  "size": {
+    "width": 0.492,
+    "height": 1,
+    "depth": 0.0639
+  },
+  "screens": [
+    {
+      "id": "front",
+      "aspect": 0.4654
+    }
+  ],
+  "finishes": [
+    {
+      "id": "graphite",
+      "name": "Graphite",
+      "body": "#54524F",
+      "frame": "#4A4946"
+    },
+    {
+      "id": "silver",
+      "name": "Silver",
+      "body": "#E9EAE5",
+      "frame": "#D6D7D2"
+    },
+    {
+      "id": "gold",
+      "name": "Gold",
+      "body": "#F4E1C5",
+      "frame": "#E3C9A1"
+    },
+    {
+      "id": "sierra-blue",
+      "name": "Sierra Blue",
+      "body": "#A7C1D9",
+      "frame": "#9AB3CB"
+    },
+    {
+      "id": "alpine-green",
+      "name": "Alpine Green",
+      "body": "#576856",
+      "frame": "#4D5C4C"
+    }
+  ],
+  "defaultFinish": "graphite"
+}
