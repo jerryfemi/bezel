@@ -19,41 +19,39 @@ class MediaPanel extends ConsumerWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PanelSection(
         title: 'Front screen',
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          MediaPreviewRow(media: media),
-          const SizedBox(height: 10),
-          Row(children: [
-            Expanded(child: OutlinedButton(
-              onPressed: () => notifier.pick(video: true),
-              child: const Text('Screen recording'),
-            )),
-            const SizedBox(width: 8),
-            Expanded(child: OutlinedButton(
-              onPressed: () => notifier.pick(video: false),
-              child: const Text('Screenshot'),
-            )),
-          ]),
-          if (media.error != null) ...[
-            const SizedBox(height: 8),
-            Text(media.error!, style: BezelType.label.copyWith(color: BezelColors.danger)),
-          ],
-        ]),
-      ),
-      const SizedBox(height: 18),
-      PanelSection(
-        title: 'Back screen',
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0x0AFFFFFF),
-            borderRadius: BorderRadius.circular(BezelRadius.control + 2),
-          ),
-          child: Text(
-            'This device has one screen. A two-screen device is on the way.',
-            style: BezelType.label.copyWith(color: BezelColors.textSecondary, height: 1.45),
-          ),
+        child: MediaPreviewRow(
+          media: media,
+          onVideo: () => notifier.pick(video: true),
+          onImage: () => notifier.pick(video: false),
         ),
       ),
+      if (media.error != null) ...[
+        const SizedBox(height: 8),
+        Text(media.error!, style: BezelType.label.copyWith(color: BezelColors.danger)),
+      ],
+      const SizedBox(height: 18),
+      PanelSection(title: 'Back screen', child: _BackScreenNote()),
     ]);
+  }
+}
+
+class _BackScreenNote extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(BezelRadius.control + 2),
+        border: Border.all(color: BezelColors.stroke),
+      ),
+      child: Row(children: [
+        const Icon(Icons.flip_to_back, size: 18, color: BezelColors.textTertiary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text('Available on two-screen devices.',
+              style: BezelType.label.copyWith(color: BezelColors.textSecondary)),
+        ),
+      ]),
+    );
   }
 }
