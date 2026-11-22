@@ -26,5 +26,7 @@ extension type SceneHandle._(JSObject _) implements JSObject {
   external void play();
   external void pause();
   external void seek(num seconds);
+  external JSPromise<JSString> exportClip(String json, JSFunction onProgress);
+  external void cancelExport();
   external void dispose();
 }
