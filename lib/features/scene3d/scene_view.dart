@@ -10,9 +10,12 @@ import 'scene_pose.dart';
 /// Hosts the Three.js view (web/scene/) inside the Flutter layout.
 /// Calls [onReady] once with a controller for driving the scene.
 class SceneView extends StatefulWidget {
-  const SceneView({super.key, required this.onReady});
+  const SceneView({super.key, required this.onReady, this.cornerRadius = 0});
 
   final ValueChanged<SceneController> onReady;
+
+  /// Rounds the 3D view's corners (applied in CSS on the host element).
+  final double cornerRadius;
 
   @override
   State<SceneView> createState() => _SceneViewState();
@@ -27,6 +30,8 @@ class _SceneViewState extends State<SceneView> {
     final style = host['style'] as JSObject;
     style['width'] = '100%'.toJS;
     style['height'] = '100%'.toJS;
+    style['borderRadius'] = '${widget.cornerRadius}px'.toJS;
+    style['overflow'] = 'hidden'.toJS;
 
     if (bezelSceneApi == null) await bezelSceneReady.toDart;
     if (_disposed) return;
