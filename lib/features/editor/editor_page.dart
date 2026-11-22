@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/bezel_metrics.dart';
+import '../export/state/export_provider.dart';
 import 'canvas/canvas_stage.dart';
 import 'design_layout.dart';
 import 'motion_layout.dart';
@@ -20,8 +21,10 @@ class EditorPage extends ConsumerWidget {
     final mode = ref.watch(editorModeProvider);
     return CallbackShortcuts(
       bindings: {
-        const SingleActivator(LogicalKeyboardKey.escape): () =>
-            ref.read(activeToolProvider.notifier).close(),
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          ref.read(activeToolProvider.notifier).close();
+          ref.read(exportSheetOpenProvider.notifier).state = false;
+        },
       },
       child: Focus(
         autofocus: true,
