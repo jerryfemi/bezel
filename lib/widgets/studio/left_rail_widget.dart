@@ -233,18 +233,26 @@ class _ScreenshotSection extends ConsumerWidget {
           // Compact Add Media button
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton.icon(
+            child: OutlinedButton.icon(
               onPressed: () => _pickMedia(ref, context),
-              icon: const Icon(Icons.add_photo_alternate_outlined, size: 18),
-              label: Text('Add Media', style: AppTypography.uiBody),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primaryText,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.s12,
-                  vertical: AppSpacing.s12,
+              icon: const Icon(Icons.add, size: 14, color: AppColors.accent),
+              label: const Text(
+                'Add Media',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
                 ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.accent, width: 1.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                minimumSize: const Size(0, 28),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.panel),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
               ),
             ),

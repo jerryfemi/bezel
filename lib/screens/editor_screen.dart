@@ -30,9 +30,28 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   EditorMode _currentMode = EditorMode.design;
   bool _isInspectorExpanded = true;
   bool _isLeftRailExpanded = true;
+  double _currentZoomScale = 0.3;
+  bool _isProgrammaticZoom = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _transformationController.addListener(_onZoomChanged);
+  }
+
+  void _onZoomChanged() {
+    if (_isProgrammaticZoom) return;
+    // Only update from external changes (pinch/scroll via InteractiveViewer)
+    final matrixScale = _transformationController.value.getMaxScaleOnAxis();
+    final diff = (matrixScale - _currentZoomScale).abs();
+    if (diff > 0.01) {
+      setState(() => _currentZoomScale = matrixScale);
+    }
+  }
 
   @override
   void dispose() {
+    _transformationController.removeListener(_onZoomChanged);
     _transformationController.dispose();
     super.dispose();
   }
@@ -121,6 +140,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ..scale(targetScale, targetScale, 1.0);
 
             _transformationController.value = initialTransform;
+            setState(() => _currentZoomScale = targetScale);
           });
         }
 
@@ -203,22 +223,20 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: RotationDial(),
               ),
 
-              // Zoom slider — top center
+              // Zoom pill — top center
               Positioned(
                 top: AppSpacing.s24,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: _buildZoomSlider(
+                  child: _buildZoomControls(
                     canvasCenterX,
                     canvasCenterY,
                     () {
-                      final currentScale = _transformationController.value.getMaxScaleOnAxis();
-                      _updateZoom((currentScale + 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
+                      _updateZoom((_currentZoomScale + 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
                     },
                     () {
-                      final currentScale = _transformationController.value.getMaxScaleOnAxis();
-                      _updateZoom((currentScale - 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
+                      _updateZoom((_currentZoomScale - 0.1).clamp(0.1, 4.0), canvasCenterX, canvasCenterY);
                     },
                   ),
                 ),
@@ -253,19 +271,27 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   // Inspector Panel removed in favor of RightInspectorWidget
 
   void _updateZoom(double newScale, double centerX, double centerY) {
+    _isProgrammaticZoom = true;
+    if (_currentZoomScale == 0) {
+      _isProgrammaticZoom = false;
+      return;
+    }
     final current = _transformationController.value.clone();
-    final currentScale = current.getMaxScaleOnAxis();
-    final ratio = newScale / currentScale;
+    final ratio = newScale / _currentZoomScale;
     current.translate(centerX, centerY, 0.0);
     current.scale(ratio, ratio, 1.0);
     current.translate(-centerX, -centerY, 0.0);
     _transformationController.value = current;
+    _isProgrammaticZoom = false;
+    setState(() {
+      _currentZoomScale = newScale;
+    });
   }
 
   // ═══════════════════════════════════════════════════════════
-  // FLOATING ZOOM SLIDER — Glass Treatment
+  // FLOATING ZOOM CONTROLS — Pill UI
   // ═══════════════════════════════════════════════════════════
-  Widget _buildZoomSlider(
+  Widget _buildZoomControls(
     double centerX,
     double centerY,
     VoidCallback increment,
@@ -273,58 +299,51 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.s16,
-        vertical: AppSpacing.s8,
+        horizontal: 4,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             onPressed: decrement,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             icon: const Icon(
-              Icons.zoom_out,
-              size: 16,
+              Icons.remove,
+              size: 14,
               color: AppColors.secondaryText,
             ),
+            splashRadius: 16,
           ),
           SizedBox(
-            width: 150,
-            child: ValueListenableBuilder<Matrix4>(
-              valueListenable: _transformationController,
-              builder: (context, matrix, child) {
-                final scale = matrix.getMaxScaleOnAxis();
-                return SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: 2.0,
-                    activeTrackColor: AppColors.accent,
-                    inactiveTrackColor: AppColors.border,
-                    thumbColor: AppColors.primaryText,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 5.0,
-                    ),
-                    overlayShape: const RoundSliderOverlayShape(
-                      overlayRadius: 12.0,
-                    ),
-                  ),
-                  child: Slider(
-                    value: scale.clamp(0.1, 4.0),
-                    min: 0.1,
-                    max: 4.0,
-                    onChanged: (newScale) {
-                      _updateZoom(newScale, centerX, centerY);
-                    },
-                  ),
-                );
-              },
+            width: 44,
+            child: Text(
+              '${(_currentZoomScale * 100).round()}%',
+              textAlign: TextAlign.center,
+              style: AppTypography.uiLabel.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
           IconButton(
             onPressed: increment,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             icon: const Icon(
-              Icons.zoom_in,
-              size: 16,
+              Icons.add,
+              size: 14,
               color: AppColors.secondaryText,
             ),
+            splashRadius: 16,
           ),
         ],
       ),
