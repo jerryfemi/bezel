@@ -8,7 +8,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { devices } from './devices.config.mjs';
 import { orient } from './orient.mjs';
 import {
-  canonicaliseMaterials, blankScreen, splitScreenGlass, stripTransmission,
+  CANONICAL, canonicaliseMaterials, blankScreen, splitByMesh, stripTransmission,
 } from './materials.mjs';
 import { planarScreenUVs } from './screen_uv.mjs';
 import { optimize } from './optimize.mjs';
@@ -21,7 +21,8 @@ const only = process.argv[2];
 for (const device of devices.filter((d) => !only || d.id === only)) {
   const doc = await io.read(join(repoRoot, device.source));
   const size = await orient(doc, device.frontAxis);
-  splitScreenGlass(doc, device.screenGlassMeshes);
+  splitByMesh(doc, device.screenGlassMeshes, CANONICAL.screenGlass);
+  splitByMesh(doc, device.islandMeshes, CANONICAL.island);
   canonicaliseMaterials(doc, device.materials);
   stripTransmission(doc);
   blankScreen(doc);
