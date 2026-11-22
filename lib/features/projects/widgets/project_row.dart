@@ -96,7 +96,7 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bytes = dataUrl == null ? null : UriData.tryParse(dataUrl!)?.contentAsBytes();
+    final bytes = dataUrl == null ? null : Uri.tryParse(dataUrl!)?.data?.contentAsBytes();
     return ClipRRect(
       borderRadius: BorderRadius.circular(6),
       child: Container(
