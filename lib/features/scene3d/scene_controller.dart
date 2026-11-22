@@ -42,6 +42,9 @@ class SceneController {
 
   void setTimeline(String json) => _handle.setTimeline(json);
 
+  /// Loops only [start]..[end] seconds; null plays the whole clip.
+  void setLoopRange(double? start, double? end) => _handle.setLoopRange(start ?? -1, end ?? -1);
+
   void play() => _handle.play();
 
   void pause() => _handle.pause();
