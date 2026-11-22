@@ -41,7 +41,7 @@ class TextPanel extends ConsumerWidget {
       const SizedBox(height: 12),
       CaptionField(label: 'Subtitle', value: caption.subtitle, onChanged: notifier.setSubtitle),
       const SizedBox(height: 6),
-      Text('Or double-click the text on the canvas to type there. Drag it to move it.',
+      Text('Or double-click either line on the canvas to type there. Drag the headline to move both; drag the subtitle to move it on its own.',
           style: BezelType.label.copyWith(color: BezelColors.textSecondary)),
       const SizedBox(height: 16),
       PanelSection(
@@ -49,14 +49,18 @@ class TextPanel extends ConsumerWidget {
         child: FontList(selected: caption.font, onChanged: notifier.setFont),
       ),
       const SizedBox(height: 12),
-      SliderRow(
-        label: 'Size',
-        value: caption.size,
-        min: 0.5,
-        max: 2.0,
-        format: (v) => '${(v * 100).round()}%',
-        onChanged: notifier.setSize,
-      ),
+      for (final (part, label, value) in [
+        (CaptionPart.headline, 'Headline size', caption.size),
+        (CaptionPart.subtitle, 'Subtitle size', caption.subSize),
+      ])
+        SliderRow(
+          label: label,
+          value: value,
+          min: 0.5,
+          max: 2.5,
+          format: (v) => '${(v * 100).round()}%',
+          onChanged: (v) => notifier.setSize(part, v),
+        ),
       const SizedBox(height: 12),
       Row(children: [
         Expanded(
