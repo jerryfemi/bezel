@@ -34,13 +34,15 @@ class DeviceSelectionNotifier extends Notifier<DeviceSelection> {
   DeviceSelection build() => DeviceSelection(entry: deviceCatalog.first, loading: true);
 
   /// Loads [entry] into the 3D view, then puts the user's media back on it.
-  Future<void> select(DeviceEntry entry) async {
+  /// [finishId] picks a finish (when opening a saved project).
+  Future<void> select(DeviceEntry entry, {String? finishId}) async {
     final scene = ref.read(sceneControllerProvider);
     state = DeviceSelection(entry: entry, loading: true);
     if (scene == null) return;
     try {
-      final profile = await scene.loadDevice(entry.baseUrl);
-      state = DeviceSelection(entry: entry, profile: profile, finishId: profile.defaultFinish);
+      final profile = await scene.loadDevice(entry.baseUrl, finishId: finishId);
+      final finish = profile.finishes.any((f) => f.id == finishId) ? finishId : profile.defaultFinish;
+      state = DeviceSelection(entry: entry, profile: profile, finishId: finish);
       await ref.read(screenMediaProvider.notifier).reapply();
     } catch (e) {
       state = DeviceSelection(entry: entry, error: 'Could not load ${entry.label}.');
