@@ -1,0 +1,43 @@
+{
+  "id": "iphone-16-pro-max",
+  "name": "iPhone 16 Pro Max",
+  "model": "model.glb",
+  "size": {
+    "width": 0.4801,
+    "height": 1,
+    "depth": 0.0788
+  },
+  "screens": [
+    {
+      "id": "front",
+      "aspect": 0.4667
+    }
+  ],
+  "finishes": [
+    {
+      "id": "black-titanium",
+      "name": "Black Titanium",
+      "body": "#3C3C3D",
+      "frame": "#4A4A4C"
+    },
+    {
+      "id": "white-titanium",
+      "name": "White Titanium",
+      "body": "#F2F1ED",
+      "frame": "#D9D7D1"
+    },
+    {
+      "id": "natural-titanium",
+      "name": "Natural Titanium",
+      "body": "#C2BCB2",
+      "frame": "#A9A399"
+    },
+    {
+      "id": "desert-titanium",
+      "name": "Desert Titanium",
+      "body": "#BFA48F",
+      "frame": "#A88E79"
+    }
+  ],
+  "defaultFinish": "black-titanium"
+}
