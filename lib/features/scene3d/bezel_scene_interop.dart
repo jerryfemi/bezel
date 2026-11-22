@@ -20,6 +20,7 @@ extension type SceneHandle._(JSObject _) implements JSObject {
   external void setPose(num turn, num tilt, num zoom);
   external JSPromise<JSAny?> setBackground(String json);
   external void setCaption(String json);
+  external void onCaptionBounds(JSFunction fn);
   external void setLight(String json);
   external void setTimeline(String json);
   external void setLoopRange(num start, num end);
