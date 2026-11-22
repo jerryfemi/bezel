@@ -35,6 +35,9 @@ enum CaptionFont {
 
 enum CaptionAlign { left, center, right }
 
+/// The two pieces of a caption. Each can be moved, sized and edited.
+enum CaptionPart { headline, subtitle }
+
 class CaptionSpec {
   const CaptionSpec({
     required this.enabled,
@@ -44,9 +47,12 @@ class CaptionSpec {
     this.font = CaptionFont.bricolage,
     this.align = CaptionAlign.left,
     this.size = 1,
+    this.subSize = 1,
     this.dx = 0,
     this.dy = 0,
-    this.editing = false,
+    this.subDx = 0,
+    this.subDy = 0,
+    this.editing,
   });
 
   final bool enabled;
@@ -56,21 +62,27 @@ class CaptionSpec {
   final CaptionFont font;
   final CaptionAlign align;
 
-  /// Text scale; 1 is the default size.
+  /// Headline and subtitle scale; 1 is the default size.
   final double size;
+  final double subSize;
 
-  /// Offset from the layout position, as fractions of the frame.
+  /// Offset of the whole caption from its layout spot, as fractions of the frame.
   final double dx;
   final double dy;
 
-  /// True while the text is being edited on the canvas (the scene hides it).
-  final bool editing;
+  /// Extra offset of the subtitle alone, once pulled away from the headline.
+  final double subDx;
+  final double subDy;
 
-  bool get moved => dx != 0 || dy != 0;
+  /// The part being typed on the canvas (the scene hides it), if any.
+  final CaptionPart? editing;
+
+  bool get moved => dx != 0 || dy != 0 || subDx != 0 || subDy != 0;
 
   CaptionSpec copyWith({
     bool? enabled, String? headline, String? subtitle, CaptionSide? side, CaptionFont? font,
-    CaptionAlign? align, double? size, double? dx, double? dy, bool? editing,
+    CaptionAlign? align, double? size, double? subSize, double? dx, double? dy,
+    double? subDx, double? subDy, CaptionPart? Function()? editing,
   }) =>
       CaptionSpec(
         enabled: enabled ?? this.enabled,
@@ -80,12 +92,16 @@ class CaptionSpec {
         font: font ?? this.font,
         align: align ?? this.align,
         size: size ?? this.size,
+        subSize: subSize ?? this.subSize,
         dx: dx ?? this.dx,
         dy: dy ?? this.dy,
-        editing: editing ?? this.editing,
+        subDx: subDx ?? this.subDx,
+        subDy: subDy ?? this.subDy,
+        editing: editing != null ? editing() : this.editing,
       );
 
-  String toJson() => jsonEncode({
+  /// Saved form (no editing state).
+  Map<String, Object> toMap() => {
         'enabled': enabled,
         'headline': headline,
         'subtitle': subtitle,
@@ -93,10 +109,38 @@ class CaptionSpec {
         'font': font.name,
         'align': align.name,
         'size': size,
+        'subSize': subSize,
         'dx': dx,
         'dy': dy,
-        'hidden': editing,
-      });
+        'subDx': subDx,
+        'subDy': subDy,
+      };
+
+  factory CaptionSpec.fromMap(Map<String, dynamic> m) {
+    double d(String k) => (m[k] as num?)?.toDouble() ?? 0;
+    T pick<T extends Enum>(List<T> values, String k, T fallback) {
+      for (final v in values) {
+        if (v.name == m[k]) return v;
+      }
+      return fallback;
+    }
+    return CaptionSpec(
+      enabled: m['enabled'] == true,
+      headline: m['headline'] as String? ?? '',
+      subtitle: m['subtitle'] as String? ?? '',
+      side: pick(CaptionSide.values, 'side', CaptionSide.left),
+      font: pick(CaptionFont.values, 'font', CaptionFont.bricolage),
+      align: pick(CaptionAlign.values, 'align', CaptionAlign.left),
+      size: (m['size'] as num?)?.toDouble() ?? 1,
+      subSize: (m['subSize'] as num?)?.toDouble() ?? 1,
+      dx: d('dx'),
+      dy: d('dy'),
+      subDx: d('subDx'),
+      subDy: d('subDy'),
+    );
+  }
+
+  String toJson() => jsonEncode({...toMap(), 'hidden': editing?.name});
 }
 
 class LightSpec {
@@ -109,6 +153,14 @@ class LightSpec {
   final double intensity;
   final bool reflections;
 
-  String toJson() =>
-      jsonEncode({'angle': angle, 'intensity': intensity, 'reflections': reflections});
+  Map<String, Object> toMap() =>
+      {'angle': angle, 'intensity': intensity, 'reflections': reflections};
+
+  factory LightSpec.fromMap(Map<String, dynamic> m) => LightSpec(
+        angle: (m['angle'] as num?)?.toDouble() ?? 315,
+        intensity: (m['intensity'] as num?)?.toDouble() ?? 0.6,
+        reflections: m['reflections'] != false,
+      );
+
+  String toJson() => jsonEncode(toMap());
 }
