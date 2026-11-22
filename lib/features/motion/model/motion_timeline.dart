@@ -27,8 +27,10 @@ class MotionTimeline {
 
   MotionTimeline withLoop(bool value) => MotionTimeline(keyframes: keyframes, loop: value);
 
-  String toJson() => jsonEncode({
+  Map<String, Object> toMap() => {
         'loop': loop,
         'keyframes': [for (final k in keyframes) k.toJson()],
-      });
+      };
+
+  String toJson() => jsonEncode(toMap());
 }
