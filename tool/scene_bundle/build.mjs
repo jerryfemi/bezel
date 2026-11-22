@@ -7,14 +7,24 @@
 import { build } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, rm, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const web = resolve(dirname(fileURLToPath(import.meta.url)), '../../build/web');
 const sceneDir = join(web, 'scene');
 
+if (!existsSync(join(sceneDir, 'bezel_scene.js'))) {
+  const done = existsSync(sceneDir) && (await readdir(sceneDir)).find((f) => /^bezel_scene\..+\.js$/.test(f));
+  console.error(done
+    ? `build/web is already bundled (scene/${done}). Run \`flutter build web --release\` again to rebuild.`
+    : 'No build/web/scene/bezel_scene.js. Run `flutter build web --release` from the project root first.');
+  process.exit(1);
+}
+
 const result = await build({
-  entryPoints: [join(sceneDir, 'bezel_scene.js')],
+  absWorkingDir: sceneDir,
+  entryPoints: ['./bezel_scene.js'],
   bundle: true,
   format: 'esm',
   minify: true,
