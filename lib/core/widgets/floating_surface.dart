@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/bezel_colors.dart';
 import '../../app/theme/bezel_metrics.dart';
+import 'pointer_shield.dart';
 
 /// The material every floating piece of chrome is made of.
-/// Larger surfaces ([elevated]) get a deeper shadow.
+/// Larger surfaces ([elevated]) get a deeper shadow. Every surface is
+/// shielded so clicks on it never reach the 3D view below.
 class FloatingSurface extends StatelessWidget {
   const FloatingSurface({
     super.key,
@@ -21,7 +23,7 @@ class FloatingSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return PointerShield(child: Container(
       padding: padding,
       decoration: BoxDecoration(
         color: elevated ? BezelColors.surfaceRaised : BezelColors.surface,
@@ -32,6 +34,6 @@ class FloatingSurface extends StatelessWidget {
             : null,
       ),
       child: child,
-    );
+    ));
   }
 }
