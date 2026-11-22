@@ -26,13 +26,16 @@ class DevicePanel extends ConsumerWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
-          mainAxisExtent: 60,
+          mainAxisExtent: 156,
         ),
         children: [
           for (final entry in deviceCatalog)
             DeviceTile(
               label: entry.label,
               meta: selection.loading && entry.id == selection.entry.id ? 'Loading…' : '3D · 1 screen',
+              bodyColor: entry.id == selection.entry.id
+                  ? selection.finish?.body ?? const Color(0xFF3C3C3D)
+                  : const Color(0xFF3C3C3D),
               selected: entry.id == selection.entry.id,
               onTap: () => notifier.select(entry),
             ),
