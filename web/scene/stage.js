@@ -4,7 +4,7 @@
 import * as THREE from './vendor/three_bundle.js';
 
 const FOV = 30;
-const FRAME_HEIGHT = 1.25; // world units kept in view vertically (device is 1 tall)
+export const FRAME_HEIGHT = 1.25; // world units kept in view vertically (device is 1 tall)
 
 export function createStage(host) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
@@ -15,7 +15,6 @@ export function createStage(host) {
   host.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#1A1F2B');
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
 
@@ -26,7 +25,10 @@ export function createStage(host) {
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.01, 50);
   camera.position.set(0, 0, FRAME_HEIGHT / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2)));
 
-  const stage = { THREE, renderer, scene, camera, host, dirty: true, alwaysRender: false, onFrame: [] };
+  const stage = {
+    THREE, renderer, scene, camera, host, key,
+    dirty: true, alwaysRender: false, onFrame: [], onResize: [],
+  };
   stage.invalidate = () => { stage.dirty = true; };
 
   const resize = () => {
@@ -35,11 +37,12 @@ export function createStage(host) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    stage.onResize.forEach((fn) => fn());
     stage.invalidate();
   };
   const observer = new ResizeObserver(resize);
   observer.observe(host);
-  resize();
+  stage.resize = resize;
 
   let frame = 0;
   const tick = (now) => {
