@@ -28,7 +28,7 @@ class SceneController {
 
   Future<void> setScreenVideo(String url) => _handle.setScreenVideo(url).toDart;
 
-  void setPose(ScenePose next) => _handle.setPose(next.turn, next.tilt);
+  void setPose(ScenePose next) => _handle.setPose(next.turn, next.tilt, next.zoom);
 
   Future<void> setBackground(BackgroundSpec spec) => _handle.setBackground(spec.toJson()).toDart;
 
