@@ -5,6 +5,7 @@ export const CANONICAL = {
   screenGlass: 'bezel:screen_glass',
   body: 'bezel:body',
   frame: 'bezel:frame',
+  island: 'bezel:island',
 };
 
 export function canonicaliseMaterials(doc, mapping) {
@@ -32,13 +33,16 @@ export function blankScreen(doc) {
   }
 }
 
-/** Gives glass meshes over the screen their own material so it can be kept faint. */
-export function splitScreenGlass(doc, meshNames = []) {
+/**
+ * Gives the named meshes their own material called [name]. Used when a part
+ * (front glass, island cover) shares its material with unrelated parts.
+ */
+export function splitByMesh(doc, meshNames = [], name) {
   const meshes = doc.getRoot().listMeshes().filter((m) => meshNames.includes(m.getName()));
-  if (meshes.length !== meshNames.length) throw new Error(`Screen glass meshes not found: ${meshNames}`);
+  if (meshes.length !== meshNames.length) throw new Error(`Meshes not found: ${meshNames}`);
   for (const mesh of meshes) {
     for (const prim of mesh.listPrimitives()) {
-      prim.setMaterial(prim.getMaterial().clone().setName(CANONICAL.screenGlass));
+      prim.setMaterial(prim.getMaterial().clone().setName(name));
     }
   }
 }
