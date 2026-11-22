@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/dock_button.dart';
 import '../../../core/widgets/floating_surface.dart';
+import '../../export/state/export_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_tool.dart';
 
@@ -21,7 +22,10 @@ class ToolDock extends ConsumerWidget {
             icon: tool.icon,
             label: tool.label,
             selected: tool == active,
-            onTap: () => ref.read(activeToolProvider.notifier).toggle(tool),
+            onTap: () {
+              ref.read(exportSheetOpenProvider.notifier).state = false;
+              ref.read(activeToolProvider.notifier).toggle(tool);
+            },
           ),
       ]),
     );
