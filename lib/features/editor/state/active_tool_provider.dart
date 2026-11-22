@@ -10,6 +10,8 @@ class ActiveToolNotifier extends Notifier<EditorTool?> {
   /// Opens [tool], or closes it if it is already open.
   void toggle(EditorTool tool) => state = state == tool ? null : tool;
 
+  void open(EditorTool tool) => state = tool;
+
   void close() => state = null;
 }
 
