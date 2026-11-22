@@ -17,4 +17,12 @@ class MotionEasing {
   final double bounce;
 
   Map<String, Object> toJson() => {'kind': kind.name, 'bounce': bounce};
+
+  factory MotionEasing.fromMap(Map<String, dynamic> m) {
+    var kind = EasingKind.spring;
+    for (final k in EasingKind.values) {
+      if (k.name == m['kind']) kind = k;
+    }
+    return MotionEasing(kind, bounce: (m['bounce'] as num?)?.toDouble() ?? 0);
+  }
 }
