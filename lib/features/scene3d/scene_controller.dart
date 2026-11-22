@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:js_interop';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 
 import 'bezel_scene_interop.dart';
 import 'device_profile.dart';
@@ -10,7 +11,18 @@ import 'scene_specs.dart';
 
 /// Dart-side handle to one mounted 3D view. Created by `SceneView`.
 class SceneController {
-  SceneController(this._handle);
+  SceneController(this._handle) {
+    void bounds(JSString? json) {
+      if (json == null) {
+        captionBounds.value = null;
+        return;
+      }
+      final b = jsonDecode(json.toDart) as Map<String, dynamic>;
+      double n(String k) => (b[k] as num).toDouble();
+      captionBounds.value = Rect.fromLTWH(n('x'), n('y'), n('w'), n('h'));
+    }
+    _handle.onCaptionBounds(bounds.toJS);
+  }
 
   final SceneHandle _handle;
 
@@ -20,6 +32,9 @@ class SceneController {
   /// Playback position in seconds, and whether the clip is playing.
   final time = ValueNotifier(0.0);
   final playing = ValueNotifier(false);
+
+  /// Where the caption text sits, as fractions of the frame; null when hidden.
+  final captionBounds = ValueNotifier<Rect?>(null);
 
   Future<DeviceProfile> loadDevice(String baseUrl, {String? finishId}) async {
     final json = await _handle.loadDevice(baseUrl, finishId).toDart;
@@ -66,5 +81,6 @@ class SceneController {
     pose.dispose();
     time.dispose();
     playing.dispose();
+    captionBounds.dispose();
   }
 }
