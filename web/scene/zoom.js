@@ -24,7 +24,10 @@ export function createZoom(stage, group, onChange) {
 
   const onWheel = (e) => {
     e.preventDefault(); // trackpad pinch arrives as ctrl+wheel; never scroll the page
-    set(zoom * Math.exp(-e.deltaY * WHEEL_SPEED * (e.ctrlKey ? 4 : 1)));
+    // Trackpad pinch sends many small deltas, a mouse wheel a few large ones;
+    // the same rate suits both. Line-based deltas are scaled to pixels.
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    set(zoom * Math.exp(-dy * WHEEL_SPEED));
   };
   const onDown = (e) => {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
