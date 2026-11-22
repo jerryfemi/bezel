@@ -17,6 +17,10 @@ class SceneController {
   /// Updated as the user drags the device, and when [setPose] is called.
   final pose = ValueNotifier(const ScenePose());
 
+  /// Playback position in seconds, and whether the clip is playing.
+  final time = ValueNotifier(0.0);
+  final playing = ValueNotifier(false);
+
   Future<DeviceProfile> loadDevice(String baseUrl, {String? finishId}) async {
     final json = await _handle.loadDevice(baseUrl, finishId).toDart;
     return DeviceProfile.fromJson(jsonDecode(json.toDart) as Map<String, dynamic>);
@@ -36,8 +40,18 @@ class SceneController {
 
   void setLight(LightSpec spec) => _handle.setLight(spec.toJson());
 
+  void setTimeline(String json) => _handle.setTimeline(json);
+
+  void play() => _handle.play();
+
+  void pause() => _handle.pause();
+
+  void seek(double seconds) => _handle.seek(seconds);
+
   void dispose() {
     _handle.dispose();
     pose.dispose();
+    time.dispose();
+    playing.dispose();
   }
 }
