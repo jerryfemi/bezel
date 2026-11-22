@@ -38,6 +38,10 @@ class _ProjectTitleState extends ConsumerState<ProjectTitle> {
 
   @override
   Widget build(BuildContext context) {
+    // Opening another project changes the title from outside.
+    ref.listen(projectTitleProvider, (_, next) {
+      if (!_focus.hasFocus && _controller.text != next) _controller.text = next;
+    });
     return SizedBox(
       width: 200,
       child: TextField(
