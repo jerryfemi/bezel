@@ -1,8 +1,8 @@
 // One entry per device Bezel ships. `source` is relative to the repo root.
 // `frontAxis` is the direction the screen faces in the source file; prep
 // rotates every model so the screen faces +Z with +Y up.
-// `screenGlassMeshes` (optional) names glass meshes over the screen whose
-// material is shared with other parts.
+// `screenGlassMeshes` / `islandMeshes` (optional) name meshes whose material
+// is shared with unrelated parts, so they get their own.
 // Finish colours are close approximations of Apple's published finishes.
 export const devices = [
   {
@@ -32,6 +32,8 @@ export const devices = [
     // The front glass shares its material with the lens covers, so it is
     // split out by mesh name and given its own screen-glass material.
     screenGlassMeshes: ['Cube.014_glass.002_0'],
+    // The glass over the Dynamic Island; restyled as glossy black at runtime.
+    islandMeshes: ['Cube.016_glass.002_0'],
     materials: {
       screen: ['screen.001'],
       screenGlass: [],
