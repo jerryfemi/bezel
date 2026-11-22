@@ -15,6 +15,7 @@ export function createBackdrop(stage, pivot) {
   let background = { style: 'spotlight', color: '#1A1F2B' };
   let image = null;
   let caption = { enabled: false };
+  let onBounds = null; // (json | null) => void, set by Flutter
 
   const draw = () => {
     const { width: w, height: h } = stage.renderer.domElement;
@@ -26,10 +27,13 @@ export function createBackdrop(stage, pivot) {
     paintBackground(g, background, image, w, h);
     const side = resolveSide(caption, w / h);
     placeDevice(pivot, side, w / h);
+    let bounds = null;
     if (side !== 'none') {
       const colors = textColors(background, image);
-      drawCaption(g, caption, captionBox(side, w, h), side === 'above' ? 'center' : 'left', colors);
+      const b = drawCaption(g, caption, captionBox(side, w, h), side === 'above' ? 'center' : 'left', colors);
+      bounds = { x: b.x / w, y: b.y / h, w: b.w / w, h: b.h / h };
     }
+    if (!stage.locked) onBounds?.(bounds ? JSON.stringify(bounds) : null);
     texture.needsUpdate = true;
     stage.invalidate();
   };
@@ -43,6 +47,8 @@ export function createBackdrop(stage, pivot) {
       draw();
     },
     setCaption(next) { caption = next; draw(); },
+    /** Reports the caption's bounds (fractions of the frame) after each draw. */
+    onCaptionBounds(fn) { onBounds = fn; draw(); },
     redraw: draw,
     dispose() { texture.dispose(); },
   };
