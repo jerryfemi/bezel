@@ -32,8 +32,11 @@ export function createPlayer(stage, applyPose, onTime) {
   let playing = false;
   let time = 0;
   let last = 0;
+  let range = null; // {start, end} while looping one move
 
   const duration = () => timeline.keyframes.at(-1)?.time ?? 0;
+  const start = () => range?.start ?? 0;
+  const end = () => range?.end ?? duration();
 
   const show = () => {
     const pose = poseAt(timeline, time);
@@ -46,9 +49,10 @@ export function createPlayer(stage, applyPose, onTime) {
     const dt = Math.min(0.1, (now - last) / 1000); // clamp after a hidden tab
     last = now;
     time += dt;
-    if (time >= duration()) {
-      if (timeline.loop && duration() > 0) time %= duration();
-      else { time = duration(); playing = false; }
+    if (time >= end()) {
+      const length = end() - start();
+      if ((range || timeline.loop) && length > 0) time = start() + ((time - start()) % length);
+      else { time = end(); playing = false; }
     }
     show();
   });
@@ -59,9 +63,14 @@ export function createPlayer(stage, applyPose, onTime) {
       time = Math.min(time, duration());
       if (!playing) show();
     },
+    /** Loops only [start, end] (one move); pass negatives to play the whole clip. */
+    setLoopRange(a, b) {
+      range = a >= 0 && b > a ? { start: a, end: b } : null;
+      if (range && (time < a || time > b)) time = a;
+    },
     play() {
-      if (duration() <= 0) return;
-      if (time >= duration()) time = 0;
+      if (end() - start() <= 0) return;
+      if (time >= end() || time < start()) time = start();
       playing = true;
       last = performance.now();
       onTime(time, playing);
