@@ -4,6 +4,7 @@ import '../../../app/theme/bezel_colors.dart';
 import '../../../app/theme/bezel_metrics.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/floating_surface.dart';
+import '../../projects/widgets/projects_button.dart';
 import 'mode_switch.dart';
 import 'project_title.dart';
 import 'zoom_indicator.dart';
@@ -31,7 +32,8 @@ class TopBar extends StatelessWidget {
                 Text('Bezel', style: BezelType.brand),
                 const SizedBox(width: 10),
                 Container(width: 1, height: 18, color: BezelColors.strokeStrong),
-                const SizedBox(width: 2),
+                const SizedBox(width: 6),
+                const ProjectsButton(),
                 const ProjectTitle(),
               ]),
             ),
