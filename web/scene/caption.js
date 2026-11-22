@@ -1,54 +1,90 @@
-// Draws the headline and subtitle onto the backdrop canvas.
-// Headline: Archivo Black (900) at its widest (125%), all caps, tracked −3%,
-// slanted 9° in code (Archivo has no italic). Subtitle: Inter, for reading.
-// Sizes are relative to the frame so the layout holds at any export size.
-const HEADLINE = {
-  family: "'Archivo', 'Inter', system-ui, sans-serif",
-  weight: 900,
-  stretch: 'expanded', // CSS keyword for 125%
-  tracking: -0.03,
-  slant: Math.tan(0.16), // same as Flutter's Matrix4.skewX(-0.16)
-};
-const SUBTITLE = { family: "'Inter', system-ui, sans-serif", weight: 400, stretch: 'normal', tracking: 0 };
+// Draws the headline and subtitle onto the backdrop canvas, in one of a few
+// type styles. Sizes are relative to the frame so the layout holds at any
+// export size.
 
-/** Canvas text does not trigger web-font loading, so load the fonts explicitly. */
+/** Headline/subtitle pairs. `slant` is a tangent (Archivo has no italic). */
+const STYLES = {
+  bricolage: {
+    headline: { family: "'Bricolage Grotesque', sans-serif", weight: 800, stretch: 'normal', tracking: -0.035, caps: false, slant: 0, lineHeight: 0.95, size: 0.08 },
+    subtitle: { family: "'Instrument Sans', sans-serif", weight: 400, stretch: 'normal', tracking: 0 },
+  },
+  archivo: {
+    headline: { family: "'Archivo', sans-serif", weight: 900, stretch: 'expanded', tracking: -0.03, caps: true, slant: Math.tan(0.16), lineHeight: 1.02, size: 0.07 },
+    subtitle: { family: "'Inter', sans-serif", weight: 400, stretch: 'normal', tracking: 0 },
+  },
+  inter: {
+    headline: { family: "'Inter', sans-serif", weight: 700, stretch: 'normal', tracking: -0.025, caps: false, slant: 0, lineHeight: 1.05, size: 0.075 },
+    subtitle: { family: "'Inter', sans-serif", weight: 400, stretch: 'normal', tracking: 0 },
+  },
+  instrumentSerif: {
+    headline: { family: "'Instrument Serif', serif", weight: 400, stretch: 'normal', tracking: -0.01, caps: false, slant: 0, lineHeight: 1.0, size: 0.09 },
+    subtitle: { family: "'Instrument Sans', sans-serif", weight: 400, stretch: 'normal', tracking: 0 },
+  },
+};
+
+/** Canvas text does not trigger web-font loading, so load every caption font. */
 export function loadCaptionFont() {
   if (!document.fonts?.load) return Promise.resolve();
   return Promise.all([
-    document.fonts.load("900 expanded 48px 'Archivo'"),
-    document.fonts.load("400 24px 'Inter'"),
-  ]).catch(() => {});
+    "800 48px 'Bricolage Grotesque'", "900 expanded 48px 'Archivo'", "700 48px 'Inter'",
+    "400 48px 'Instrument Serif'", "400 24px 'Instrument Sans'", "400 24px 'Inter'",
+  ].map((f) => document.fonts.load(f))).catch(() => {});
 }
 
-/** `box` is {x, y, w, h} in canvas pixels; `align` is 'left' or 'center'. */
+/**
+ * `box` is {x, y, w, h} in canvas pixels, `align` the default alignment.
+ * Caption extras: size (scale, 1 = default), align ('left'|'center'|'right'),
+ * dx/dy (offset as a fraction of the frame), hidden (measure only, while the
+ * user edits the text in place). Returns the text's bounds in canvas pixels.
+ */
 export function drawCaption(g, caption, box, align, colors) {
   const { width: W, height: H } = g.canvas;
+  const style = STYLES[caption.font] ?? STYLES.bricolage;
+  const HEADLINE = style.headline;
+  const SUBTITLE = style.subtitle;
+  const scale = caption.size ?? 1;
   // Scale by the smaller side so narrow frames don't get oversized text.
-  const headSize = Math.round(Math.min(H, W) * 0.07);
-  const subSize = Math.round(Math.min(H * 0.034, W * 0.04));
+  const headSize = Math.round(Math.min(H, W) * HEADLINE.size * scale);
+  const subSize = Math.round(Math.min(H * 0.034, W * 0.04) * scale);
+  const a = caption.align ?? align;
+  const bx = box.x + (caption.dx ?? 0) * W;
+  const by = box.y + (caption.dy ?? 0) * H;
+  const wrapW = box.w * Math.max(1, scale);
+  const x = a === 'center' ? bx + box.w / 2 : a === 'right' ? bx + box.w : bx;
   g.textBaseline = 'top';
-  g.textAlign = align;
-  const x = align === 'center' ? box.x + box.w / 2 : box.x;
+  g.textAlign = a;
 
   use(g, HEADLINE, headSize);
-  const head = wrap(g, (caption.headline ?? '').toUpperCase(), box.w);
+  const text = caption.headline ?? '';
+  const head = wrap(g, HEADLINE.caps ? text.toUpperCase() : text, wrapW);
+  const headW = Math.max(0, ...head.map((l) => g.measureText(l).width));
   use(g, SUBTITLE, subSize);
-  const sub = wrap(g, caption.subtitle, box.w);
+  const sub = wrap(g, caption.subtitle, wrapW);
+  const subW = Math.max(0, ...sub.map((l) => g.measureText(l).width));
 
-  const headLine = headSize * 1.02;
+  const headLine = headSize * HEADLINE.lineHeight;
   const subLine = subSize * 1.45;
   const gap = sub.length && head.length ? headSize * 0.45 : 0;
   const total = head.length * headLine + gap + sub.length * subLine;
-  let y = Math.max(box.y, box.y + (box.h - total) / 2);
+  const top = Math.max(by, by + (box.h - total) / 2);
+  const width = Math.max(headW, subW);
+  const left = a === 'center' ? x - width / 2 : a === 'right' ? x - width : x;
+  const bounds = { x: left, y: top, w: width, h: total };
+  if (caption.hidden) return bounds;
 
+  let y = top;
   g.fillStyle = colors.headline;
   use(g, HEADLINE, headSize);
-  for (const line of head) { slanted(g, line, x, y, HEADLINE.slant); y += headLine; }
+  for (const line of head) {
+    if (HEADLINE.slant) slanted(g, line, x, y, HEADLINE.slant); else g.fillText(line, x, y);
+    y += headLine;
+  }
   y += gap;
 
   g.fillStyle = colors.subtitle;
   use(g, SUBTITLE, subSize);
   for (const line of sub) { g.fillText(line, x, y); y += subLine; }
+  return bounds;
 }
 
 function use(g, style, size) {
