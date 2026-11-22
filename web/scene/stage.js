@@ -31,14 +31,20 @@ export function createStage(host) {
   };
   stage.invalidate = () => { stage.dirty = true; };
 
-  const resize = () => {
-    const { clientWidth: w, clientHeight: h } = host;
-    if (!w || !h) return;
+  /** Sets the drawing size directly (export uses this for exact pixel sizes). */
+  stage.setRenderSize = (w, h, pixelRatio) => {
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     stage.onResize.forEach((fn) => fn());
     stage.invalidate();
+  };
+
+  const resize = () => {
+    const { clientWidth: w, clientHeight: h } = host;
+    if (!w || !h || stage.locked) return; // locked while exporting
+    stage.setRenderSize(w, h, Math.min(window.devicePixelRatio, 2));
   };
   const observer = new ResizeObserver(resize);
   observer.observe(host);
