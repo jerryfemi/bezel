@@ -5,6 +5,8 @@ import '../../scene3d/scene_pose.dart';
 import '../model/keyframe.dart';
 import '../model/motion_presets.dart';
 import '../model/motion_timeline.dart';
+import '../model/segment_reorder.dart';
+import 'segment_loop_provider.dart';
 import 'selected_keyframe_provider.dart';
 
 /// The clip's keyframes. Every change is sent to the 3D scene's player.
@@ -53,6 +55,10 @@ class TimelineNotifier extends Notifier<MotionTimeline> {
     if (selected.state == id) selected.state = null;
   }
 
+  /// Moves the segment ending at keyframe [fromIndex] to position [toIndex].
+  void moveSegment(int fromIndex, int toIndex) =>
+      _set(reorderSegments(state.keyframes, fromIndex, toIndex));
+
   void clear() {
     _set(const []);
     ref.read(selectedKeyframeProvider.notifier).state = null;
@@ -71,7 +77,10 @@ class TimelineNotifier extends Notifier<MotionTimeline> {
     _push();
   }
 
-  void _push() => ref.read(sceneControllerProvider)?.setTimeline(state.toJson());
+  void _push() {
+    ref.read(sceneControllerProvider)?.setTimeline(state.toJson());
+    ref.read(segmentLoopProvider.notifier).sync();
+  }
 }
 
 final timelineProvider =
