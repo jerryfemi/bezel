@@ -3,7 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/theme/bezel_metrics.dart';
+import '../../core/widgets/pointer_shield.dart';
 import '../export/state/export_provider.dart';
+import '../projects/state/projects_provider.dart';
+import '../projects/widgets/projects_menu.dart';
 import 'canvas/canvas_stage.dart';
 import 'design_layout.dart';
 import 'motion_layout.dart';
@@ -19,11 +22,13 @@ class EditorPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(editorModeProvider);
+    final projectsOpen = ref.watch(projectsMenuOpenProvider);
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () {
           ref.read(activeToolProvider.notifier).close();
           ref.read(exportSheetOpenProvider.notifier).state = false;
+          ref.read(projectsMenuOpenProvider.notifier).state = false;
         },
       },
       child: Focus(
@@ -38,6 +43,23 @@ class EditorPage extends ConsumerWidget {
               top: BezelSpace.edge, left: BezelSpace.edge, right: BezelSpace.edge,
               child: TopBar(),
             ),
+            if (projectsOpen) ...[
+              // Clicking anywhere else closes the menu (and never turns the phone).
+              Positioned.fill(
+                top: BezelSpace.edge + 52,
+                child: PointerShield(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => ref.read(projectsMenuOpenProvider.notifier).state = false,
+                  ),
+                ),
+              ),
+              const Positioned(
+                top: BezelSpace.edge + 52,
+                left: BezelSpace.edge,
+                child: ProjectsMenu(),
+              ),
+            ],
           ]),
         ),
       ),
