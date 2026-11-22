@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'bezel_scene_interop.dart';
 import 'device_profile.dart';
 import 'scene_pose.dart';
+import 'scene_specs.dart';
 
 /// Dart-side handle to one mounted 3D view. Created by `SceneView`.
 class SceneController {
@@ -29,7 +30,11 @@ class SceneController {
 
   void setPose(ScenePose next) => _handle.setPose(next.turn, next.tilt);
 
-  void setBackground(String hex) => _handle.setBackground(hex);
+  Future<void> setBackground(BackgroundSpec spec) => _handle.setBackground(spec.toJson()).toDart;
+
+  void setCaption(CaptionSpec spec) => _handle.setCaption(spec.toJson());
+
+  void setLight(LightSpec spec) => _handle.setLight(spec.toJson());
 
   void dispose() {
     _handle.dispose();
