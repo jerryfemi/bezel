@@ -58,8 +58,13 @@ function mount(host, onPose, onTime) {
     },
     /** JSON: {style: 'solid'|'spotlight'|'image', color: '#rrggbb', imageUrl?}. */
     setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
-    /** JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right'}. */
+    /**
+     * JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right', font,
+     * size, align: 'left'|'center'|'right', dx, dy, hidden}.
+     */
     setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
+    /** fn(json | null): caption bounds {x, y, w, h} as fractions of the frame. */
+    onCaptionBounds(fn) { backdrop.onCaptionBounds(fn); },
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
     setLight(json) { applyLight(stage, JSON.parse(json)); },
     /** JSON: {loop, keyframes: [{time, turn, tilt, zoom, easing: {kind, bounce}}]}. */
