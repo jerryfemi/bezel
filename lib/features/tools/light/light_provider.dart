@@ -11,6 +11,8 @@ class LightNotifier extends Notifier<LightSpec> {
 
   void reset() => _set(defaults);
 
+  void load(LightSpec spec) => _set(spec);
+
   void setAngle(double v) =>
       _set(LightSpec(angle: v, intensity: state.intensity, reflections: state.reflections));
   void setIntensity(double v) =>
