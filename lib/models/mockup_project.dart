@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'device_spec.dart';
 
 class MockupProject {
+  final String title;
   final DeviceSpec device;
   final String? sourceImagePath;
   final bool isVideo;
@@ -25,6 +26,7 @@ class MockupProject {
   final Duration? trimEndTime;
 
   const MockupProject({
+    this.title = 'Untitled Mockup',
     required this.device,
     this.sourceImagePath,
     this.isVideo = false,
@@ -39,6 +41,7 @@ class MockupProject {
   });
 
   MockupProject copyWith({
+    String? title,
     DeviceSpec? device,
     String? sourceImagePath,
     bool? isVideo,
@@ -52,6 +55,7 @@ class MockupProject {
     Duration? trimEndTime,
   }) {
     return MockupProject(
+      title: title ?? this.title,
       device: device ?? this.device,
       sourceImagePath: sourceImagePath ?? this.sourceImagePath,
       isVideo: isVideo ?? this.isVideo,

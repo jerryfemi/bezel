@@ -7,7 +7,6 @@ import '../../theme/app_metrics.dart';
 import '../../theme/app_typography.dart';
 import '../panels/device_selector_panel.dart';
 import '../panels/crop_panel.dart';
-import 'studio_button.dart';
 
 class LeftRailWidget extends ConsumerStatefulWidget {
   final bool isExpanded;
@@ -29,7 +28,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<double> _widthFactor;
-  
+
   double _devicePanelHeight = 300.0;
 
   @override
@@ -76,7 +75,8 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
         return AnimatedBuilder(
           animation: _widthFactor,
           builder: (context, child) {
-            final currentWidth = 40.0 + (panelWidth - 40.0) * _widthFactor.value;
+            final currentWidth =
+                40.0 + (panelWidth - 40.0) * _widthFactor.value;
             return SizedBox(
               width: currentWidth,
               child: Stack(
@@ -87,10 +87,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                     top: 0,
                     bottom: 0,
                     width: panelWidth,
-                    child: Opacity(
-                      opacity: _widthFactor.value,
-                      child: child,
-                    ),
+                    child: Opacity(opacity: _widthFactor.value, child: child),
                   ),
                   // The sticky tab
                   if (_widthFactor.value < 1.0)
@@ -127,7 +124,10 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                     onVerticalDragUpdate: (details) {
                       setState(() {
                         _devicePanelHeight += details.delta.dy;
-                        _devicePanelHeight = _devicePanelHeight.clamp(100.0, 800.0);
+                        _devicePanelHeight = _devicePanelHeight.clamp(
+                          100.0,
+                          800.0,
+                        );
                       });
                     },
                     child: Container(
@@ -145,9 +145,7 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _ScreenshotSection(),
-                      ],
+                      children: [_ScreenshotSection()],
                     ),
                   ),
                 ),
@@ -166,7 +164,11 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
       padding: const EdgeInsets.only(top: AppSpacing.s8),
       child: IconButton(
         onPressed: widget.onToggle, // will toggle
-        icon: const Icon(Icons.keyboard_arrow_right, size: 20, color: AppColors.primaryText),
+        icon: const Icon(
+          Icons.keyboard_arrow_right,
+          size: 20,
+          color: AppColors.primaryText,
+        ),
         tooltip: 'Expand Assets',
       ),
     );
@@ -182,7 +184,11 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
           const Spacer(),
           IconButton(
             onPressed: widget.onToggle,
-            icon: const Icon(Icons.keyboard_arrow_left, size: 20, color: AppColors.secondaryText),
+            icon: const Icon(
+              Icons.keyboard_arrow_left,
+              size: 20,
+              color: AppColors.secondaryText,
+            ),
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             padding: EdgeInsets.zero,
             tooltip: 'Collapse Assets',
@@ -194,13 +200,17 @@ class _LeftRailWidgetState extends ConsumerState<LeftRailWidget>
 }
 
 class _ScreenshotSection extends ConsumerWidget {
-  Future<void> _pickMedia(WidgetRef ref, BuildContext context, bool isVideo) async {
+  Future<void> _pickMedia(WidgetRef ref, BuildContext context) async {
     final picker = ImagePicker();
-    final XFile? file = isVideo
-        ? await picker.pickVideo(source: ImageSource.gallery)
-        : await picker.pickImage(source: ImageSource.gallery);
+    final XFile? file = await picker.pickMedia();
 
     if (file != null) {
+      final path = file.path.toLowerCase();
+      final isVideo =
+          path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.avi');
+
       ref
           .read(mockupProjectProvider.notifier)
           .setSourceImage(file.path, isVideo: isVideo);
@@ -218,30 +228,34 @@ class _ScreenshotSection extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.s16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('SCREENSHOT', style: AppTypography.panelHeader),
-          const SizedBox(height: AppSpacing.s12),
-          Row(
-            children: [
-              Expanded(
-                child: StudioButton(
-                  label: 'Image',
-                  icon: Icons.image_outlined,
-                  variant: ButtonVariant.secondary,
-                  onPressed: () => _pickMedia(ref, context, false),
+          // Compact Add Media button
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: () => _pickMedia(ref, context),
+              icon: const Icon(Icons.add, size: 14, color: AppColors.accent),
+              label: const Text(
+                'Add Media',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 11,
                 ),
               ),
-              const SizedBox(width: AppSpacing.s8),
-              Expanded(
-                child: StudioButton(
-                  label: 'Video',
-                  icon: Icons.videocam_outlined,
-                  variant: ButtonVariant.secondary,
-                  onPressed: () => _pickMedia(ref, context, true),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.accent, width: 1.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                minimumSize: const Size(0, 28),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
               ),
-            ],
+            ),
           ),
           if (project.sourceImagePath?.isNotEmpty ?? false) ...[
             const SizedBox(height: AppSpacing.s16),
@@ -252,4 +266,3 @@ class _ScreenshotSection extends ConsumerWidget {
     );
   }
 }
-

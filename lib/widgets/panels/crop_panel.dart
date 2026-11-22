@@ -39,8 +39,8 @@ class CropPanel extends ConsumerWidget {
                 StudioSlider(
                   label: 'Scale',
                   valueDisplay: '${(currentScale * 100).toInt()}%',
-                  value: currentScale.clamp(0.1, 10.0),
-                  min: 0.1,
+                  value: currentScale.clamp(1.0, 10.0),
+                  min: 1.0,
                   max: 10.0,
                   onChanged: (newScale) {
                     // Fix for jitter: read the freshest transform state directly

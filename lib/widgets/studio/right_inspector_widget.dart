@@ -8,7 +8,6 @@ import '../../theme/app_typography.dart';
 import '../panels/background_panel.dart';
 import 'preset_selector.dart';
 import 'keyframe_editor.dart';
-import 'sequence_track_widget.dart';
 import 'studio_button.dart';
 import 'package:bezel/services/export/image_export_service.dart';
 import 'package:bezel/screens/export_progress_screen.dart';
@@ -41,7 +40,6 @@ class RightInspectorWidget extends ConsumerStatefulWidget {
 
 class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
     with SingleTickerProviderStateMixin {
-
   late final AnimationController _animController;
   late final Animation<double> _widthFactor;
 
@@ -93,10 +91,7 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
                 top: 0,
                 bottom: 0,
                 width: 280.0,
-                child: Opacity(
-                  opacity: _widthFactor.value,
-                  child: child,
-                ),
+                child: Opacity(opacity: _widthFactor.value, child: child),
               ),
               // The sticky tab
               if (_widthFactor.value < 1.0)
@@ -137,7 +132,11 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
       padding: const EdgeInsets.only(top: AppSpacing.s8),
       child: IconButton(
         onPressed: widget.onToggle, // will toggle
-        icon: const Icon(Icons.keyboard_arrow_left, size: 20, color: AppColors.primaryText),
+        icon: const Icon(
+          Icons.keyboard_arrow_left,
+          size: 20,
+          color: AppColors.primaryText,
+        ),
         tooltip: 'Expand Inspector',
       ),
     );
@@ -151,7 +150,11 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
         children: [
           IconButton(
             onPressed: widget.onToggle,
-            icon: const Icon(Icons.keyboard_arrow_right, size: 20, color: AppColors.secondaryText),
+            icon: const Icon(
+              Icons.keyboard_arrow_right,
+              size: 20,
+              color: AppColors.secondaryText,
+            ),
             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
             padding: EdgeInsets.zero,
             tooltip: 'Collapse Inspector',
@@ -167,8 +170,20 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
               padding: const EdgeInsets.all(2),
               child: Row(
                 children: [
-                  Expanded(child: _buildModeTab('DESIGN', !widget.isMotionMode, () => widget.onModeChanged(false))),
-                  Expanded(child: _buildModeTab('MOTION', widget.isMotionMode, () => widget.onModeChanged(true))),
+                  Expanded(
+                    child: _buildModeTab(
+                      'DESIGN',
+                      !widget.isMotionMode,
+                      () => widget.onModeChanged(false),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildModeTab(
+                      'MOTION',
+                      widget.isMotionMode,
+                      () => widget.onModeChanged(true),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -208,8 +223,6 @@ class _RightInspectorWidgetState extends ConsumerState<RightInspectorWidget>
           Expanded(flex: hasPreset ? 3 : 1, child: PresetSelector()),
 
           if (hasPreset) ...[
-            const Divider(height: 1, color: AppColors.border),
-            const SequenceTrackWidget(),
             const Divider(height: 1, color: AppColors.border),
             // Keyframe Editor
             Expanded(flex: 2, child: KeyframeEditor()),
