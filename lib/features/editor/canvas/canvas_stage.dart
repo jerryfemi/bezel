@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/bezel_colors.dart';
+import '../../motion/widgets/timeline_panel.dart';
+import '../motion_layout.dart';
 import '../state/active_tool_provider.dart';
+import '../state/editor_mode_provider.dart';
 import 'dot_grid_painter.dart';
 import 'scene_frame.dart';
 
@@ -11,19 +14,26 @@ import 'scene_frame.dart';
 class CanvasStage extends ConsumerWidget {
   const CanvasStage({super.key});
 
-  /// Room kept clear for the top bar and the docks.
-  static const _chrome = EdgeInsets.fromLTRB(24, 76, 24, 100);
+  /// Room kept clear for each mode's chrome.
+  static const _design = EdgeInsets.fromLTRB(24, 76, 24, 100);
+  static const _motion = EdgeInsets.fromLTRB(
+    MotionLayout.presetsWidth + 28, 76, MotionLayout.inspectorWidth + 28, TimelinePanel.height + 34);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => ref.read(activeToolProvider.notifier).close(),
-      child: const ColoredBox(
+      child: ColoredBox(
         color: BezelColors.canvas,
         child: CustomPaint(
-          painter: DotGridPainter(),
-          child: Padding(padding: _chrome, child: SceneFrame()),
+          painter: const DotGridPainter(),
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            padding: ref.watch(editorModeProvider) == EditorMode.design ? _design : _motion,
+            child: const SceneFrame(),
+          ),
         ),
       ),
     );
