@@ -9,7 +9,7 @@ external BezelSceneApi? get bezelSceneApi;
 external JSPromise<JSAny?> get bezelSceneReady;
 
 extension type BezelSceneApi._(JSObject _) implements JSObject {
-  external SceneHandle mount(JSObject host, JSFunction onPose);
+  external SceneHandle mount(JSObject host, JSFunction onPose, JSFunction onTime);
 }
 
 extension type SceneHandle._(JSObject _) implements JSObject {
@@ -21,5 +21,9 @@ extension type SceneHandle._(JSObject _) implements JSObject {
   external JSPromise<JSAny?> setBackground(String json);
   external void setCaption(String json);
   external void setLight(String json);
+  external void setTimeline(String json);
+  external void play();
+  external void pause();
+  external void seek(num seconds);
   external void dispose();
 }
