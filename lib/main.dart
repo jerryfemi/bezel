@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'theme/app_theme.dart';
+
+import 'app/theme/bezel_theme.dart';
+import 'features/editor/editor_page.dart';
 import 'screens/editor_screen.dart';
-import 'features/scene3d/spike/scene_spike_page.dart';
+import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: BezelApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BezelApp extends StatelessWidget {
+  const BezelApp({super.key});
+
+  /// `?legacy=1` opens the old editor until its files are removed.
+  static final _legacy = Uri.base.queryParameters['legacy'] == '1';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Bezel',
-      theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      // `?scene=3d` opens the phase 2 3D test bench; the editor is unchanged.
-      home: Uri.base.queryParameters['scene'] == '3d'
-          ? const SceneSpikePage()
-          : const EditorScreen(),
+      theme: _legacy ? AppTheme.darkTheme : buildBezelTheme(),
+      home: _legacy ? const EditorScreen() : const EditorPage(),
     );
   }
 }
-
-// motion timing, animation, timeline tush background(screen), color for phones, expand slider position, radial drag
