@@ -9,6 +9,6 @@ class DeviceEntry {
 }
 
 const deviceCatalog = [
-  DeviceEntry('iphone-16-pro-max', 'iPhone 16 Pro Max'),
   DeviceEntry('iphone-13-pro-max', 'iPhone 13 Pro Max'),
+  DeviceEntry('iphone-16-pro-max', 'iPhone 16 Pro Max'),
 ];
