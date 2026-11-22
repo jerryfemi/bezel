@@ -10,7 +10,8 @@ import '../../tools/text/caption_provider.dart';
 import 'scene_provider.dart';
 
 /// The default hero angle a fresh project opens at.
-const heroPose = ScenePose(turn: -20, tilt: 6);
+/// The pose a new project opens in: straight on.
+const startPose = ScenePose();
 
 /// Runs once when the 3D view mounts: loads the device and applies settings.
 Future<void> attachScene(WidgetRef ref, SceneController scene) async {
@@ -20,6 +21,6 @@ Future<void> attachScene(WidgetRef ref, SceneController scene) async {
   ref.read(lightProvider.notifier).apply();
   final device = ref.read(deviceSelectionProvider).entry;
   await ref.read(deviceSelectionProvider.notifier).select(device);
-  scene.setPose(heroPose);
+  scene.setPose(startPose);
   ref.read(timelineProvider.notifier).apply();
 }
