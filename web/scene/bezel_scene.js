@@ -10,6 +10,7 @@ import { createBackdrop } from './backdrop.js';
 import { applyLight } from './lighting.js';
 import { createZoom } from './zoom.js';
 import { createPlayer } from './player.js';
+import { exportClip } from './export/exporter.js';
 
 function mount(host, onPose, onTime) {
   const stage = createStage(host);
@@ -24,10 +25,13 @@ function mount(host, onPose, onTime) {
     pivot.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(turn), 0, 'YXZ');
     report();
   }, zoom.pinching);
-  const player = createPlayer(stage, (p) => {
+  const applyPose = (p) => {
     zoom.set(p.zoom);
     orbit.setPose(p.turn, p.tilt);
-  }, (time, playing) => onTime?.(time, playing));
+  };
+  const player = createPlayer(stage, applyPose, (time, playing) => onTime?.(time, playing));
+  let timelineData = { keyframes: [], loop: true };
+  let exportCancelled = false;
   const backdrop = createBackdrop(stage, pivot);
   stage.resize();
   let device = null;
@@ -59,11 +63,26 @@ function mount(host, onPose, onTime) {
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
     setLight(json) { applyLight(stage, JSON.parse(json)); },
     /** JSON: {loop, keyframes: [{time, turn, tilt, zoom, easing: {kind, bounce}}]}. */
-    setTimeline(json) { player.setTimeline(JSON.parse(json)); },
+    setTimeline(json) { timelineData = JSON.parse(json); player.setTimeline(timelineData); },
     setLoopRange(start, end) { player.setLoopRange(start, end); },
     play() { player.play(); },
     pause() { player.pause(); },
     seek(seconds) { player.seek(seconds); },
+    /**
+     * Renders and downloads the clip. JSON: {format, width, height, fps, name}.
+     * onProgress(frame, total). Resolves with JSON {filename, bytes}, or 'null' if cancelled.
+     */
+    async exportClip(json, onProgress) {
+      exportCancelled = false;
+      const ctx = {
+        stage, applyPose, media: () => media,
+        timeline: () => timelineData,
+        pause: () => player.pause(),
+      };
+      const result = await exportClip(ctx, JSON.parse(json), (f, n) => onProgress?.(f, n), () => exportCancelled);
+      return JSON.stringify(result);
+    },
+    cancelExport() { exportCancelled = true; },
     dispose() {
       orbit.dispose();
       zoom.dispose();
