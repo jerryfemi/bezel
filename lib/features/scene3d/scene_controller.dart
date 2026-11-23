@@ -26,6 +26,7 @@ class SceneController {
       captionBounds.value = (head: rect(b['head']), sub: rect(b['sub']));
     }
     _handle.onCaptionBounds(bounds.toJS);
+    _handle.onScreenTap((() => onScreenTap?.call()).toJS);
   }
 
   final SceneHandle _handle;
@@ -39,6 +40,9 @@ class SceneController {
 
   /// Where the headline and subtitle sit, as fractions of the frame; null when
   /// the caption is off.
+  /// Called when the user clicks the phone's screen.
+  void Function()? onScreenTap;
+
   final captionBounds = ValueNotifier<({Rect? head, Rect? sub})?>(null);
 
   Future<DeviceProfile> loadDevice(String baseUrl, {String? finishId}) async {
