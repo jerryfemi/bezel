@@ -154,5 +154,6 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
 
 final projectsProvider = NotifierProvider<ProjectsNotifier, ProjectsState>(ProjectsNotifier.new);
 
-/// Whether the projects menu is open.
-final projectsMenuOpenProvider = StateProvider<bool>((ref) => false);
+/// Whether the projects sidebar is shown. Open by default so new users see
+/// "New project" and their saved work straight away.
+final projectsMenuOpenProvider = StateProvider<bool>((ref) => true);
