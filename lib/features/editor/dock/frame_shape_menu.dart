@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/bezel_colors.dart';
+import '../../../app/theme/bezel_icons.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../state/frame_shape.dart';
 
@@ -28,11 +29,12 @@ class FrameShapeMenu extends ConsumerWidget {
           ),
       ],
       child: SizedBox(
-        height: 44,
+        height: 36,
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const SizedBox(width: 10),
-          Text(shape.label, style: BezelType.mono),
-          const Icon(Icons.expand_more, size: 16, color: BezelColors.textSecondary),
+          Text(shape.label, style: BezelType.body.copyWith(fontWeight: FontWeight.w500)),
+          const SizedBox(width: 2),
+          const Icon(BezelIcons.chevronDown, size: 14, color: BezelColors.textSecondary),
           const SizedBox(width: 6),
         ]),
       ),
