@@ -1,5 +1,6 @@
-// The screen's starting picture, so a fresh device never looks switched off
-// or empty. Drawn on a canvas: no asset to download.
+// The screen's starting picture: a switched-off black display with a soft
+// glass sheen and a quiet prompt to add a screen. Drawn on a canvas, so
+// there is no asset to download.
 
 export function drawDefaultWallpaper(aspect) {
   const h = 1600;
@@ -7,22 +8,38 @@ export function drawDefaultWallpaper(aspect) {
   const canvas = Object.assign(document.createElement('canvas'), { width: w, height: h });
   const g = canvas.getContext('2d');
 
-  const base = g.createLinearGradient(0, 0, w * 0.4, h);
-  base.addColorStop(0, '#1B2340');
-  base.addColorStop(0.55, '#2A1E4A');
-  base.addColorStop(1, '#0D1022');
-  g.fillStyle = base;
+  g.fillStyle = '#050506';
   g.fillRect(0, 0, w, h);
 
-  glow(g, w * 0.25, h * 0.3, w * 0.9, 'rgba(90, 140, 255, 0.55)');
-  glow(g, w * 0.85, h * 0.7, w * 0.8, 'rgba(176, 108, 255, 0.45)');
-  return canvas;
-}
+  // A faint diagonal reflection, like light across glass.
+  const sheen = g.createLinearGradient(0, 0, w, h);
+  sheen.addColorStop(0, 'rgba(255,255,255,0.07)');
+  sheen.addColorStop(0.35, 'rgba(255,255,255,0.015)');
+  sheen.addColorStop(0.36, 'rgba(255,255,255,0)');
+  sheen.addColorStop(1, 'rgba(255,255,255,0.02)');
+  g.fillStyle = sheen;
+  g.fillRect(0, 0, w, h);
 
-function glow(g, x, y, r, color) {
-  const grad = g.createRadialGradient(x, y, 0, x, y, r);
-  grad.addColorStop(0, color);
-  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, g.canvas.width, g.canvas.height);
+  // Prompt: an upload arrow in a ring, then two lines of text.
+  const cx = w / 2;
+  const cy = h * 0.47;
+  const r = w * 0.085;
+  g.strokeStyle = 'rgba(255,255,255,0.55)';
+  g.lineWidth = w * 0.006;
+  g.lineCap = 'round';
+  g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+  g.beginPath();
+  g.moveTo(cx, cy + r * 0.42); g.lineTo(cx, cy - r * 0.42);
+  g.moveTo(cx - r * 0.32, cy - r * 0.1); g.lineTo(cx, cy - r * 0.42); g.lineTo(cx + r * 0.32, cy - r * 0.1);
+  g.stroke();
+
+  g.textAlign = 'center';
+  g.textBaseline = 'top';
+  g.fillStyle = 'rgba(255,255,255,0.85)';
+  g.font = `600 ${Math.round(w * 0.05)}px Inter, system-ui, sans-serif`;
+  g.fillText('Tap to add your screen', cx, cy + r * 1.6);
+  g.fillStyle = 'rgba(255,255,255,0.45)';
+  g.font = `400 ${Math.round(w * 0.036)}px Inter, system-ui, sans-serif`;
+  g.fillText('Screenshot or screen recording', cx, cy + r * 1.6 + w * 0.08);
+  return canvas;
 }
