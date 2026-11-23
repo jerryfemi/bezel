@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../editor/state/frame_shape.dart';
 import '../../editor/state/project_title_provider.dart';
 import '../../editor/state/scene_provider.dart';
+import '../../motion/state/timeline_provider.dart';
+import '../../tools/media/screen_media_provider.dart';
 import '../export_settings.dart';
 
 enum ExportStatus { idle, rendering, done, failed }
@@ -38,11 +40,38 @@ class ExportState {
 }
 
 class ExportNotifier extends Notifier<ExportState> {
-  @override
-  ExportState build() => const ExportState();
+  /// The last video format the user picked, so we can go back to it.
+  ExportFormat _videoFormat = ExportFormat.mp4;
 
-  void update(ExportSettings settings) =>
-      state = ExportState(settings: settings);
+  @override
+  ExportState build() {
+    // Each time the sheet opens, start on the format that fits the project:
+    // a still image when nothing moves, a video when something does.
+    ref.listen(exportSheetOpenProvider, (was, open) {
+      if (open && was != true && state.status != ExportStatus.rendering) _suggestFormat();
+    });
+    // First build happens as the sheet opens, so pick the format here too.
+    return ExportState(
+        settings: ExportSettings(format: _moves() ? ExportFormat.mp4 : ExportFormat.png));
+  }
+
+  bool _moves() => !ref.read(timelineProvider).isEmpty || ref.read(screenMediaProvider).isVideo;
+
+  void _suggestFormat() {
+    final moves = _moves();
+    final current = state.settings.format;
+    final isVideo = current != ExportFormat.png;
+    if (moves && !isVideo) {
+      state = ExportState(settings: state.settings.copyWith(format: _videoFormat));
+    } else if (!moves && isVideo) {
+      state = ExportState(settings: state.settings.copyWith(format: ExportFormat.png));
+    }
+  }
+
+  void update(ExportSettings settings) {
+    if (settings.format != ExportFormat.png) _videoFormat = settings.format;
+    state = ExportState(settings: settings);
+  }
 
   Future<void> start() async {
     final scene = ref.read(sceneControllerProvider);
