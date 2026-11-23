@@ -35,6 +35,25 @@ function mount(host, onPose, onTime) {
   const backdrop = createBackdrop(stage, pivot);
   stage.resize();
   let device = null;
+
+  // A click (not a drag) on the phone's screen: Flutter offers the file picker.
+  let onScreenTap = null;
+  const ray = new THREE.Raycaster();
+  const el = stage.renderer.domElement;
+  let down = null;
+  el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+  el.addEventListener('pointerup', (e) => {
+    const d = down;
+    down = null;
+    if (!d || !device || !onScreenTap || stage.locked) return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
+    const box = el.getBoundingClientRect();
+    const p = new THREE.Vector2(
+      ((e.clientX - box.left) / box.width) * 2 - 1,
+      -((e.clientY - box.top) / box.height) * 2 + 1);
+    ray.setFromCamera(p, stage.camera);
+    if (ray.intersectObjects(device.parts.screen, true).length) onScreenTap();
+  });
   let media = null;
 
   return {
@@ -63,6 +82,8 @@ function mount(host, onPose, onTime) {
      * align, size, subSize, dx, dy, subDx, subDy, hidden}. See caption.js.
      */
     setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
+    /** fn(): the user clicked the phone's screen. */
+    onScreenTap(fn) { onScreenTap = fn; },
     /** fn(json | null): {head, sub} bounds {x, y, w, h} as fractions of the frame. */
     onCaptionBounds(fn) { backdrop.onCaptionBounds(fn); },
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
