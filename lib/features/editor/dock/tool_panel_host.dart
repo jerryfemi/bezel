@@ -26,7 +26,7 @@ class ToolPanelHost extends ConsumerWidget {
         opacity: animation,
         child: ScaleTransition(
           scale: Tween(begin: 0.94, end: 1.0).animate(animation),
-          alignment: Alignment.bottomRight,
+          alignment: Alignment.bottomCenter,
           child: child,
         ),
       ),
