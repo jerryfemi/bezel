@@ -34,12 +34,16 @@ class ScreenMediaNotifier extends Notifier<ScreenMedia> {
   ScreenMedia build() => const ScreenMedia();
 
   /// Opens the file picker. On the web the picked file's path is a blob: URL.
-  Future<void> pick({required bool video}) async {
+  /// With [video] null, any image or video can be picked (tapping the screen).
+  Future<void> pick({bool? video}) async {
     final picker = ImagePicker();
-    final file = video
-        ? await picker.pickVideo(source: ImageSource.gallery)
-        : await picker.pickImage(source: ImageSource.gallery);
+    final file = switch (video) {
+      true => await picker.pickVideo(source: ImageSource.gallery),
+      false => await picker.pickImage(source: ImageSource.gallery),
+      null => await picker.pickMedia(),
+    };
     if (file == null) return;
+    video ??= mimeTypeFor(file.name, reported: file.mimeType).startsWith('video/');
     final bytes = await file.readAsBytes();
     state = ScreenMedia(
       name: file.name, url: file.path, bytes: bytes,
