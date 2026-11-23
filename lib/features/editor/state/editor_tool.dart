@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-/// The tools in the bottom-right dock, in display order.
+import '../../../app/theme/bezel_icons.dart';
+
+/// The tools in the bottom dock, in display order.
 enum EditorTool {
-  device('Device', Icons.phone_iphone_outlined),
-  media('Media', Icons.play_circle_outline),
-  pose('Pose', Icons.threed_rotation),
-  background('Background', Icons.wallpaper_outlined),
-  text('Text', Icons.text_fields),
-  light('Light', Icons.light_mode_outlined);
+  device('Device', BezelIcons.device),
+  media('Media', BezelIcons.media),
+  pose('Pose', BezelIcons.pose),
+  background('Background', BezelIcons.background),
+  text('Text', BezelIcons.text),
+  light('Light', BezelIcons.light);
 
   const EditorTool(this.label, this.icon);
 
