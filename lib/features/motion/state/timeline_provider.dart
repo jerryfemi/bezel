@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../editor/state/scene_provider.dart';
 import '../../scene3d/scene_pose.dart';
+import '../../timeline/state/edit_history.dart';
 import '../model/keyframe.dart';
+import '../model/motion_easing.dart';
 import '../model/motion_presets.dart';
 import '../model/motion_timeline.dart';
 import '../model/segment_reorder.dart';
@@ -75,6 +77,24 @@ class TimelineNotifier extends Notifier<MotionTimeline> {
     _push();
   }
 
+  /// Undo/redo: puts a previous clip back as it was.
+  void restore(MotionTimeline previous) {
+    state = previous;
+    final selected = ref.read(selectedKeyframeProvider.notifier);
+    if (state.byId(selected.state) == null) selected.state = null;
+    _push();
+  }
+
+  /// Inserts a keyframe at [time] with the pose the clip has there, so the
+  /// move is cut in two without changing how it plays ("split" on the motion track).
+  void splitAt(double time, ScenePose pose) {
+    final keys = state.keyframes;
+    if (keys.any((k) => (k.time - time).abs() < 0.05)) return;
+    final next = keys.where((k) => k.time > time);
+    final easing = next.isEmpty ? MotionEasing.spring : next.first.easing;
+    _set([...keys, Keyframe(id: _id(), time: time, pose: pose, easing: easing)]);
+  }
+
   void setLoop(bool loop) {
     state = state.withLoop(loop);
     _push();
@@ -84,6 +104,7 @@ class TimelineNotifier extends Notifier<MotionTimeline> {
   void apply() => _push();
 
   void _set(List<Keyframe> keys) {
+    ref.read(editHistoryProvider.notifier).record();
     state = state.withKeyframes(keys);
     _push();
   }
