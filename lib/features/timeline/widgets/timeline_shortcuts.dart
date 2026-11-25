@@ -2,7 +2,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../editor/state/editor_mode_provider.dart';
 import '../state/playhead_provider.dart';
 import '../state/timeline_actions.dart';
 
@@ -62,7 +61,6 @@ class _TimelineShortcutsState extends ConsumerState<TimelineShortcuts> {
       actions.playPause();
       return true;
     }
-    if (ref.read(editorModeProvider) != EditorMode.motion) return false;
     if (key == LogicalKeyboardKey.keyS && !repeat) {
       actions.split();
       return true;
