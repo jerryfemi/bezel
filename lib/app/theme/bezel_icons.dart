@@ -9,6 +9,8 @@ class BezelIcons {
   static const IconData device = LucideIcons.smartphone;
   static const IconData media = LucideIcons.image;
   static const IconData pose = LucideIcons.rotate3d;
+  static const IconData move = LucideIcons.move;
+  static const IconData center = LucideIcons.locateFixed;
   static const IconData background = LucideIcons.wallpaper;
   static const IconData text = LucideIcons.type;
   static const IconData light = LucideIcons.sun;
