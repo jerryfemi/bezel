@@ -1,13 +1,16 @@
-// Renders the clip frame by frame at an exact size and encodes it.
-// Each frame uses the same poseAt() as the live preview, so they match.
+// Renders the clip frame by frame at an exact size and encodes it. Every
+// frame uses the same pose, caption and screen logic as the live preview, so
+// the file matches what the user saw.
 import { poseAt } from '../player.js';
 import { createVideoEncoder } from './encode_video.js';
 import { createGifEncoder, GIF_FPS } from './encode_gif.js';
+import { mixAudio } from './mix_audio.js';
+import { pickAudioCodec } from './encode_audio.js';
 
-const STILL_CLIP_SECONDS = 3; // a clip with no motion exports as a 3 s hold
+const STILL_CLIP_SECONDS = 3; // a clip with nothing timed exports as a 3 s hold
 
 /**
- * `ctx`: {stage, timeline(), applyPose(p), media(), pause()}.
+ * `ctx`: {stage, timeline(), tracks(), duration(), applyPose(p), screen(), backdrop, assets, pause()}.
  * `settings`: {format: mp4|webm|gif|png, width, height, fps, name}.
  */
 export async function exportClip(ctx, settings, onProgress, isCancelled) {
@@ -27,18 +30,26 @@ export async function exportClip(ctx, settings, onProgress, isCancelled) {
 
     const fps = format === 'gif' ? GIF_FPS : settings.fps;
     const timeline = ctx.timeline();
-    const duration = timeline.keyframes.length > 1 ? timeline.keyframes.at(-1).time : STILL_CLIP_SECONDS;
+    const duration = ctx.duration() > 0 ? ctx.duration() : STILL_CLIP_SECONDS;
     const total = Math.max(1, Math.round(duration * fps));
+
+    let audio = null;
+    if (format !== 'gif') {
+      const codec = await pickAudioCodec(format);
+      const buffer = codec ? await mixAudio(ctx.assets, ctx.tracks(), duration) : null;
+      if (buffer) audio = { buffer, codec };
+    }
     const encoder = format === 'gif'
       ? createGifEncoder({ width, height })
-      : await createVideoEncoder({ format, width, height, fps });
+      : await createVideoEncoder({ format, width, height, fps, audio });
 
     for (let i = 0; i < total; i++) {
       if (isCancelled()) { encoder.cancel(); return null; }
       const t = i / fps;
       const pose = poseAt(timeline, t);
       if (pose) ctx.applyPose(pose);
-      await ctx.media()?.seekVideo(t);
+      ctx.backdrop.setTime(t);
+      await ctx.screen()?.prepareFrame(t);
       stage.renderer.render(stage.scene, stage.camera);
       await encoder.addFrame(stage.renderer.domElement, i);
       onProgress(i + 1, total);
@@ -48,7 +59,7 @@ export async function exportClip(ctx, settings, onProgress, isCancelled) {
     return download(blob, `${name}.${format}`);
   } finally {
     restoreSize();
-    ctx.media()?.resumeVideo();
+    ctx.restore?.();
   }
 }
 
