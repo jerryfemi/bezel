@@ -9,6 +9,8 @@ import '../../../core/widgets/icon_tool_button.dart';
 import '../../../core/widgets/pressable.dart';
 import '../../export/state/export_provider.dart';
 import '../../motion/state/timeline_provider.dart';
+import '../../timeline/model/tracks.dart';
+import '../../timeline/state/tracks_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_mode_provider.dart';
 import '../state/scene_provider.dart';
@@ -23,7 +25,9 @@ class CornerBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(editorModeProvider);
     final scene = ref.watch(sceneControllerProvider);
-    final hasMotion = !ref.watch(timelineProvider).isEmpty;
+    // Anything to play: motion, or clips on the timeline.
+    final hasMotion =
+        clipLength(ref.watch(tracksProvider), ref.watch(timelineProvider).duration) > 0;
     final exportOpen = ref.watch(exportSheetOpenProvider);
 
     void setMode(EditorMode m) {
@@ -48,7 +52,7 @@ class CornerBar extends ConsumerWidget {
             () => setMode(EditorMode.design),
           ),
           _ModeTab(
-            'Motion',
+            'Timeline',
             mode == EditorMode.motion,
             () => setMode(EditorMode.motion),
           ),
@@ -61,7 +65,7 @@ class CornerBar extends ConsumerWidget {
                 icon: playing ? BezelIcons.pause : BezelIcons.play,
                 tooltip: hasMotion
                     ? (playing ? 'Pause' : 'Play')
-                    : 'Add motion to play',
+                    : 'Add motion or clips to play',
                 onTap: hasMotion ? (playing ? scene.pause : scene.play) : null,
               ),
             ),
