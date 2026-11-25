@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/bezel_colors.dart';
+import '../../../app/theme/bezel_icons.dart';
 import '../../../app/theme/bezel_type.dart';
+import '../../../core/widgets/chip_button.dart';
 import '../../../core/widgets/slider_row.dart';
 import '../../editor/state/scene_provider.dart';
+import '../../scene3d/scene_position.dart';
 import '../../scene3d/scene_pose.dart';
 import 'pose_presets.dart';
 import 'pose_tile.dart';
@@ -41,6 +44,15 @@ class PosePanel extends ConsumerWidget {
                 ),
             ],
           ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ChipButton(
+              icon: BezelIcons.center,
+              label: 'Center device',
+              onTap: () => scene.setPosition(const ScenePosition()),
+            ),
+          ),
           const SizedBox(height: 14),
           SliderRow(
             label: 'Turn', value: pose.turn, min: -180, max: 180,
@@ -57,8 +69,7 @@ class PosePanel extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Or drag the phone itself, and scroll or pinch to zoom. It turns all the way round; past 70° it '
-            'resists a little so the back only shows when you mean it.',
+            'Drag the phone to turn it. Shift+drag (or the Move button in the dock) places it in the frame. Scroll or pinch to zoom.',
             style: BezelType.label.copyWith(color: BezelColors.textSecondary, height: 1.45),
           ),
         ],
