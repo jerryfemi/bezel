@@ -14,6 +14,7 @@ import 'state/editor_mode_provider.dart';
 import 'chrome/corner_bar.dart';
 import 'chrome/export_popover.dart';
 import 'chrome/sidebar_pill.dart';
+import '../timeline/widgets/timeline_shortcuts.dart';
 
 /// The editor: the scene fills the window; each mode floats its own chrome
 /// around it. The 3D view is never rebuilt when switching modes.
@@ -37,7 +38,7 @@ class EditorPage extends ConsumerWidget {
       },
       child: Focus(
         autofocus: true,
-        child: Scaffold(
+        child: TimelineShortcuts(child: Scaffold(
           body: Row(children: [
             // Docked, so the canvas makes room for it instead of being covered.
             AnimatedContainer(
@@ -67,7 +68,7 @@ class EditorPage extends ConsumerWidget {
               ]),
             ),
           ]),
-        ),
+        )),
       ),
     );
   }
