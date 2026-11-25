@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/pointer_shield.dart';
 import '../../scene3d/scene_specs.dart';
-import '../../tools/text/caption_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_tool.dart';
 import '../state/scene_provider.dart';
@@ -17,8 +16,7 @@ class CaptionOverlay extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scene = ref.watch(sceneControllerProvider);
-    final enabled = ref.watch(captionProvider.select((c) => c.enabled));
-    if (scene == null || !enabled) return const SizedBox.shrink();
+    if (scene == null) return const SizedBox.shrink();
     final selected = ref.watch(activeToolProvider) == EditorTool.text;
 
     return LayoutBuilder(builder: (context, box) {
@@ -40,7 +38,8 @@ class CaptionOverlay extends ConsumerWidget {
                 Positioned.fromRect(
                   rect: onScreen(rect),
                   child: PointerShield(
-                    child: CaptionBox(part: part, frame: frame, selected: selected),
+                    child: CaptionBox(
+                        clipId: bounds.id, part: part, frame: frame, selected: selected),
                   ),
                 ),
           ]);
