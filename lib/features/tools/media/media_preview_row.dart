@@ -22,7 +22,7 @@ class MediaPreviewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = media.isEmpty ? 'Default wallpaper' : media.name ?? 'Your media';
+    final title = media.isEmpty ? 'Nothing on the screen yet' : media.name ?? 'Your media';
     final subtitle = media.loading
         ? 'Loading…'
         : media.isEmpty
