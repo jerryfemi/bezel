@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/bezel_colors.dart';
 import '../../scene3d/scene_specs.dart';
+import '../../timeline/model/clips.dart';
+import '../../timeline/state/playhead_provider.dart';
 import '../../tools/text/caption_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_tool.dart';
@@ -12,7 +14,16 @@ import 'caption_inline_editor.dart';
 /// panel), drag moves it, the corner handle resizes it, double-click edits it.
 /// Dragging the headline moves the whole caption; the subtitle moves alone.
 class CaptionBox extends ConsumerStatefulWidget {
-  const CaptionBox({super.key, required this.part, required this.frame, required this.selected});
+  const CaptionBox({
+    super.key,
+    required this.clipId,
+    required this.part,
+    required this.frame,
+    required this.selected,
+  });
+
+  /// The caption clip on screen (selected on the timeline when touched).
+  final String? clipId;
 
   /// Space kept around the text inside the box.
   static const pad = 8.0;
@@ -32,7 +43,11 @@ class _CaptionBoxState extends ConsumerState<CaptionBox> {
 
   CaptionNotifier get _caption => ref.read(captionProvider.notifier);
 
-  void _select() => ref.read(activeToolProvider.notifier).open(EditorTool.text);
+  void _select() {
+    final id = widget.clipId;
+    if (id != null) ref.read(selectedClipProvider.notifier).state = ClipRef(TrackKind.caption, id);
+    ref.read(activeToolProvider.notifier).open(EditorTool.text);
+  }
 
   void _resize(DragUpdateDetails d, Size box) {
     final c = ref.read(captionProvider);
