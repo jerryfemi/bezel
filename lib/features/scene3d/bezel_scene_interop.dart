@@ -9,7 +9,8 @@ external BezelSceneApi? get bezelSceneApi;
 external JSPromise<JSAny?> get bezelSceneReady;
 
 extension type BezelSceneApi._(JSObject _) implements JSObject {
-  external SceneHandle mount(JSObject host, JSFunction onPose, JSFunction onTime);
+  external SceneHandle mount(
+      JSObject host, JSFunction onPose, JSFunction onTime, JSFunction onPosition);
 }
 
 extension type SceneHandle._(JSObject _) implements JSObject {
@@ -18,6 +19,8 @@ extension type SceneHandle._(JSObject _) implements JSObject {
   external JSPromise<JSAny?> setScreenImage(String url);
   external JSPromise<JSAny?> setScreenVideo(String url);
   external void setPose(num turn, num tilt, num zoom);
+  external void setPosition(num x, num y);
+  external void setMoveMode(bool enabled);
   external JSPromise<JSAny?> setBackground(String json);
   external void setCaption(String json);
   external void onCaptionBounds(JSFunction fn);
