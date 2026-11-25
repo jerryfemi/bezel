@@ -13,6 +13,8 @@ const startPose = ScenePose();
 /// which loads the device and applies every setting.
 Future<void> attachScene(WidgetRef ref, SceneController scene) async {
   ref.read(sceneControllerProvider.notifier).state = scene;
+  scene.setMoveMode(
+      ref.read(sceneInteractionModeProvider) == SceneInteractionMode.move);
   // Clicking an empty screen is the quickest way to add a screenshot.
   scene.onScreenTap = () {
     if (ref.read(screenMediaProvider).isEmpty) ref.read(screenMediaProvider.notifier).pick();
