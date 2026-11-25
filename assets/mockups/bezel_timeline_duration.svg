@@ -1,0 +1,233 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/><stop offset="1" stop-color="#0A0D14"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="530" y1="120" x2="985" y2="380" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#263F70"/><stop offset=".55" stop-color="#8068D8"/><stop offset="1" stop-color="#E59B79"/>
+    </linearGradient>
+    <linearGradient id="videoClip" x1="82" y1="0" x2="1330" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1B5362"/><stop offset=".52" stop-color="#246D70"/><stop offset="1" stop-color="#194C5A"/>
+    </linearGradient>
+    <linearGradient id="motionClip" x1="80" y1="0" x2="880" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#48388D"/><stop offset="1" stop-color="#704EC1"/>
+    </linearGradient>
+    <pattern id="outside" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="12" height="12" fill="#151923"/><rect width="3" height="12" fill="#1C222E"/>
+    </pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="15" stdDeviation="17" flood-color="#000" flood-opacity=".4"/>
+    </filter>
+    <clipPath id="frameClip"><rect x="506" y="122" width="460" height="259" rx="16"/></clipPath>
+    <clipPath id="phoneClip"><rect x="703" y="139" width="68" height="224" rx="17"/></clipPath>
+  </defs>
+  <rect width="1600" height="900" rx="22" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1598" height="898" rx="21" stroke="#303747" stroke-opacity=".65"/>
+
+  <!-- Top bar -->
+  <rect x="1" y="1" width="1598" height="57" rx="21" fill="#151A25"/>
+  <path d="M1 58H1599" stroke="#293141"/>
+  <circle cx="29" cy="29" r="5" fill="#F27670"/><circle cx="47" cy="29" r="5" fill="#E9B85A"/><circle cx="65" cy="29" r="5" fill="#5CC58A"/>
+  <path d="M94 16H95V42H94z" fill="#303849"/>
+  <rect x="111" y="15" width="27" height="27" rx="8" fill="#7762DA"/>
+  <path d="M119 22h11v2h-11zm0 5h11v2h-11zm0 5h7v2h-7z" fill="#fff"/>
+  <text x="149" y="33" fill="#F4F6FB" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="14" font-weight="650">Bezel</text>
+  <path d="M204 18h1v21h-1z" fill="#303849"/>
+  <text x="223" y="33" fill="#F4F6FB" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" font-weight="600">Summer launch</text>
+  <path d="m324 25 4 4 4-4" stroke="#8992A4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="1431" y="11" width="78" height="35" rx="9" fill="#202736" stroke="#343E50"/>
+  <text x="1470" y="33" text-anchor="middle" fill="#C8CFDC" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Share</text>
+  <rect x="1517" y="11" width="65" height="35" rx="9" fill="#8D77F2"/>
+  <text x="1549.5" y="33" text-anchor="middle" fill="#fff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">Export</text>
+
+  <!-- Left tool rail -->
+  <rect x="1" y="58" width="62" height="841" fill="#121722"/>
+  <path d="M63 58v841" stroke="#293141"/>
+  <g fill="#818B9E">
+    <rect x="20" y="80" width="23" height="19" rx="3" stroke="#9EA8BA" stroke-width="1.6"/>
+    <path d="M29 104h6" stroke="#9EA8BA" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M23 157h17v17H23z" stroke="#858FA2" stroke-width="1.5"/>
+    <path d="M20 224h23m-11-11v23" stroke="#858FA2" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M21 285h22l-11 13z" stroke="#858FA2" stroke-width="1.5" stroke-linejoin="round"/>
+  </g>
+  <rect x="10" y="345" width="43" height="42" rx="11" fill="#292443"/>
+  <path d="M20 365h23m-11-11v23" stroke="#AB9BFF" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="31.5" cy="366" r="17" stroke="#9D8AF7" stroke-opacity=".65"/>
+  <text x="31" y="407" text-anchor="middle" fill="#B8ACFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9" font-weight="600">Move</text>
+
+  <!-- Preview header and playback controls -->
+  <rect x="64" y="59" width="1535" height="423" fill="#0F141E"/>
+  <text x="91" y="88" fill="#8993A5" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="650" letter-spacing="1.1">PREVIEW</text>
+  <rect x="1413" y="70" width="152" height="28" rx="7" fill="#191F2B" stroke="#2B3444"/>
+  <text x="1489" y="88" text-anchor="middle" fill="#AEB7C7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="550">Landscape · 16:9</text>
+  <rect x="1207" y="70" width="119" height="28" rx="7" fill="#191F2B" stroke="#2B3444"/>
+  <text x="1266" y="88" text-anchor="middle" fill="#AEB7C7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Fit preview</text>
+
+  <!-- Preview canvas -->
+  <rect x="506" y="122" width="460" height="259" rx="16" fill="url(#screen)" filter="url(#shadow)"/>
+  <g clip-path="url(#frameClip)">
+    <circle cx="929" cy="145" r="113" fill="#FFB59A" fill-opacity=".17"/>
+    <circle cx="535" cy="374" r="119" fill="#A5C1FF" fill-opacity=".1"/>
+    <rect x="513" y="129" width="446" height="245" rx="12" stroke="#FFFFFF" stroke-opacity=".18"/>
+    <text x="734" y="115" text-anchor="middle" fill="#F5F2FF" fill-opacity=".75" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9" letter-spacing="2">BEZEL PHONE</text>
+    <rect x="698" y="134" width="78" height="234" rx="21" fill="#0B0D12" fill-opacity=".55"/>
+    <rect x="703" y="139" width="68" height="224" rx="17" fill="#171B24" stroke="#E1E6F0" stroke-opacity=".8" stroke-width="1.4"/>
+    <g clip-path="url(#phoneClip)">
+      <rect x="705" y="141" width="64" height="220" fill="#F6F3F1"/>
+      <rect x="705" y="141" width="64" height="35" fill="#FFFFFF"/>
+      <circle cx="713" cy="158" r="3" fill="#8172DE"/>
+      <rect x="720" y="155" width="30" height="5" rx="2.5" fill="#303342"/>
+      <rect x="710" y="185" width="53" height="61" rx="8" fill="#DCD9F6"/>
+      <rect x="715" y="193" width="42" height="5" rx="2.5" fill="#5F55A7"/>
+      <rect x="715" y="203" width="32" height="4" rx="2" fill="#8A87A8"/>
+      <rect x="715" y="216" width="19" height="20" rx="5" fill="#7B69DD"/>
+      <rect x="710" y="254" width="53" height="43" rx="8" fill="#EEECEF"/>
+      <rect x="715" y="261" width="32" height="4" rx="2" fill="#434655"/>
+      <rect x="715" y="270" width="42" height="3" rx="1.5" fill="#A1A2AC"/>
+      <rect x="715" y="278" width="37" height="3" rx="1.5" fill="#A1A2AC"/>
+      <rect x="710" y="306" width="53" height="41" rx="8" fill="#F2E3D9"/>
+      <rect x="715" y="314" width="27" height="4" rx="2" fill="#5B5050"/>
+      <rect x="715" y="323" width="40" height="3" rx="1.5" fill="#A79A98"/>
+    </g>
+    <rect x="727" y="144" width="20" height="5" rx="2.5" fill="#090A0D"/>
+    <text x="527" y="357" fill="#FFFFFF" fill-opacity=".72" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="550">Tap to add screen recording</text>
+  </g>
+  <rect x="506" y="396" width="460" height="38" rx="10" fill="#171D29"/>
+  <path d="M530 407v16l13-8z" fill="#E5E8F0"/>
+  <path d="M568 408h2v14h-2zm6 0h2v14h-2z" fill="#9DA7B8"/>
+  <text x="604" y="420" fill="#D8DEEA" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-variant-numeric="tabular-nums">00:04.2</text>
+  <text x="672" y="420" fill="#707B8D" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11">/ 00:08.0</text>
+  <path d="M912 408h14v14h-14z" stroke="#8D98AA" stroke-width="1.4"/>
+  <path d="m917 415 3 3 6-7" stroke="#8D98AA" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Duration inspector -->
+  <rect x="1127" y="117" width="431" height="322" rx="14" fill="#151B27" stroke="#2B3444"/>
+  <text x="1153" y="149" fill="#F0F2F8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" font-weight="650">Export duration</text>
+  <text x="1153" y="169" fill="#8590A2" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Choose what sets the end of your video.</text>
+  <rect x="1153" y="190" width="379" height="39" rx="9" fill="#202735"/>
+  <rect x="1156" y="193" width="121" height="33" rx="7" fill="#7865D7"/>
+  <text x="1216" y="214" text-anchor="middle" fill="#FFFFFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="650">Animation</text>
+  <text x="1349" y="214" text-anchor="middle" fill="#AEB7C7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Screen video</text>
+  <text x="1468" y="214" text-anchor="middle" fill="#AEB7C7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Custom</text>
+  <text x="1153" y="263" fill="#8A95A8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="600" letter-spacing=".7">CLIP LENGTH</text>
+  <text x="1153" y="306" fill="#F4F6FB" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="32" font-weight="650" font-variant-numeric="tabular-nums">8.0</text>
+  <text x="1212" y="306" fill="#B5BECC" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13">seconds</text>
+  <rect x="1401" y="280" width="131" height="32" rx="8" fill="#1E2633" stroke="#354052"/>
+  <text x="1466" y="300" text-anchor="middle" fill="#BAC3D2" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Auto selected</text>
+  <path d="M1153 329H1532" stroke="#2A3342"/>
+  <circle cx="1160" cy="352" r="3" fill="#60D4C3"/>
+  <text x="1171" y="356" fill="#C3CBD8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Animation ends at 8.0s</text>
+  <text x="1171" y="376" fill="#7F8A9C" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Screen recording is 12.4s; the export trims at the out point.</text>
+  <rect x="1153" y="394" width="379" height="27" rx="7" fill="#202735"/>
+  <path d="m1166 407 4 4 4-4" stroke="#A9B3C3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1183" y="411" fill="#AEB7C7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Screen video: Loop to fill</text>
+
+  <!-- Timeline panel -->
+  <rect x="64" y="483" width="1535" height="416" fill="#131924"/>
+  <path d="M64 483h1535" stroke="#30394A"/>
+  <text x="91" y="512" fill="#EFF2F8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="13" font-weight="650">Timeline</text>
+  <rect x="174" y="495" width="76" height="27" rx="7" fill="#1F2735"/>
+  <text x="212" y="513" text-anchor="middle" fill="#B9C2D1" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Fit all</text>
+  <path d="M282 502v12m-6-6h12" stroke="#99A4B6" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="1373" y="512" fill="#8490A3" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10">Snap</text>
+  <rect x="1410" y="498" width="31" height="17" rx="8.5" fill="#7865D7"/>
+  <circle cx="1432" cy="506.5" r="6" fill="#fff"/>
+  <path d="M1461 497v20m8-17v14m8-11v8" stroke="#788396" stroke-width="1.3" stroke-linecap="round"/>
+  <rect x="1495" y="498" width="76" height="17" rx="8.5" fill="#242C3A"/>
+  <circle cx="1506" cy="506.5" r="5" fill="#8D77F2"/>
+  <text x="1538" y="510" text-anchor="middle" fill="#B8C1D0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">100%</text>
+
+  <!-- track headers -->
+  <rect x="64" y="535" width="232" height="364" fill="#171E2A"/>
+  <path d="M296 535v364" stroke="#333C4D"/>
+  <rect x="64" y="535" width="1535" height="54" fill="#151B26"/>
+  <path d="M296 535v364" stroke="#333C4D"/>
+  <text x="90" y="570" fill="#7E8A9D" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9" font-weight="650" letter-spacing=".8">TRACKS</text>
+  <text x="321" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:00</text>
+  <text x="473" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:02</text>
+  <text x="625" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:04</text>
+  <text x="777" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:06</text>
+  <text x="929" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:08</text>
+  <text x="1081" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:10</text>
+  <text x="1233" y="558" fill="#8C97A9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">00:12</text>
+  <path d="M296 588H1599" stroke="#2B3342"/>
+  <g stroke="#333C4D" stroke-opacity=".7">
+    <path d="M448 566v333"/><path d="M600 566v333"/><path d="M752 566v333"/>
+    <path d="M904 566v333"/><path d="M1056 566v333"/><path d="M1208 566v333"/><path d="M1360 566v333"/><path d="M1512 566v333"/>
+  </g>
+  <g stroke="#424B5B" stroke-width="1">
+    <path d="M372 580v8"/><path d="M410 580v8"/><path d="M486 580v8"/><path d="M524 580v8"/><path d="M562 580v8"/>
+    <path d="M638 580v8"/><path d="M676 580v8"/><path d="M714 580v8"/><path d="M790 580v8"/><path d="M828 580v8"/>
+    <path d="M866 580v8"/><path d="M942 580v8"/><path d="M980 580v8"/><path d="M1018 580v8"/><path d="M1094 580v8"/>
+    <path d="M1132 580v8"/><path d="M1170 580v8"/><path d="M1246 580v8"/><path d="M1284 580v8"/><path d="M1322 580v8"/>
+  </g>
+
+  <!-- lane labels -->
+  <rect x="81" y="605" width="22" height="20" rx="5" fill="#214D56"/>
+  <path d="M87 611h10v8H87z" stroke="#72D8C9" stroke-width="1.2"/><path d="m91 611 3 3-3 3z" fill="#72D8C9"/>
+  <text x="115" y="614" fill="#E0E6EF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="550">Screen recording</text>
+  <text x="115" y="629" fill="#748094" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">App capture · 12.4s</text>
+  <rect x="81" y="674" width="22" height="20" rx="5" fill="#342B5D"/>
+  <path d="m87 689 5-11 5 11z" stroke="#B8A9FF" stroke-width="1.2" stroke-linejoin="round"/>
+  <text x="115" y="683" fill="#E0E6EF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="550">Device motion</text>
+  <text x="115" y="698" fill="#748094" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Pose keyframes · 8.0s</text>
+  <rect x="81" y="744" width="22" height="20" rx="5" fill="#5B3E2D"/>
+  <text x="92" y="758" text-anchor="middle" fill="#FFC790" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">T</text>
+  <text x="115" y="753" fill="#E0E6EF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="550">Captions</text>
+  <text x="115" y="768" fill="#748094" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Text overlays</text>
+
+  <!-- Screen recording clip with thumbnail frames -->
+  <rect x="307" y="599" width="1026" height="45" rx="8" fill="url(#videoClip)" stroke="#3B9B99" stroke-opacity=".68"/>
+  <g opacity=".7">
+    <rect x="316" y="605" width="42" height="33" rx="4" fill="#B6D7D4" fill-opacity=".25"/>
+    <rect x="322" y="610" width="11" height="21" rx="3" fill="#151B22"/><rect x="336" y="611" width="16" height="8" rx="2" fill="#AA9BF0"/>
+    <rect x="364" y="605" width="42" height="33" rx="4" fill="#B6D7D4" fill-opacity=".25"/>
+    <rect x="371" y="610" width="11" height="21" rx="3" fill="#151B22"/><rect x="385" y="612" width="15" height="7" rx="2" fill="#8DE1C7"/>
+    <rect x="412" y="605" width="42" height="33" rx="4" fill="#B6D7D4" fill-opacity=".25"/>
+    <rect x="419" y="610" width="11" height="21" rx="3" fill="#151B22"/><rect x="433" y="612" width="15" height="7" rx="2" fill="#F2C394"/>
+    <rect x="460" y="605" width="42" height="33" rx="4" fill="#B6D7D4" fill-opacity=".25"/>
+    <rect x="467" y="610" width="11" height="21" rx="3" fill="#151B22"/><rect x="481" y="612" width="15" height="7" rx="2" fill="#AA9BF0"/>
+    <rect x="508" y="605" width="42" height="33" rx="4" fill="#B6D7D4" fill-opacity=".25"/>
+    <rect x="515" y="610" width="11" height="21" rx="3" fill="#151B22"/><rect x="529" y="612" width="15" height="7" rx="2" fill="#8DE1C7"/>
+  </g>
+  <text x="571" y="625" fill="#E3FFFB" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="600">Screen recording · app-demo.mov</text>
+  <text x="1286" y="625" text-anchor="end" fill="#BCE8E3" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">12.4s</text>
+  <rect x="1334" y="599" width="265" height="45" fill="url(#outside)" opacity=".78"/>
+  <path d="M1334 599v45" stroke="#D0BFFB" stroke-width="1.2" stroke-dasharray="3 4"/>
+
+  <!-- Motion clip/keyframes -->
+  <rect x="307" y="668" width="598" height="47" rx="8" fill="url(#motionClip)" stroke="#9B83FF" stroke-opacity=".75"/>
+  <text x="335" y="688" fill="#F0EDFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="600">Phone move</text>
+  <text x="335" y="703" fill="#C5B9FF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Front view → three-quarter turn</text>
+  <path d="M324 685 332 693 324 701 316 693z" fill="#E2DCFF" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M895 685 903 693 895 701 887 693z" fill="#E2DCFF" stroke="#FFFFFF" stroke-width="1"/>
+  <rect x="906" y="668" width="693" height="47" fill="url(#outside)" opacity=".78"/>
+  <path d="M906 668v47" stroke="#D0BFFB" stroke-width="1.2" stroke-dasharray="3 4"/>
+
+  <!-- Caption clip -->
+  <rect x="383" y="737" width="374" height="40" rx="8" fill="#563F30" stroke="#A97B50" stroke-opacity=".72"/>
+  <text x="402" y="761" fill="#FFE3C6" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="10" font-weight="600">“Meet your new canvas.”</text>
+  <rect x="758" y="737" width="148" height="40" fill="url(#outside)" opacity=".78"/>
+  <path d="M758 737v40" stroke="#D0BFFB" stroke-width="1.2" stroke-dasharray="3 4"/>
+
+  <!-- Out point and playhead -->
+  <path d="M904 535v344" stroke="#E8C875" stroke-width="1.4" stroke-dasharray="4 5" opacity=".85"/>
+  <rect x="858" y="539" width="92" height="20" rx="6" fill="#473D25" stroke="#8D7841"/>
+  <text x="904" y="553" text-anchor="middle" fill="#F1D88F" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="8" font-weight="700" letter-spacing=".6">OUT · 8.0s</text>
+  <path d="M615 535v344" stroke="#F6F7FA" stroke-width="1.4"/>
+  <path d="m609 535 6 8 6-8z" fill="#F6F7FA"/>
+  <rect x="580" y="539" width="70" height="20" rx="6" fill="#F0F2F6"/>
+  <text x="615" y="553" text-anchor="middle" fill="#242B37" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="8" font-weight="700">4.2s</text>
+
+  <!-- Footer hints -->
+  <path d="M64 799H1599" stroke="#2A3342"/>
+  <text x="90" y="824" fill="#8290A4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Drag the out point to set a custom duration</text>
+  <circle cx="319" cy="821" r="2.5" fill="#7C6CE0"/>
+  <text x="330" y="824" fill="#8290A4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Screen video loops to fill when shorter than the clip</text>
+  <rect x="1338" y="808" width="233" height="39" rx="10" fill="#202735" stroke="#343E50"/>
+  <text x="1354" y="824" fill="#8F9BAD" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="8" font-weight="650" letter-spacing=".5">DURATION</text>
+  <text x="1354" y="838" fill="#F2F4F8" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="11" font-weight="650">8.0s</text>
+  <text x="1428" y="838" fill="#A6B0C0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">Animation</text>
+  <path d="m1543 825 5 5 5-5" stroke="#A7B1C0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="90" y="870" fill="#596679" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="9">MOCKUP · timeline duration behavior</text>
+</svg>
