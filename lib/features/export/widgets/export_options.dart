@@ -7,6 +7,8 @@ import '../../../core/widgets/panel_section.dart';
 import '../../../core/widgets/segmented_control.dart';
 import '../../editor/state/frame_shape.dart';
 import '../../motion/state/timeline_provider.dart';
+import '../../timeline/model/tracks.dart';
+import '../../timeline/state/tracks_provider.dart';
 import '../export_settings.dart';
 import '../state/export_provider.dart';
 import 'export_estimate.dart';
@@ -20,8 +22,8 @@ class ExportOptions extends ConsumerWidget {
     final settings = ref.watch(exportProvider).settings;
     final shape = ref.watch(frameShapeProvider);
     final notifier = ref.read(exportProvider.notifier);
-    final timeline = ref.watch(timelineProvider);
-    final seconds = timeline.isEmpty ? 3.0 : timeline.duration;
+    final length = clipLength(ref.watch(tracksProvider), ref.watch(timelineProvider).duration);
+    final seconds = length > 0 ? length : stillSeconds;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PanelSection(
@@ -64,7 +66,7 @@ class ExportOptions extends ConsumerWidget {
         ),
       ],
       const SizedBox(height: 16),
-      ExportEstimate(settings: settings, shape: shape, seconds: seconds, hasMotion: !timeline.isEmpty),
+      ExportEstimate(settings: settings, shape: shape, seconds: seconds, hasMotion: length > 0),
     ]);
   }
 }
