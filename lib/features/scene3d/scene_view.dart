@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'bezel_scene_interop.dart';
 import 'scene_controller.dart';
+import 'scene_position.dart';
 import 'scene_pose.dart';
 
 /// Hosts the Three.js view (web/scene/) inside the Flutter layout.
@@ -43,7 +44,10 @@ class _SceneViewState extends State<SceneView> {
       controller.time.value = seconds.toDartDouble;
       controller.playing.value = playing.toDart;
     }
-    controller = SceneController(bezelSceneApi!.mount(host, onPose.toJS, onTime.toJS));
+    void onPosition(JSNumber x, JSNumber y) => controller.position.value =
+        ScenePosition(x: x.toDartDouble, y: y.toDartDouble);
+    controller = SceneController(
+        bezelSceneApi!.mount(host, onPose.toJS, onTime.toJS, onPosition.toJS));
     _controller = controller;
     widget.onReady(controller);
   }
