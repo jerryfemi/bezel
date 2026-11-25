@@ -6,6 +6,9 @@ abstract final class BezelSpace {
   static const s16 = 16.0;
   static const s24 = 24.0;
   static const edge = 14.0; // gap between floating chrome and the window edge
+
+  /// The whole app is drawn at this size (1 = no scaling).
+  static const uiScale = 0.8;
 }
 
 abstract final class BezelRadius {
