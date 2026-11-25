@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/bezel_metrics.dart';
-import '../motion/widgets/keyframe_inspector.dart';
 import '../motion/widgets/preset_list_panel.dart';
-import '../motion/widgets/timeline_panel.dart';
+import '../timeline/widgets/clip_inspector.dart';
+import '../timeline/widgets/timeline_editor.dart';
 
-/// Motion mode chrome: presets left, keyframe inspector right, timeline below.
-/// Everything stays visible because timing needs all three at once.
+/// Timeline mode: motion presets on the left, the selected clip's settings on
+/// the right, and the multi-track timeline across the bottom.
 class MotionLayout extends StatelessWidget {
   const MotionLayout({super.key});
 
   static const sideTop = 72.0;
   static const presetsWidth = 240.0;
-  static const inspectorWidth = 290.0;
-  static const _sideBottom = TimelinePanel.height + BezelSpace.edge + 10;
+  static const inspectorWidth = 300.0;
 
   @override
   Widget build(BuildContext context) {
-    return const Stack(children: [
+    final sideBottom = TimelineEditor.height + BezelSpace.edge + 10;
+    return Stack(children: [
       Positioned(
-        left: BezelSpace.edge, top: sideTop, bottom: _sideBottom, width: presetsWidth,
-        child: PresetListPanel(),
+        left: BezelSpace.edge, top: sideTop, bottom: sideBottom, width: presetsWidth,
+        child: const PresetListPanel(),
       ),
       Positioned(
-        right: BezelSpace.edge, top: sideTop, bottom: _sideBottom, width: inspectorWidth,
-        child: KeyframeInspector(),
+        right: BezelSpace.edge, top: sideTop, bottom: sideBottom, width: inspectorWidth,
+        child: const ClipInspector(),
       ),
-      Positioned(
+      const Positioned(
         left: BezelSpace.edge, right: BezelSpace.edge, bottom: BezelSpace.edge,
-        child: TimelinePanel(),
+        child: TimelineEditor(),
       ),
     ]);
   }
