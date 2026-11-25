@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/bezel_colors.dart';
-import '../../motion/widgets/timeline_panel.dart';
+import '../../timeline/widgets/timeline_editor.dart';
 import '../motion_layout.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_mode_provider.dart';
@@ -16,8 +16,8 @@ class CanvasStage extends ConsumerWidget {
 
   /// Room kept clear for each mode's chrome.
   static const _design = EdgeInsets.fromLTRB(24, 76, 24, 100);
-  static const _motion = EdgeInsets.fromLTRB(
-    MotionLayout.presetsWidth + 28, 76, MotionLayout.inspectorWidth + 28, TimelinePanel.height + 34);
+  static final _motion = EdgeInsets.fromLTRB(
+    MotionLayout.presetsWidth + 28, 76, MotionLayout.inspectorWidth + 28, TimelineEditor.height + 34);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
