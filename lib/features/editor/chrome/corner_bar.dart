@@ -28,55 +28,84 @@ class CornerBar extends ConsumerWidget {
 
     void setMode(EditorMode m) {
       ref.read(activeToolProvider.notifier).close();
+      // Move mode's toggle lives in the Design dock; never carry it into
+      // Motion, where dragging must turn the phone to set keyframes.
+      ref.read(sceneInteractionModeProvider.notifier).state =
+          SceneInteractionMode.rotate;
+      scene?.setMoveMode(false);
       ref.read(editorModeProvider.notifier).state = m;
     }
 
     return FloatingSurface(
       radius: 14,
       padding: const EdgeInsets.all(5),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        _ModeTab('Design', mode == EditorMode.design, () => setMode(EditorMode.design)),
-        _ModeTab('Motion', mode == EditorMode.motion, () => setMode(EditorMode.motion)),
-        _gap(),
-        const ZoomMenu(),
-        if (scene != null)
-          ValueListenableBuilder(
-            valueListenable: scene.playing,
-            builder: (_, playing, __) => IconToolButton(
-              icon: playing ? BezelIcons.pause : BezelIcons.play,
-              tooltip: hasMotion ? (playing ? 'Pause' : 'Play') : 'Add motion to play',
-              onTap: hasMotion ? (playing ? scene.pause : scene.play) : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeTab(
+            'Design',
+            mode == EditorMode.design,
+            () => setMode(EditorMode.design),
+          ),
+          _ModeTab(
+            'Motion',
+            mode == EditorMode.motion,
+            () => setMode(EditorMode.motion),
+          ),
+          _gap(),
+          const ZoomMenu(),
+          if (scene != null)
+            ValueListenableBuilder(
+              valueListenable: scene.playing,
+              builder: (_, playing, _) => IconToolButton(
+                icon: playing ? BezelIcons.pause : BezelIcons.play,
+                tooltip: hasMotion
+                    ? (playing ? 'Pause' : 'Play')
+                    : 'Add motion to play',
+                onTap: hasMotion ? (playing ? scene.pause : scene.play) : null,
+              ),
+            ),
+          const SizedBox(width: 4),
+          Pressable(
+            onTap: () {
+              ref.read(activeToolProvider.notifier).close();
+              ref.read(exportSheetOpenProvider.notifier).state = !exportOpen;
+            },
+            label: 'Export',
+            selected: exportOpen,
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: BezelColors.accent,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Row(
+                children: [
+                  const Icon(BezelIcons.export, size: 15, color: Colors.white),
+                  const SizedBox(width: 7),
+                  Text(
+                    'Export',
+                    style: BezelType.body.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        const SizedBox(width: 4),
-        Pressable(
-          onTap: () {
-            ref.read(activeToolProvider.notifier).close();
-            ref.read(exportSheetOpenProvider.notifier).state = !exportOpen;
-          },
-          label: 'Export',
-          selected: exportOpen,
-          child: Container(
-            height: 34,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: BezelColors.accent,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Row(children: [
-              const Icon(BezelIcons.export, size: 15, color: Colors.white),
-              const SizedBox(width: 7),
-              Text('Export',
-                  style: BezelType.body.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
-            ]),
-          ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
   Widget _gap() => Container(
-      width: 1, height: 20, color: BezelColors.stroke, margin: const EdgeInsets.symmetric(horizontal: 6));
+    width: 1,
+    height: 20,
+    color: BezelColors.stroke,
+    margin: const EdgeInsets.symmetric(horizontal: 6),
+  );
 }
 
 class _ModeTab extends StatelessWidget {
@@ -101,11 +130,15 @@ class _ModeTab extends StatelessWidget {
           color: selected ? BezelColors.selected : null,
           borderRadius: BorderRadius.circular(9),
         ),
-        child: Text(label,
-            style: BezelType.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: selected ? BezelColors.textPrimary : BezelColors.textSecondary,
-            )),
+        child: Text(
+          label,
+          style: BezelType.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: selected
+                ? BezelColors.textPrimary
+                : BezelColors.textSecondary,
+          ),
+        ),
       ),
     );
   }
