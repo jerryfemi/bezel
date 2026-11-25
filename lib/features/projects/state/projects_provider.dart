@@ -51,6 +51,7 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
     scene?.pose.addListener(() {
       if (!scene.playing.value) _schedule();
     });
+    scene?.position.addListener(_schedule);
     final last = ProjectStore.lastOpened;
     final doc = last == null ? null : ProjectStore.get(last);
     doc == null ? await newProject() : await open(doc.id);
