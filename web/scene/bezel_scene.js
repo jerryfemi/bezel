@@ -12,19 +12,29 @@ import { createZoom } from './zoom.js';
 import { createPlayer } from './player.js';
 import { exportClip } from './export/exporter.js';
 
-function mount(host, onPose, onTime) {
+function mount(host, onPose, onTime, onPosition) {
   const stage = createStage(host);
-  // pivot: layout position + rotation. zoomGroup (inside it): the user's zoom.
+  // placement is the user's artboard position; pivot carries rotation; zoomGroup
+  // carries zoom. Keeping these transforms separate prevents captions from
+  // changing the user's chosen device position.
+  const placement = new THREE.Group();
   const pivot = new THREE.Group();
   const zoomGroup = new THREE.Group();
+  stage.scene.add(placement);
+  placement.add(pivot);
   pivot.add(zoomGroup);
-  stage.scene.add(pivot);
+  let device = null;
   const report = () => onPose?.(orbit.pose.turn, orbit.pose.tilt, zoom.value);
-  const zoom = createZoom(stage, zoomGroup, () => report());
-  const orbit = createOrbit(stage, (turn, tilt) => {
+  const reportPosition = (x, y) => onPosition?.(x, y);
+  let orbit = null;
+  const zoom = createZoom(stage, zoomGroup, () => {
+    report();
+    orbit?.refresh();
+  });
+  orbit = createOrbit(stage, (turn, tilt) => {
     pivot.rotation.set(THREE.MathUtils.degToRad(tilt), THREE.MathUtils.degToRad(turn), 0, 'YXZ');
     report();
-  }, zoom.pinching);
+  }, zoom.pinching, placement, () => device?.root, reportPosition);
   const applyPose = (p) => {
     zoom.set(p.zoom);
     orbit.setPose(p.turn, p.tilt);
@@ -34,7 +44,6 @@ function mount(host, onPose, onTime) {
   let exportCancelled = false;
   const backdrop = createBackdrop(stage, pivot);
   stage.resize();
-  let device = null;
 
   // A click (not a drag) on the phone's screen: Flutter offers the file picker.
   let onScreenTap = null;
@@ -45,7 +54,7 @@ function mount(host, onPose, onTime) {
   el.addEventListener('pointerup', (e) => {
     const d = down;
     down = null;
-    if (!d || !device || !onScreenTap || stage.locked) return;
+    if (!d || !device || !onScreenTap || orbit.mode === 'move' || stage.locked) return;
     if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
     const box = el.getBoundingClientRect();
     const p = new THREE.Vector2(
@@ -63,6 +72,7 @@ function mount(host, onPose, onTime) {
       if (device) { zoomGroup.remove(device.root); media.dispose(); disposeDevice(device); }
       device = next;
       zoomGroup.add(device.root);
+      orbit.refresh();
       media = createScreenMedia(stage, device);
       applyFinish(device, finishId);
       stage.invalidate();
@@ -75,6 +85,8 @@ function mount(host, onPose, onTime) {
       if (zoomLevel != null) zoom.set(zoomLevel);
       orbit.setPose(turn, tilt);
     },
+    setPosition(x, y) { orbit.setPosition(x, y); },
+    setMoveMode(enabled) { orbit.setMode(enabled ? 'move' : 'rotate'); },
     /** JSON: {style: 'solid'|'spotlight'|'image', color: '#rrggbb', imageUrl?}. */
     setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
     /**
