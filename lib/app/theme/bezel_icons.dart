@@ -21,4 +21,19 @@ class BezelIcons {
   static const IconData pause = LucideIcons.pause;
   static const IconData export = LucideIcons.download;
   static const IconData chevronDown = LucideIcons.chevronDown;
+
+  // Timeline
+  static const IconData split = LucideIcons.scissors;
+  static const IconData delete = LucideIcons.trash2;
+  static const IconData undo = LucideIcons.undo2;
+  static const IconData redo = LucideIcons.redo2;
+  static const IconData caption = LucideIcons.captions;
+  static const IconData screenClip = LucideIcons.film;
+  static const IconData motion = LucideIcons.diamond;
+  static const IconData audio = LucideIcons.music;
+  static const IconData zoomIn = LucideIcons.zoomIn;
+  static const IconData zoomOut = LucideIcons.zoomOut;
+  static const IconData fit = LucideIcons.maximize2;
+  static const IconData volume = LucideIcons.volume2;
+  static const IconData muted = LucideIcons.volumeX;
 }
