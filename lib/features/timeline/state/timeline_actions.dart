@@ -9,6 +9,7 @@ import '../../tools/text/caption_provider.dart';
 import '../model/clips.dart';
 import '../model/clip_ops.dart' as ops;
 import '../model/tracks.dart';
+import '../model/media_asset.dart';
 import 'assets_provider.dart';
 import 'edit_history.dart';
 import 'playhead_provider.dart';
@@ -97,6 +98,29 @@ class TimelineActions {
         .add(name: file.name, mimeType: file.type, bytes: file.bytes);
     final clip = ref.read(tracksProvider.notifier).addAudio(asset, at: _t);
     select(ClipRef(TrackKind.audio, clip.id));
+  }
+
+  /// Opens the picker and adds the file to the project's media. A first
+  /// screenshot or recording also goes straight onto the empty screen.
+  Future<void> importMedia() async {
+    final file = await ref.read(sceneControllerProvider)?.pickFile('image/*,video/*');
+    if (file == null) return;
+    final asset = await ref
+        .read(assetsProvider.notifier)
+        .add(name: file.name, mimeType: file.type, bytes: file.bytes);
+    if (ref.read(tracksProvider).screens.isEmpty) placeAsset(asset, at: 0);
+  }
+
+  /// Puts [asset] on its track (sound on Audio, the rest on Screen) at [at],
+  /// or at the playhead, and selects the new clip.
+  void placeAsset(MediaAsset asset, {double? at}) {
+    final tracks = ref.read(tracksProvider.notifier);
+    final time = (at ?? _t).clamp(0.0, double.infinity).toDouble();
+    if (asset.kind == AssetKind.audio) {
+      select(ClipRef(TrackKind.audio, tracks.addAudio(asset, at: time).id));
+    } else {
+      select(ClipRef(TrackKind.screen, tracks.addScreen(asset, at: time).id));
+    }
   }
 
   void addKeyframe() {
