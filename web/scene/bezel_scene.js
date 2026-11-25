@@ -4,7 +4,10 @@ import * as THREE from './vendor/three_bundle.js';
 import { createStage } from './stage.js';
 import { loadDevice, disposeDevice } from './device.js';
 import { applyFinish } from './finish.js';
-import { createScreenMedia } from './screen_media.js';
+import { createAssets } from './assets.js';
+import { createScreenTrack } from './screen_track.js';
+import { createAudioTrack } from './audio_track.js';
+import { pickFile } from './pick_file.js';
 import { createOrbit } from './orbit.js';
 import { createBackdrop } from './backdrop.js';
 import { applyLight } from './lighting.js';
@@ -39,10 +42,24 @@ function mount(host, onPose, onTime, onPosition) {
     zoom.set(p.zoom);
     orbit.setPose(p.turn, p.tilt);
   };
-  const player = createPlayer(stage, applyPose, (time, playing) => onTime?.(time, playing));
+  let backdrop = null;
+  // Everything timed follows the player: captions, the screen, and sound.
+  const assets = createAssets();
+  const audio = createAudioTrack(assets);
+  let tracks = { captions: [], screens: [], audio: [] };
+  let screen = null; // created per device (it owns the screen material)
+  const clipsEnd = () => Math.max(0, ...[...tracks.captions, ...tracks.screens, ...tracks.audio].map((c) => c.end));
+  const player = createPlayer(stage, applyPose, (time, playing) => {
+    // At the very end, show the last frame rather than what comes after it.
+    const shown = Math.min(time, Math.max(0, player.duration - 1e-3));
+    backdrop?.setTime(shown);
+    screen?.update(shown, playing);
+    audio.update(shown, playing);
+    onTime?.(time, playing);
+  }, clipsEnd);
   let timelineData = { keyframes: [], loop: true };
   let exportCancelled = false;
-  const backdrop = createBackdrop(stage, pivot);
+  backdrop = createBackdrop(stage, pivot);
   stage.resize();
 
   // A click (not a drag) on the phone's screen: Flutter offers the file picker.
@@ -55,6 +72,7 @@ function mount(host, onPose, onTime, onPosition) {
     const d = down;
     down = null;
     if (!d || !device || !onScreenTap || orbit.mode === 'move' || stage.locked) return;
+    if (tracks.screens.length) return; // the prompt only shows on an empty screen
     if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
     const box = el.getBoundingClientRect();
     const p = new THREE.Vector2(
@@ -63,24 +81,47 @@ function mount(host, onPose, onTime, onPosition) {
     ray.setFromCamera(p, stage.camera);
     if (ray.intersectObjects(device.parts.screen, true).length) onScreenTap();
   });
-  let media = null;
 
   return {
     /** Resolves with the device profile as a JSON string. */
     async loadDevice(baseUrl, finishId) {
       const next = await loadDevice(baseUrl);
-      if (device) { zoomGroup.remove(device.root); media.dispose(); disposeDevice(device); }
+      if (device) { zoomGroup.remove(device.root); screen.dispose(); disposeDevice(device); }
       device = next;
       zoomGroup.add(device.root);
       orbit.refresh();
-      media = createScreenMedia(stage, device);
+      screen = createScreenTrack(stage, device, assets);
+      screen.setClips(tracks.screens);
+      screen.update(player.time, player.playing);
       applyFinish(device, finishId);
       stage.invalidate();
       return JSON.stringify(device.profile);
     },
     setFinish(finishId) { if (device) { applyFinish(device, finishId); stage.invalidate(); } },
-    setScreenImage(url) { return media?.setImage(url); },
-    setScreenVideo(url) { return media?.setVideo(url); },
+    /** Registers a media file: kind 'image' | 'video' | 'audio'. */
+    addAsset(id, url, kind) { assets.add(id, url, kind); },
+    removeAsset(id) { assets.remove(id); },
+    /** Resolves with JSON {duration, width, height}. */
+    async probeAsset(id) { return JSON.stringify(await assets.probe(id)); },
+    /** Resolves with JSON [dataUrl, ...]: small frames across a video (or the image). */
+    async filmstrip(id, count, height) { return JSON.stringify(await assets.filmstrip(id, count, height)); },
+    /** Resolves with JSON [0..1, ...]: loudness across the file. */
+    async peaks(id, count) { return JSON.stringify(await assets.peaks(id, count)); },
+    /** Opens the browser's file picker. Resolves with {name, type, bytes} or null. */
+    pickFile(accept) { return pickFile(accept); },
+    /**
+     * JSON {captions: [{id, start, end, headline, ...}], screens: [{id, start, end,
+     * assetId, inPoint, volume}], audio: [same as screens]}, each in time order.
+     */
+    setTracks(json) {
+      tracks = JSON.parse(json);
+      backdrop.setCaptions(tracks.captions);
+      screen?.setClips(tracks.screens);
+      audio.setClips(tracks.audio);
+      player.refresh();
+    },
+    /** Hides `part` of caption `id` while it is typed on the canvas (null id: none). */
+    setCaptionEditing(id, part) { backdrop.setEditing(id, part); },
     setPose(turn, tilt, zoomLevel) {
       if (zoomLevel != null) zoom.set(zoomLevel);
       orbit.setPose(turn, tilt);
@@ -89,14 +130,9 @@ function mount(host, onPose, onTime, onPosition) {
     setMoveMode(enabled) { orbit.setMode(enabled ? 'move' : 'rotate'); },
     /** JSON: {style: 'solid'|'spotlight'|'image', color: '#rrggbb', imageUrl?}. */
     setBackground(json) { return backdrop.setBackground(JSON.parse(json)); },
-    /**
-     * JSON: {enabled, headline, subtitle, side: 'left'|'above'|'right', font,
-     * align, size, subSize, dx, dy, subDx, subDy, hidden}. See caption.js.
-     */
-    setCaption(json) { backdrop.setCaption(JSON.parse(json)); },
     /** fn(): the user clicked the phone's screen. */
     onScreenTap(fn) { onScreenTap = fn; },
-    /** fn(json | null): {head, sub} bounds {x, y, w, h} as fractions of the frame. */
+    /** fn(json | null): {id, head, sub}: the caption on screen; bounds {x, y, w, h} as fractions of the frame. */
     onCaptionBounds(fn) { backdrop.onCaptionBounds(fn); },
     /** JSON: {angle: degrees, intensity: 0..1, reflections: bool}. */
     setLight(json) { applyLight(stage, JSON.parse(json)); },
@@ -113,9 +149,13 @@ function mount(host, onPose, onTime, onPosition) {
     async exportClip(json, onProgress) {
       exportCancelled = false;
       const ctx = {
-        stage, applyPose, media: () => media,
+        stage, applyPose, backdrop, assets,
+        screen: () => screen,
         timeline: () => timelineData,
-        pause: () => player.pause(),
+        tracks: () => tracks,
+        duration: () => player.duration,
+        pause: () => { player.pause(); audio.pauseAll(); screen?.pauseAll(); },
+        restore: () => player.refresh(),
       };
       const result = await exportClip(ctx, JSON.parse(json), (f, n) => onProgress?.(f, n), () => exportCancelled);
       return JSON.stringify(result);
@@ -136,7 +176,9 @@ function mount(host, onPose, onTime, onPosition) {
     dispose() {
       orbit.dispose();
       zoom.dispose();
-      media?.dispose();
+      screen?.dispose();
+      audio.dispose();
+      assets.dispose();
       backdrop.dispose();
       if (device) disposeDevice(device);
       stage.dispose();
