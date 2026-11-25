@@ -7,11 +7,11 @@ import '../../editor/state/frame_shape.dart';
 import '../../editor/state/project_title_provider.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/timeline_provider.dart';
+import '../../timeline/state/assets_provider.dart';
+import '../../timeline/state/tracks_provider.dart';
 import '../../tools/background/background_provider.dart';
 import '../../tools/device/device_selection.dart';
 import '../../tools/light/light_provider.dart';
-import '../../tools/media/screen_media_provider.dart';
-import '../../tools/text/caption_provider.dart';
 import '../data/project_store.dart';
 import '../model/project_doc.dart';
 import 'project_codec.dart';
@@ -30,14 +30,14 @@ class ProjectsState {
 class ProjectsNotifier extends Notifier<ProjectsState> {
   Timer? _debounce;
   bool _restoring = false;
-  Uint8List? _savedScreen;
+  final _savedAssets = <String>{}; // asset ids already stored for this project
   Uint8List? _savedBackground;
 
   @override
   ProjectsState build() {
     for (final p in <ProviderListenable<Object?>>[
-      projectTitleProvider, frameShapeProvider, backgroundProvider, captionProvider,
-      lightProvider, timelineProvider, screenMediaProvider, deviceSelectionProvider,
+      projectTitleProvider, frameShapeProvider, backgroundProvider, tracksProvider,
+      lightProvider, timelineProvider, deviceSelectionProvider,
     ]) {
       ref.listen(p, (_, __) => _schedule());
     }
@@ -78,9 +78,7 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
     final now = DateTime.now().millisecondsSinceEpoch;
     final copy = doc.copyWith('p$now', {'title': '${doc.title} copy', 'createdAt': now, 'updatedAt': now});
     await ProjectStore.put(copy);
-    for (final slot in MediaSlot.values) {
-      await ProjectStore.putMedia(copy.id, slot, ProjectStore.media(id, slot));
-    }
+    await ProjectStore.copyMedia(id, copy.id);
     await _load(copy);
   }
 
@@ -102,7 +100,10 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
     try {
       state = ProjectsState(currentId: doc.id, projects: state.projects);
       await restoreProject(ref, doc);
-      _savedScreen = ref.read(screenMediaProvider).bytes;
+      // Files from projects saved before tracks aren't stored as assets yet.
+      _savedAssets
+        ..clear()
+        ..addAll(ref.read(assetsProvider).keys.where((a) => ProjectStore.asset(doc.id, a) != null));
       _savedBackground = ref.read(backgroundProvider).imageBytes;
       await ProjectStore.setLastOpened(doc.id);
     } finally {
@@ -139,10 +140,21 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
     });
     await ProjectStore.put(doc);
 
-    final screen = ref.read(screenMediaProvider).bytes;
-    if (!identical(screen, _savedScreen)) {
-      await ProjectStore.putMedia(id, MediaSlot.screen, screen);
-      _savedScreen = screen;
+    // Store new media files, and forget ones no clip uses any more.
+    final used = usedAssetIds(ref.read(tracksProvider));
+    final assets = ref.read(assetsProvider);
+    for (final assetId in used.difference(_savedAssets)) {
+      final asset = assets[assetId];
+      if (asset == null) continue;
+      await ProjectStore.putAsset(id, assetId, asset.bytes);
+      _savedAssets.add(assetId);
+    }
+    if (_savedAssets.difference(used).isNotEmpty) {
+      await ProjectStore.keepAssets(id, used);
+      _savedAssets.retainAll(used);
+    }
+    if (ProjectStore.media(id, MediaSlot.screen) != null) {
+      await ProjectStore.putMedia(id, MediaSlot.screen, null); // moved onto the timeline
     }
     final background = ref.read(backgroundProvider).imageBytes;
     if (!identical(background, _savedBackground)) {
