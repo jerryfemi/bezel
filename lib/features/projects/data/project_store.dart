@@ -5,6 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../model/project_doc.dart';
 
 /// Where a project's media files are kept.
+/// Single-file slots: the background image, and (in projects saved before the
+/// timeline had tracks) the one screen file.
 enum MediaSlot { screen, background }
 
 /// Saved projects in the browser's storage (IndexedDB, through Hive).
@@ -66,12 +68,42 @@ class ProjectStore {
     bytes == null ? await _mediaBox.delete(key) : await _mediaBox.put(key, bytes);
   }
 
+  /// A media file used by the project's timeline.
+  static Uint8List? asset(String id, String assetId) =>
+      _ready ? _mediaBox.get('$id/asset/$assetId') : null;
+
+  static Future<void> putAsset(String id, String assetId, Uint8List bytes) async {
+    if (_ready) await _mediaBox.put('$id/asset/$assetId', bytes);
+  }
+
+  /// Drops stored media files the project no longer uses.
+  static Future<void> keepAssets(String id, Set<String> assetIds) async {
+    if (!_ready) return;
+    final prefix = '$id/asset/';
+    final stale = [
+      for (final key in _mediaBox.keys)
+        if (key is String && key.startsWith(prefix) && !assetIds.contains(key.substring(prefix.length))) key,
+    ];
+    await _mediaBox.deleteAll(stale);
+  }
+
+  /// Copies every stored file of project [from] to project [to].
+  static Future<void> copyMedia(String from, String to) async {
+    if (!_ready) return;
+    for (final key in _mediaBox.keys.toList()) {
+      if (key is String && key.startsWith('$from/')) {
+        await _mediaBox.put('$to/${key.substring(from.length + 1)}', _mediaBox.get(key)!);
+      }
+    }
+  }
+
   static Future<void> delete(String id) async {
     if (!_ready) return;
     await _docBox.delete(id);
-    for (final slot in MediaSlot.values) {
-      await _mediaBox.delete('$id/${slot.name}');
-    }
+    await _mediaBox.deleteAll([
+      for (final key in _mediaBox.keys)
+        if (key is String && key.startsWith('$id/')) key,
+    ]);
   }
 
   static String? get lastOpened => _ready ? _prefBox.get('last') : null;
