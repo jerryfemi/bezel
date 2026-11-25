@@ -18,6 +18,7 @@ import 'project_row.dart';
 class ProjectsSidebar extends ConsumerWidget {
   const ProjectsSidebar({super.key});
 
+  /// Default width; the editor lets you drag it wider or narrower.
   static const width = 264.0;
 
   @override
@@ -27,7 +28,6 @@ class ProjectsSidebar extends ConsumerWidget {
 
     return PointerShield(
       child: Container(
-        width: width,
         decoration: const BoxDecoration(
           color: Color(0xFF131316),
           border: Border(right: BorderSide(color: BezelColors.stroke)),
