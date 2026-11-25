@@ -69,7 +69,7 @@ class PosePanel extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Drag the phone to turn it. Shift+drag (or the Move button in the dock) places it in the frame. Scroll or pinch to zoom.',
+            'Drag the phone to turn it. Shift+drag (or the Move button in the left bar) places it in the frame. Scroll or pinch to zoom.',
             style: BezelType.label.copyWith(color: BezelColors.textSecondary, height: 1.45),
           ),
         ],
