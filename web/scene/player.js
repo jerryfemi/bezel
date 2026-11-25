@@ -26,15 +26,18 @@ function pick(k) {
   return { turn: k.turn, tilt: k.tilt, zoom: k.zoom };
 }
 
-/** Plays `timeline` in real time via the stage's frame loop. */
-export function createPlayer(stage, applyPose, onTime) {
+/**
+ * Plays the clip in real time via the stage's frame loop. The clip lasts until
+ * the last keyframe or the end of the last clip (`clipsEnd()`), whichever is later.
+ */
+export function createPlayer(stage, applyPose, onTime, clipsEnd = () => 0) {
   let timeline = { keyframes: [], loop: true };
   let playing = false;
   let time = 0;
   let last = 0;
   let range = null; // {start, end} while looping one move
 
-  const duration = () => timeline.keyframes.at(-1)?.time ?? 0;
+  const duration = () => Math.max(timeline.keyframes.at(-1)?.time ?? 0, clipsEnd());
   const start = () => range?.start ?? 0;
   const end = () => range?.end ?? duration();
 
@@ -63,6 +66,13 @@ export function createPlayer(stage, applyPose, onTime) {
       time = Math.min(time, duration());
       if (!playing) show();
     },
+    /** Call after the clips change: re-shows the current moment. */
+    refresh() {
+      time = Math.min(time, duration());
+      if (!playing) show();
+    },
+    get time() { return time; },
+    get duration() { return duration(); },
     /** Loops only [start, end] (one move); pass negatives to play the whole clip. */
     setLoopRange(a, b) {
       range = a >= 0 && b > a ? { start: a, end: b } : null;
