@@ -7,7 +7,6 @@ import '../../../core/widgets/chip_button.dart';
 import '../../../core/widgets/icon_segmented_control.dart';
 import '../../../core/widgets/panel_section.dart';
 import '../../../core/widgets/slider_row.dart';
-import '../../../core/widgets/toggle_row.dart';
 import '../../scene3d/scene_specs.dart';
 import 'caption_field.dart';
 import 'caption_provider.dart';
@@ -33,9 +32,23 @@ class TextPanel extends ConsumerWidget {
     final caption = ref.watch(captionProvider);
     final notifier = ref.read(captionProvider.notifier);
 
+    if (!caption.enabled) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('No caption at the playhead.',
+            style: BezelType.body.copyWith(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 4),
+        Text('Add one here. Each caption is a block on the timeline, so you can show '
+            'a different line every few seconds.',
+            style: BezelType.label.copyWith(color: BezelColors.textSecondary, height: 1.45)),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ChipButton(icon: Icons.add, label: 'Add caption', onTap: () => notifier.setEnabled(true)),
+        ),
+      ]);
+    }
+
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      ToggleRow(label: 'Show caption', value: caption.enabled, onChanged: notifier.setEnabled),
-      const SizedBox(height: 10),
       CaptionField(
           label: 'Headline', value: caption.headline, bold: true, onChanged: notifier.setHeadline),
       const SizedBox(height: 12),
@@ -87,6 +100,16 @@ class TextPanel extends ConsumerWidget {
               icon: Icons.restart_alt, label: 'Reset position', onTap: notifier.resetPosition),
         ),
       ],
+      const SizedBox(height: 14),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: () => notifier.setEnabled(false),
+          icon: const Icon(Icons.delete_outline, size: 16),
+          label: const Text('Delete this caption'),
+          style: TextButton.styleFrom(foregroundColor: BezelColors.danger),
+        ),
+      ),
     ]);
   }
 }
