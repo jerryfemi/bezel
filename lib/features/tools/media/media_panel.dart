@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/bezel_colors.dart';
 import '../../../app/theme/bezel_metrics.dart';
 import '../../../app/theme/bezel_type.dart';
+import '../../../core/widgets/chip_button.dart';
 import '../../../core/widgets/panel_section.dart';
 import 'media_preview_row.dart';
 import 'screen_media_provider.dart';
@@ -25,6 +26,17 @@ class MediaPanel extends ConsumerWidget {
           onImage: () => notifier.pick(video: false),
         ),
       ),
+      if (!media.isEmpty) ...[
+        const SizedBox(height: 10),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ChipButton(
+            icon: Icons.add,
+            label: 'Add another after the playhead',
+            onTap: notifier.addAnother,
+          ),
+        ),
+      ],
       if (media.error != null) ...[
         const SizedBox(height: 8),
         Text(media.error!, style: BezelType.label.copyWith(color: BezelColors.danger)),
