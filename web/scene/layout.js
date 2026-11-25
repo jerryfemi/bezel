@@ -1,5 +1,6 @@
-// Where the device and the caption sit in the frame.
-// Narrow frames (taller than wide) always put the caption above the device.
+// Where the caption sits in the frame, and how the device makes room for it.
+// The room-making offset sits on the pivot, under the user's own Move
+// position (on the placement group), so the two add up and never fight.
 import { FRAME_HEIGHT } from './stage.js';
 
 export function resolveSide(caption, aspect) {
