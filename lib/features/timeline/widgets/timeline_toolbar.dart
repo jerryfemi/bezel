@@ -5,6 +5,7 @@ import '../../../app/theme/bezel_colors.dart';
 import '../../../app/theme/bezel_icons.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/icon_tool_button.dart';
+import '../../editor/state/editor_layout.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/selected_keyframe_provider.dart';
 import '../../motion/state/timeline_provider.dart';
@@ -32,6 +33,7 @@ class TimelineToolbar extends ConsumerWidget {
     final scene = ref.watch(sceneControllerProvider);
     final zoom = ref.watch(timelineZoomProvider);
     final zoomer = ref.read(timelineZoomProvider.notifier);
+    final folded = ref.watch(timelineFoldedProvider);
 
     Widget divider() => Container(
         width: 1, height: 18, color: BezelColors.stroke, margin: const EdgeInsets.symmetric(horizontal: 6));
@@ -100,6 +102,13 @@ class TimelineToolbar extends ConsumerWidget {
             onTap: zoom < TimelineZoomNotifier.max ? () => zoomer.scaleBy(1.5) : null, size: 32),
         IconToolButton(icon: BezelIcons.fit, tooltip: 'Fit the whole video',
             onTap: zoom == TimelineZoomNotifier.min ? null : zoomer.fit, size: 32),
+        divider(),
+        IconToolButton(
+          icon: folded ? BezelIcons.chevronUp : BezelIcons.chevronDown,
+          tooltip: folded ? 'Show the timeline' : 'Fold the timeline',
+          onTap: () => ref.read(timelineFoldedProvider.notifier).state = !folded,
+          size: 32,
+        ),
       ]),
     );
   }
