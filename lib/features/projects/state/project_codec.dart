@@ -6,6 +6,7 @@ import '../../editor/state/scene_bootstrap.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/timeline_provider.dart';
 import '../../scene3d/device_catalog.dart';
+import '../../scene3d/scene_position.dart';
 import '../../scene3d/scene_pose.dart';
 import '../../scene3d/scene_specs.dart';
 import '../../tools/background/background_provider.dart';
@@ -22,13 +23,16 @@ Map<String, dynamic> captureProject(Ref ref) {
   final device = ref.read(deviceSelectionProvider);
   final bg = ref.read(backgroundProvider);
   final screen = ref.read(screenMediaProvider);
-  final pose = ref.read(sceneControllerProvider)?.pose.value ?? startPose;
+  final scene = ref.read(sceneControllerProvider);
+  final pose = scene?.pose.value ?? startPose;
+  final position = scene?.position.value ?? const ScenePosition();
   return {
     'title': ref.read(projectTitleProvider),
     'device': device.entry.id,
     'finish': device.finishId,
     'frame': ref.read(frameShapeProvider).name,
     'pose': {'turn': pose.turn, 'tilt': pose.tilt, 'zoom': pose.zoom},
+    'position': {'x': position.x, 'y': position.y},
     'background': {'style': bg.style.name, 'swatch': bg.swatch.name, 'image': bg.imageName},
     'caption': ref.read(captionProvider).toMap(),
     'light': ref.read(lightProvider).toMap(),
@@ -76,6 +80,9 @@ Future<void> restoreProject(Ref ref, ProjectDoc doc) async {
   double n(String k, double fallback) => (pose?[k] as num?)?.toDouble() ?? fallback;
   ref.read(sceneControllerProvider)?.setPose(
       ScenePose(turn: n('turn', startPose.turn), tilt: n('tilt', startPose.tilt), zoom: n('zoom', 1)));
+  final position = doc.section('position');
+  double p(String k) => (position?[k] as num?)?.toDouble() ?? 0;
+  ref.read(sceneControllerProvider)?.setPosition(ScenePosition(x: p('x'), y: p('y')));
   ref.read(timelineProvider.notifier).load(doc.section('timeline'));
 }
 
