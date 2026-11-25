@@ -15,6 +15,7 @@ import '../../motion/state/timeline_provider.dart';
 import '../../motion/state/timeline_zoom_provider.dart';
 import '../../tools/text/caption_provider.dart';
 import '../model/clips.dart';
+import '../model/media_asset.dart';
 import '../model/tracks.dart';
 import '../state/assets_provider.dart';
 import '../state/timeline_actions.dart';
@@ -106,7 +107,20 @@ class _Tracks extends ConsumerWidget {
 
     double rowTop(TrackKind k) => top + TrackStyle.topOf(k);
 
-    return Stack(clipBehavior: Clip.none, children: [
+    // Files dragged from the Media or Audio panel land where they're dropped.
+    return DragTarget<MediaAsset>(
+      onAcceptWithDetails: (details) {
+        final box = context.findRenderObject() as RenderBox?;
+        if (box == null) return;
+        final x = box.globalToLocal(details.offset).dx;
+        actions.placeAsset(details.data, at: x / pps);
+      },
+      builder: (context, candidates, _) {
+        final dragged = candidates.isEmpty ? null : candidates.first;
+        final lane = dragged == null
+            ? null
+            : dragged.kind == AssetKind.audio ? TrackKind.audio : TrackKind.screen;
+        return Stack(clipBehavior: Clip.none, children: [
       // Lanes; clicking empty space clears the selection.
       for (final k in TrackStyle.order)
         Positioned(
@@ -185,7 +199,22 @@ class _Tracks extends ConsumerWidget {
             ),
           ),
         ),
-    ]);
+      if (lane != null)
+        Positioned(
+          left: 0, right: 0, top: rowTop(lane), height: TrackStyle.of(lane).height,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: TrackStyle.of(lane).edge.withValues(alpha: 0.12),
+                border: Border.all(color: TrackStyle.of(lane).edge, width: 1.5),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ),
+        ]);
+      },
+    );
   }
 }
 
