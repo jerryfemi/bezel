@@ -4,7 +4,8 @@ import '../../editor/state/frame_shape.dart';
 import '../../editor/state/project_title_provider.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/timeline_provider.dart';
-import '../../tools/media/screen_media_provider.dart';
+import '../../timeline/state/assets_provider.dart';
+import '../../timeline/state/tracks_provider.dart';
 import '../export_settings.dart';
 
 enum ExportStatus { idle, rendering, done, failed }
@@ -55,7 +56,17 @@ class ExportNotifier extends Notifier<ExportState> {
         settings: ExportSettings(format: _moves() ? ExportFormat.mp4 : ExportFormat.png));
   }
 
-  bool _moves() => !ref.read(timelineProvider).isEmpty || ref.read(screenMediaProvider).isVideo;
+  /// Anything that changes over time: motion, a screen recording, sound, or
+  /// more than one caption or screen clip.
+  bool _moves() {
+    final tracks = ref.read(tracksProvider);
+    final assets = ref.read(assetsProvider);
+    return !ref.read(timelineProvider).isEmpty ||
+        tracks.audio.isNotEmpty ||
+        tracks.captions.length > 1 ||
+        tracks.screens.length > 1 ||
+        tracks.screens.any((c) => assets[c.assetId]?.isVideo ?? false);
+  }
 
   void _suggestFormat() {
     final moves = _moves();
