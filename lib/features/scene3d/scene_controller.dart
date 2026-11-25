@@ -6,6 +6,7 @@ import 'package:flutter/painting.dart';
 
 import 'bezel_scene_interop.dart';
 import 'device_profile.dart';
+import 'scene_position.dart';
 import 'scene_pose.dart';
 import 'scene_specs.dart';
 
@@ -34,6 +35,9 @@ class SceneController {
   /// Updated as the user drags the device, and when [setPose] is called.
   final pose = ValueNotifier(const ScenePose());
 
+  /// User placement on the artboard, independent of rotation and zoom.
+  final position = ValueNotifier(const ScenePosition());
+
   /// Playback position in seconds, and whether the clip is playing.
   final time = ValueNotifier(0.0);
   final playing = ValueNotifier(false);
@@ -57,6 +61,10 @@ class SceneController {
   Future<void> setScreenVideo(String url) => _handle.setScreenVideo(url).toDart;
 
   void setPose(ScenePose next) => _handle.setPose(next.turn, next.tilt, next.zoom);
+
+  void setPosition(ScenePosition next) => _handle.setPosition(next.x, next.y);
+
+  void setMoveMode(bool enabled) => _handle.setMoveMode(enabled);
 
   Future<void> setBackground(BackgroundSpec spec) => _handle.setBackground(spec.toJson()).toDart;
 
@@ -91,6 +99,7 @@ class SceneController {
   void dispose() {
     _handle.dispose();
     pose.dispose();
+    position.dispose();
     time.dispose();
     playing.dispose();
     captionBounds.dispose();
