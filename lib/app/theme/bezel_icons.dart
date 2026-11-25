@@ -21,6 +21,14 @@ class BezelIcons {
   static const IconData pause = LucideIcons.pause;
   static const IconData export = LucideIcons.download;
   static const IconData chevronDown = LucideIcons.chevronDown;
+  static const IconData chevronUp = LucideIcons.chevronUp;
+  static const IconData close = LucideIcons.x;
+  static const IconData home = LucideIcons.layoutGrid;
+
+  // Left rail
+  static const IconData motionTool = LucideIcons.sparkles;
+  static const IconData scene = LucideIcons.wallpaper;
+  static const IconData addFile = LucideIcons.imagePlus;
 
   // Timeline
   static const IconData split = LucideIcons.scissors;
