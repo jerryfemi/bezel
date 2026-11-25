@@ -1,22 +1,26 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
-import '../../../core/web/blob_url.dart';
 import '../../editor/state/scene_provider.dart';
+import '../../motion/state/timeline_provider.dart';
+import '../../timeline/model/clips.dart';
+import '../../timeline/model/tracks.dart';
+import '../../timeline/state/assets_provider.dart';
+import '../../timeline/state/playhead_provider.dart';
+import '../../timeline/state/tracks_provider.dart';
 
-/// What is on the device's front screen. Empty means the default wallpaper.
+/// What is on the device's front screen at the playhead. Empty means the
+/// screen track has nothing there.
 class ScreenMedia {
   const ScreenMedia({
-    this.name, this.url, this.bytes, this.mimeType,
+    this.clipId, this.name, this.url, this.bytes, this.mimeType,
     this.isVideo = false, this.loading = false, this.error,
   });
 
+  final String? clipId;
   final String? name;
   final String? url;
-
-  /// The file itself, kept so the project can be saved.
   final Uint8List? bytes;
   final String? mimeType;
   final bool isVideo;
@@ -24,64 +28,83 @@ class ScreenMedia {
   final String? error;
 
   bool get isEmpty => url == null;
-
-  ScreenMedia settled({String? error}) => ScreenMedia(
-      name: name, url: url, bytes: bytes, mimeType: mimeType, isVideo: isVideo, error: error);
 }
 
+/// The screen clip the Media panel edits: the selected screen clip, otherwise
+/// the one under the playhead, otherwise the first one.
+final screenTargetProvider = Provider<MediaClip?>((ref) {
+  final tracks = ref.watch(tracksProvider);
+  final screens = tracks.screens;
+  if (screens.isEmpty) return null;
+  final selected = ref.watch(selectedClipProvider);
+  for (final c in screens) {
+    if (selected?.track == TrackKind.screen && c.id == selected!.id) return c;
+  }
+  final length = clipLength(tracks, ref.watch(timelineProvider).duration);
+  final t = ref.watch(playheadProvider).clamp(0.0, length > 0 ? length - 1e-3 : 0.0);
+  for (final c in screens) {
+    if (c.covers(t)) return c;
+  }
+  return screens.first;
+});
+
 class ScreenMediaNotifier extends Notifier<ScreenMedia> {
+  bool _loading = false;
+
   @override
-  ScreenMedia build() => const ScreenMedia();
-
-  /// Opens the file picker. On the web the picked file's path is a blob: URL.
-  /// With [video] null, any image or video can be picked (tapping the screen).
-  Future<void> pick({bool? video}) async {
-    final picker = ImagePicker();
-    final file = switch (video) {
-      true => await picker.pickVideo(source: ImageSource.gallery),
-      false => await picker.pickImage(source: ImageSource.gallery),
-      null => await picker.pickMedia(),
-    };
-    if (file == null) return;
-    video ??= mimeTypeFor(file.name, reported: file.mimeType).startsWith('video/');
-    final bytes = await file.readAsBytes();
-    state = ScreenMedia(
-      name: file.name, url: file.path, bytes: bytes,
-      mimeType: mimeTypeFor(file.name, reported: file.mimeType),
-      isVideo: video, loading: true,
+  ScreenMedia build() {
+    final clip = ref.watch(screenTargetProvider);
+    final asset = clip == null ? null : ref.watch(assetsProvider)[clip.assetId];
+    if (asset == null) return ScreenMedia(loading: _loading);
+    return ScreenMedia(
+      clipId: clip!.id,
+      name: asset.name,
+      url: asset.url,
+      bytes: asset.bytes,
+      mimeType: asset.mimeType,
+      isVideo: asset.isVideo,
+      loading: _loading,
     );
-    await _apply();
   }
 
-  /// Puts saved media back (opening a project). Null clears the screen.
-  Future<void> load({String? name, Uint8List? bytes, String? mimeType, bool isVideo = false}) async {
-    if (bytes == null || name == null) {
-      state = const ScreenMedia();
-      return;
-    }
-    final mime = mimeTypeFor(name, reported: mimeType);
-    state = ScreenMedia(
-        name: name, url: blobUrlFor(bytes, mime), bytes: bytes, mimeType: mime,
-        isVideo: isVideo, loading: true);
-  }
-
-  /// Puts the current media back after the device changes.
-  Future<void> reapply() async {
-    if (!state.isEmpty) await _apply();
-  }
-
-  Future<void> _apply() async {
+  /// Opens the file picker and puts the file on the screen: it replaces the
+  /// screen clip being edited, or starts the screen track. [video] limits the
+  /// picker to videos (true) or images (false); null allows both.
+  Future<void> pick({bool? video}) async {
     final scene = ref.read(sceneControllerProvider);
-    final media = state;
-    if (scene == null || media.url == null) return;
+    if (scene == null) return;
+    final accept = switch (video) { true => 'video/*', false => 'image/*', null => 'image/*,video/*' };
+    final file = await scene.pickFile(accept);
+    if (file == null) return;
+    _loading = true;
+    ref.invalidateSelf();
     try {
-      media.isVideo
-          ? await scene.setScreenVideo(media.url!)
-          : await scene.setScreenImage(media.url!);
-      state = media.settled();
-    } catch (_) {
-      state = media.settled(error: 'That file could not be shown. Try a PNG, JPG, MP4 or WebM.');
+      final asset = await ref
+          .read(assetsProvider.notifier)
+          .add(name: file.name, mimeType: file.type, bytes: file.bytes);
+      final tracks = ref.read(tracksProvider.notifier);
+      final target = ref.read(screenTargetProvider);
+      if (target == null) {
+        tracks.addScreen(asset, at: 0);
+      } else {
+        tracks.replaceScreenAsset(target.id, asset);
+      }
+    } finally {
+      _loading = false;
+      ref.invalidateSelf();
     }
+  }
+
+  /// Adds another file after the playhead on the screen track.
+  Future<void> addAnother() async {
+    final scene = ref.read(sceneControllerProvider);
+    final file = await scene?.pickFile('image/*,video/*');
+    if (file == null) return;
+    final asset = await ref
+        .read(assetsProvider.notifier)
+        .add(name: file.name, mimeType: file.type, bytes: file.bytes);
+    final clip = ref.read(tracksProvider.notifier).addScreen(asset);
+    ref.read(selectedClipProvider.notifier).state = ClipRef(TrackKind.screen, clip.id);
   }
 }
 
