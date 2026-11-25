@@ -14,8 +14,29 @@ export function createBackdrop(stage, pivot) {
 
   let background = { style: 'spotlight', color: '#1A1F2B' };
   let image = null;
-  let caption = { enabled: false };
+  let captions = []; // [{id, start, end, ...caption}] in time order
+  let time = 0;
+  let editing = null; // {id, part}: that part is hidden while typed on the canvas
+  let shownKey = '';
   let onBounds = null; // (json | null) => void, set by Flutter
+
+  const at = (t) => {
+    let found = null;
+    for (const c of captions) if (t >= c.start && t < c.end) found = c;
+    return found;
+  };
+  // The device makes room for the caption on screen, or (between captions)
+  // for the nearest one, so it doesn't jump around when a caption ends.
+  const layoutCaption = (t, active) => {
+    if (active || !captions.length) return active;
+    let previous = null;
+    for (const c of captions) if (c.end <= t) previous = c;
+    return previous ?? captions[0];
+  };
+  const keyFor = (t) => {
+    const active = at(t);
+    return `${active?.id ?? ''}|${layoutCaption(t, active)?.id ?? ''}`;
+  };
 
   const draw = () => {
     const { width: w, height: h } = stage.renderer.domElement;
@@ -25,14 +46,17 @@ export function createBackdrop(stage, pivot) {
       texture.dispose(); // GPU texture size is fixed after upload; reallocate
     }
     paintBackground(g, background, image, w, h);
-    const side = resolveSide(caption, w / h);
-    placeDevice(pivot, side, w / h);
+    const active = at(time);
+    shownKey = keyFor(time);
+    placeDevice(pivot, resolveSide(layoutCaption(time, active), w / h), w / h);
+    const side = resolveSide(active, w / h);
     let bounds = null;
     if (side !== 'none') {
       const colors = textColors(background, image);
-      const b = drawCaption(g, caption, captionBox(side, w, h), side === 'above' ? 'center' : 'left', colors);
+      const hidden = editing?.id === active.id ? editing.part : null;
+      const b = drawCaption(g, { ...active, hidden }, captionBox(side, w, h), side === 'above' ? 'center' : 'left', colors);
       const frac = (r) => (r ? { x: r.x / w, y: r.y / h, w: r.w / w, h: r.h / h } : null);
-      bounds = { head: frac(b.head), sub: frac(b.sub) };
+      bounds = { id: active.id, head: frac(b.head), sub: frac(b.sub) };
     }
     if (!stage.locked) onBounds?.(bounds ? JSON.stringify(bounds) : null);
     texture.needsUpdate = true;
@@ -47,7 +71,15 @@ export function createBackdrop(stage, pivot) {
       image = next.style === 'image' && next.imageUrl ? await loadImage(next.imageUrl) : null;
       draw();
     },
-    setCaption(next) { caption = next; draw(); },
+    /** captions: [{id, start, end, headline, subtitle, side, font, ...}]. */
+    setCaptions(next) { captions = next.map((c) => ({ ...c, enabled: true })); draw(); },
+    /** Redraws only when a different caption is due at `t`. */
+    setTime(t) {
+      time = t;
+      if (keyFor(t) !== shownKey) draw();
+    },
+    /** Hides `part` ('headline' | 'subtitle') of caption `id` while it is typed in place. */
+    setEditing(id, part) { editing = id ? { id, part } : null; draw(); },
     /** Reports the caption's bounds (fractions of the frame) after each draw. */
     onCaptionBounds(fn) { onBounds = fn; draw(); },
     redraw: draw,
