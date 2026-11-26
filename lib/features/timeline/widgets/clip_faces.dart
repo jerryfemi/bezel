@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/bezel_icons.dart';
 import '../../../app/theme/bezel_type.dart';
+import '../../motion/widgets/format_time.dart';
 import '../model/clips.dart';
 import '../model/media_asset.dart';
 
@@ -70,7 +72,7 @@ class FilmstripFace extends StatelessWidget {
             ]),
           );
         }),
-      _NameTag(asset?.name ?? 'Media'),
+      _NameTag(asset?.name ?? 'Media', clip: clip),
     ]);
   }
 
@@ -103,7 +105,7 @@ class WaveformFace extends StatelessWidget {
             color: color,
           ),
         ),
-      _NameTag(asset?.name ?? 'Audio'),
+      _NameTag(asset?.name ?? 'Audio', clip: clip),
     ]);
   }
 }
@@ -135,10 +137,12 @@ class _WavePainter extends CustomPainter {
       old.from != from || old.to != to || old.peaks != peaks || old.color != color;
 }
 
+/// The file name and how long the clip runs, with a mark when it's muted.
 class _NameTag extends StatelessWidget {
-  const _NameTag(this.name);
+  const _NameTag(this.name, {required this.clip});
 
   final String name;
+  final MediaClip clip;
 
   @override
   Widget build(BuildContext context) {
@@ -151,12 +155,24 @@ class _NameTag extends StatelessWidget {
           color: const Color(0x99000000),
           borderRadius: BorderRadius.circular(3),
         ),
-        child: Text(
-          name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: BezelType.caption.copyWith(fontSize: 10, color: Colors.white),
-        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (clip.muted) ...[
+            const Icon(BezelIcons.muted, size: 10, color: Colors.white),
+            const SizedBox(width: 3),
+          ],
+          Flexible(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BezelType.caption.copyWith(
+                  fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(formatClipTime(clip.length),
+              style: BezelType.caption.copyWith(fontSize: 10, color: const Color(0xCCFFFFFF))),
+        ]),
       ),
     );
   }
