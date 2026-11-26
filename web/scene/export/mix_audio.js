@@ -1,5 +1,7 @@
 // Mixes every sound in the clip (music clips, and the sound of screen
 // recordings) into one stereo track for export, using an OfflineAudioContext.
+import { scheduleLevel } from '../sound_level.js';
+
 export const SAMPLE_RATE = 48000;
 
 /** Resolves with an AudioBuffer of `duration` seconds, or null if the clip is silent. */
@@ -7,7 +9,7 @@ export async function mixAudio(assets, tracks, duration) {
   const sources = [
     ...tracks.audio,
     ...tracks.screens.filter((c) => assets.get(c.assetId)?.kind === 'video'),
-  ].filter((c) => (c.volume ?? 1) > 0 && c.start < duration);
+  ].filter((c) => !c.muted && (c.volume ?? 1) > 0 && c.start < duration);
   if (!sources.length) return null;
 
   const ctx = new OfflineAudioContext(2, Math.ceil(duration * SAMPLE_RATE), SAMPLE_RATE);
@@ -20,7 +22,7 @@ export async function mixAudio(assets, tracks, duration) {
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     const gain = ctx.createGain();
-    gain.gain.value = clip.volume ?? 1;
+    scheduleLevel(gain, clip, clip.start + length);
     source.connect(gain).connect(ctx.destination);
     source.start(clip.start, clip.inPoint, length);
     scheduled++;
