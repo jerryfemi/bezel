@@ -9,11 +9,10 @@ import '../../export/state/export_provider.dart';
 import '../state/active_tool_provider.dart';
 import '../state/editor_tool.dart';
 import '../state/scene_provider.dart';
-import 'frame_shape_menu.dart';
 import 'rail_button.dart';
 
 /// The left rail: one button per tool (its panel opens beside the rail),
-/// then the Move toggle and the frame shape.
+/// then the Move toggle. The video's shape is in the right panel.
 class ToolRail extends ConsumerWidget {
   const ToolRail({super.key});
 
@@ -52,8 +51,6 @@ class ToolRail extends ConsumerWidget {
           selected: moving,
           onTap: toggleMove,
         ),
-        const SizedBox(height: 2),
-        const FrameShapeMenu(),
       ]),
     );
   }
