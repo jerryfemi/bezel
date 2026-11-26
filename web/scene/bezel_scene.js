@@ -111,10 +111,15 @@ function mount(host, onPose, onTime, onPosition) {
     pickFile(accept) { return pickFile(accept); },
     /**
      * JSON {captions: [{id, start, end, headline, ...}], screens: [{id, start, end,
-     * assetId, inPoint, volume}], audio: [same as screens]}, each in time order.
+     * assetId, inPoint, volume, muted, fadeIn, fadeOut}], audio: [same as screens],
+     * mutedTracks: ['screen' | 'audio', ...]}, each in time order.
      */
     setTracks(json) {
       tracks = JSON.parse(json);
+      // A muted track silences every clip on it, in preview and in export.
+      const muted = new Set(tracks.mutedTracks ?? []);
+      if (muted.has('screen')) tracks.screens = tracks.screens.map((c) => ({ ...c, muted: true }));
+      if (muted.has('audio')) tracks.audio = tracks.audio.map((c) => ({ ...c, muted: true }));
       backdrop.setCaptions(tracks.captions);
       screen?.setClips(tracks.screens);
       audio.setClips(tracks.audio);
