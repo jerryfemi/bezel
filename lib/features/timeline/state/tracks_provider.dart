@@ -100,6 +100,18 @@ class TracksNotifier extends Notifier<Tracks> {
   void setVolume(ClipRef clip, double volume) => _mapMedia(
       clip, (c) => c.copyWith(volume: volume.clamp(0.0, 1.0), muted: volume <= 0 ? c.muted : false));
 
+  void toggleTrackMute(TrackKind kind) {
+    final next = {...state.mutedTracks};
+    if (!next.remove(kind)) next.add(kind);
+    _set(state.copyWith(mutedTracks: next));
+  }
+
+  void toggleTrackLock(TrackKind kind) {
+    final next = {...state.lockedTracks};
+    if (!next.remove(kind)) next.add(kind);
+    _set(state.copyWith(lockedTracks: next));
+  }
+
   void setMuted(ClipRef clip, bool muted) => _mapMedia(clip, (c) => c.copyWith(muted: muted));
 
   /// Fades can't overlap: together they never run longer than the clip.
