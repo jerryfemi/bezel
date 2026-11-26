@@ -13,17 +13,18 @@ List<Widget> segmentDragOverlay({
   required double pointerX,
   required double Function(double seconds) x,
   required double rowTop,
+  required double height,
 }) {
   final width = x(keys[dragging].time) - x(keys[dragging - 1].time);
   final others = [for (var s = 1; s < keys.length; s++) if (s != dragging) s];
   final markerX = drop - 1 < others.length ? x(keys[others[drop - 1] - 1].time) : x(keys.last.time);
   return [
     Positioned(
-      left: markerX - 1, top: rowTop - 2, width: 2, height: 32,
+      left: markerX - 1, top: rowTop - 4, width: 2, height: height + 8,
       child: const IgnorePointer(child: ColoredBox(color: BezelColors.accentLine)),
     ),
     Positioned(
-      left: pointerX - width / 2, top: rowTop - 6, width: width, height: 20,
+      left: pointerX - width / 2, top: rowTop, width: width, height: height,
       child: IgnorePointer(
         child: Opacity(
           opacity: 0.9,
