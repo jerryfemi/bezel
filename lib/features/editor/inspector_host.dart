@@ -18,11 +18,14 @@ class InspectorHost extends ConsumerWidget {
       switchInCurve: BezelMotion.settle,
       switchOutCurve: Curves.easeIn,
       layoutBuilder: (current, previous) =>
-          Stack(fit: StackFit.expand, children: [...previous, if (current != null) current]),
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
         child: SlideTransition(
-          position: Tween(begin: const Offset(0.06, 0), end: Offset.zero).animate(animation),
+          position: Tween(
+            begin: const Offset(0.06, 0),
+            end: Offset.zero,
+          ).animate(animation),
           child: child,
         ),
       ),
