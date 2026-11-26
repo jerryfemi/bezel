@@ -82,6 +82,29 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
     await _load(copy);
   }
 
+  /// Renames a project. The open one is renamed through its title, so the
+  /// editor shows the new name too.
+  Future<void> rename(String id, String title) async {
+    final name = title.trim();
+    if (name.isEmpty) return;
+    if (id == state.currentId) {
+      ref.read(projectTitleProvider.notifier).state = name;
+      await saveNow();
+      return;
+    }
+    final doc = ProjectStore.get(id);
+    if (doc == null) return;
+    await ProjectStore.put(doc.copyWith(id, {'title': name}));
+    state = ProjectsState(currentId: state.currentId, projects: ProjectStore.all());
+  }
+
+  /// Saves the open project straight away (going back to Home, so its card
+  /// shows the latest frame).
+  Future<void> saveNow() async {
+    _debounce?.cancel();
+    await _save();
+  }
+
   Future<void> delete(String id) async {
     _debounce?.cancel();
     await ProjectStore.delete(id);
@@ -166,7 +189,3 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
 }
 
 final projectsProvider = NotifierProvider<ProjectsNotifier, ProjectsState>(ProjectsNotifier.new);
-
-/// Whether the projects sidebar is shown. Open by default so new users see
-/// "New project" and their saved work straight away.
-final projectsMenuOpenProvider = StateProvider<bool>((ref) => true);
