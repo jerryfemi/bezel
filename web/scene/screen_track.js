@@ -5,6 +5,7 @@
 import * as THREE from './vendor/three_bundle.js';
 import { drawDefaultWallpaper } from './default_wallpaper.js';
 import { once } from './assets.js';
+import { levelAt } from './sound_level.js';
 
 const DRIFT = 0.25; // seconds a playing video may drift before it is corrected
 
@@ -80,7 +81,7 @@ export function createScreenTrack(stage, device, assets) {
     if (!video) return;
 
     const target = clip.inPoint + (t - clip.start);
-    video.volume = Math.max(0, Math.min(1, clip.volume ?? 1));
+    video.volume = levelAt(clip, t);
     video.muted = video.volume === 0;
     if (isPlaying) {
       if (video.paused) { video.currentTime = target; video.play().catch(() => {}); }
