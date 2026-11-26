@@ -51,20 +51,23 @@ class TimelineActions {
   void split() {
     final tracks = ref.read(tracksProvider.notifier);
     final selected = ref.read(selectedClipProvider);
+    final locked = ref.read(tracksProvider).lockedTracks;
     if (selected != null) {
+      if (locked.contains(selected.track)) return;
       final right = tracks.split(selected, _t);
       if (right != null) select(right);
       return;
     }
     final state = ref.read(tracksProvider);
     for (final kind in [TrackKind.caption, TrackKind.screen, TrackKind.audio]) {
+      if (locked.contains(kind)) continue;
       for (final c in state.on(kind)) {
         if (ops.canSplit(c, _t)) tracks.split(ClipRef(kind, c.id), _t);
       }
     }
     final motion = ref.read(timelineProvider);
     final scene = ref.read(sceneControllerProvider);
-    if (!motion.isEmpty && _t > 0 && _t < motion.duration && scene != null) {
+    if (!locked.contains(TrackKind.motion) && !motion.isEmpty && _t > 0 && _t < motion.duration && scene != null) {
       ref.read(timelineProvider.notifier).splitAt(_t, scene.pose.value);
     }
   }
@@ -72,13 +75,17 @@ class TimelineActions {
   /// Deletes the selected clip, or the selected keyframe.
   void delete() {
     final selected = ref.read(selectedClipProvider);
+    final locked = ref.read(tracksProvider).lockedTracks;
     if (selected != null) {
+      if (locked.contains(selected.track)) return;
       ref.read(tracksProvider.notifier).delete(selected);
       select(null);
       return;
     }
     final key = ref.read(selectedKeyframeProvider);
-    if (key != null) ref.read(timelineProvider.notifier).remove(key);
+    if (key != null && !locked.contains(TrackKind.motion)) {
+      ref.read(timelineProvider.notifier).remove(key);
+    }
   }
 
   void addCaption() {
@@ -115,6 +122,8 @@ class TimelineActions {
   /// or at the playhead, and selects the new clip.
   void placeAsset(MediaAsset asset, {double? at}) {
     final tracks = ref.read(tracksProvider.notifier);
+    final kind = asset.kind == AssetKind.audio ? TrackKind.audio : TrackKind.screen;
+    if (ref.read(tracksProvider).isLocked(kind)) return;
     final time = (at ?? _t).clamp(0.0, double.infinity).toDouble();
     if (asset.kind == AssetKind.audio) {
       select(ClipRef(TrackKind.audio, tracks.addAudio(asset, at: time).id));
