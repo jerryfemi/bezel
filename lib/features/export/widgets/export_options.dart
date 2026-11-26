@@ -7,6 +7,8 @@ import '../../../core/widgets/panel_section.dart';
 import '../../../core/widgets/segmented_control.dart';
 import '../../editor/state/frame_shape.dart';
 import '../../motion/state/timeline_provider.dart';
+import '../../scene3d/scene_specs.dart';
+import '../../tools/background/background_provider.dart';
 import '../../timeline/model/tracks.dart';
 import '../../timeline/state/tracks_provider.dart';
 import '../export_settings.dart';
@@ -24,6 +26,8 @@ class ExportOptions extends ConsumerWidget {
     final notifier = ref.read(exportProvider.notifier);
     final length = clipLength(ref.watch(tracksProvider), ref.watch(timelineProvider).duration);
     final seconds = length > 0 ? length : stillSeconds;
+    final transparent =
+        ref.watch(backgroundProvider.select((b) => b.style == BackgroundStyle.transparent));
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PanelSection(
@@ -35,6 +39,15 @@ class ExportOptions extends ConsumerWidget {
           labelOf: (f) => f.label, onChanged: (f) => notifier.update(settings.copyWith(format: f)),
         ),
       ),
+      if (transparent) ...[
+        const SizedBox(height: 8),
+        Text(
+          settings.format.keepsTransparency
+              ? 'The background stays see-through in this PNG.'
+              : 'Videos can\'t be see-through yet, so they get the background colour.',
+          style: BezelType.caption.copyWith(color: BezelColors.textSecondary),
+        ),
+      ],
       const SizedBox(height: 16),
       PanelSection(
         title: 'Shape',
