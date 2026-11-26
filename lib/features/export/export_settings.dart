@@ -14,6 +14,10 @@ enum ExportFormat {
   final String hint;
 
   bool get isVideo => this == mp4 || this == webm;
+
+  /// Whether the file can keep a see-through background. (WebM could in
+  /// principle, but the muxer we use doesn't write the alpha channel yet.)
+  bool get keepsTransparency => this == png;
 }
 
 /// Short side in pixels: 1080p, 1440p, 4K.
@@ -66,8 +70,15 @@ class ExportSettings {
     return bitrate * seconds / 8 / 1e6;
   }
 
-  String toJson(FrameShape shape, String name) {
+  String toJson(FrameShape shape, String name, {bool transparent = false}) {
     final (w, h) = sizeFor(shape);
-    return jsonEncode({'format': format.name, 'width': w, 'height': h, 'fps': fps, 'name': name});
+    return jsonEncode({
+      'format': format.name,
+      'width': w,
+      'height': h,
+      'fps': fps,
+      'name': name,
+      'transparent': transparent && format.keepsTransparency,
+    });
   }
 }
