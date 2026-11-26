@@ -1,4 +1,4 @@
-/// Devices bundled with Bezel. Each lives in web/devices/<id>/.
+/// Devices bundled with Bezel. Each lives in `web/devices/<id>/`.
 class DeviceEntry {
   const DeviceEntry(this.id, this.label);
 
