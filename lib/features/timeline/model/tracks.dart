@@ -6,11 +6,25 @@ import 'clips.dart';
 /// Every clip on the caption, screen and audio tracks (motion lives in
 /// `MotionTimeline`). Each list is kept in time order without overlaps.
 class Tracks {
-  const Tracks({this.captions = const [], this.screens = const [], this.audio = const []});
+  const Tracks({
+    this.captions = const [],
+    this.screens = const [],
+    this.audio = const [],
+    this.mutedTracks = const {},
+    this.lockedTracks = const {},
+  });
 
   final List<CaptionClip> captions;
   final List<MediaClip> screens;
   final List<MediaClip> audio;
+
+  /// Tracks whose sound is off (screen, audio).
+  final Set<TrackKind> mutedTracks;
+
+  /// Tracks whose clips can't be selected or edited.
+  final Set<TrackKind> lockedTracks;
+
+  bool isLocked(TrackKind kind) => lockedTracks.contains(kind);
 
   bool get isEmpty => captions.isEmpty && screens.isEmpty && audio.isEmpty;
 
@@ -36,11 +50,19 @@ class Tracks {
     return null;
   }
 
-  Tracks copyWith({List<CaptionClip>? captions, List<MediaClip>? screens, List<MediaClip>? audio}) =>
+  Tracks copyWith({
+    List<CaptionClip>? captions,
+    List<MediaClip>? screens,
+    List<MediaClip>? audio,
+    Set<TrackKind>? mutedTracks,
+    Set<TrackKind>? lockedTracks,
+  }) =>
       Tracks(
         captions: captions == null ? this.captions : _sorted(captions),
         screens: screens == null ? this.screens : _sorted(screens),
         audio: audio == null ? this.audio : _sorted(audio),
+        mutedTracks: mutedTracks ?? this.mutedTracks,
+        lockedTracks: lockedTracks ?? this.lockedTracks,
       );
 
   static List<T> _sorted<T extends TimedClip>(List<T> clips) =>
@@ -50,6 +72,8 @@ class Tracks {
         'captions': [for (final c in captions) c.toMap()],
         'screens': [for (final c in screens) c.toMap()],
         'audio': [for (final c in audio) c.toMap()],
+        'mutedTracks': [for (final k in mutedTracks) k.name],
+        'lockedTracks': [for (final k in lockedTracks) k.name],
       };
 
   String toJson() => jsonEncode(toMap());
@@ -57,10 +81,17 @@ class Tracks {
   factory Tracks.fromMap(Map<String, dynamic>? m) {
     List<Map<String, dynamic>> list(String key) =>
         [for (final e in (m?[key] as List?) ?? const []) (e as Map).cast<String, dynamic>()];
+    Set<TrackKind> kinds(String key) => {
+          for (final name in (m?[key] as List?) ?? const [])
+            for (final k in TrackKind.values)
+              if (k.name == name) k,
+        };
     return Tracks(
       captions: _sorted([for (final e in list('captions')) CaptionClip.fromMap(e)]),
       screens: _sorted([for (final e in list('screens')) MediaClip.fromMap(e)]),
       audio: _sorted([for (final e in list('audio')) MediaClip.fromMap(e)]),
+      mutedTracks: kinds('mutedTracks'),
+      lockedTracks: kinds('lockedTracks'),
     );
   }
 }
