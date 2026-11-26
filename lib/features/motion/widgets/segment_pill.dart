@@ -52,30 +52,38 @@ class SegmentPill extends StatelessWidget {
 
 /// The pill's look, shared with the copy that follows the pointer while dragging.
 class SegmentPillFace extends StatelessWidget {
-  const SegmentPillFace({super.key, required this.easing, required this.selected});
+  const SegmentPillFace({super.key, required this.easing, required this.selected, this.label});
 
   final MotionEasing easing;
   final bool selected;
+
+  /// Shown instead of the easing's name.
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: BezelMotion.of(context, BezelMotion.press),
-      margin: const EdgeInsets.symmetric(horizontal: 9),
-      alignment: Alignment.center,
+      // A block like the other tracks' clips; a hairline gap marks each keyframe.
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        color: selected ? const Color(0x525A8CFF) : BezelColors.accentSoft,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: selected ? BezelColors.accentLine : Colors.transparent),
+        color: const Color(0xFF1A2A55),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(
+          color: selected ? const Color(0xFF8FB0FF) : const Color(0x738FB0FF),
+          width: selected ? 1.5 : 1,
+        ),
       ),
       child: Text(
-        easing.kind.name,
+        label ?? easing.kind.name,
         style: BezelType.caption.copyWith(
-          color: selected ? BezelColors.textPrimary : BezelColors.textSecondary,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          color: selected ? BezelColors.textPrimary : const Color(0xFFDCE6FF),
+          fontWeight: FontWeight.w600,
         ),
         maxLines: 1,
-        overflow: TextOverflow.clip,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
