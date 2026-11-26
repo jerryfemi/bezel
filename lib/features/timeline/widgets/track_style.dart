@@ -17,7 +17,7 @@ class TrackStyle {
 
   static const rulerHeight = 26.0;
   static const gap = 6.0;
-  static const headerWidth = 112.0;
+  static const headerWidth = 150.0;
 
   /// Top to bottom, like a video editor: text over picture over motion over sound.
   static const order = [TrackKind.caption, TrackKind.screen, TrackKind.motion, TrackKind.audio];
