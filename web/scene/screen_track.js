@@ -8,6 +8,7 @@ import { once } from './assets.js';
 import { levelAt } from './sound_level.js';
 
 const DRIFT = 0.25; // seconds a playing video may drift before it is corrected
+const IDLE_DELAY = 700; // ms after the last scrub before a paused video starts looping
 
 export function createScreenTrack(stage, device, assets) {
   const aspect = device.profile.screens[0].aspect;
@@ -23,6 +24,32 @@ export function createScreenTrack(stage, device, assets) {
   let clips = [];
   let time = 0;
   let playing = false;
+  // While the timeline is paused, the recording under the playhead keeps
+  // playing on its own (muted, looping its clip) so the phone never looks
+  // frozen. Scrubbing holds it on the exact frame for a moment first.
+  let idle = null; // {clip, video, since}
+  let lastExportFrame = -Infinity; // never loop while an export is stepping frames
+
+  const stopIdle = () => {
+    if (!idle) return;
+    if (!idle.video.paused) idle.video.pause();
+    idle = null;
+    stage.alwaysRender = false;
+  };
+
+  stage.onFrame.push((now) => {
+    if (!idle || playing) return;
+    const { clip, video, since } = idle;
+    if (now - since < IDLE_DELAY || now - lastExportFrame < 1500) return;
+    const from = clip.inPoint;
+    const to = clip.inPoint + (clip.end - clip.start);
+    if (video.paused) {
+      video.muted = true;
+      video.play().catch(() => {});
+      stage.alwaysRender = true;
+    }
+    if (video.currentTime >= to - 0.05 || video.currentTime < from - 0.1) video.currentTime = from;
+  });
 
   const show = (texture) => {
     if (material.map === texture) return;
@@ -69,6 +96,7 @@ export function createScreenTrack(stage, device, assets) {
   function update(t, isPlaying) {
     time = t;
     playing = isPlaying;
+    stopIdle();
     const clip = active(t);
     const asset = clip && assets.get(clip.assetId);
     const video = asset?.video ?? null;
@@ -88,6 +116,7 @@ export function createScreenTrack(stage, device, assets) {
       else if (Math.abs(video.currentTime - target) > DRIFT) video.currentTime = target;
     } else {
       if (!video.paused) video.pause();
+      idle = { clip, video, since: performance.now() };
       if (Math.abs(video.currentTime - target) > 0.03) {
         video.currentTime = target;
         video.addEventListener('seeked', () => {
@@ -107,6 +136,8 @@ export function createScreenTrack(stage, device, assets) {
     update,
     /** Export: shows the exact frame at `t` and waits for the video to get there. */
     async prepareFrame(t) {
+      stopIdle();
+      lastExportFrame = performance.now();
       const clip = active(t);
       const asset = clip && assets.get(clip.assetId);
       pauseOthers(asset?.video ?? null);
@@ -130,8 +161,9 @@ export function createScreenTrack(stage, device, assets) {
       }
       if (texture) texture.needsUpdate = true;
     },
-    pauseAll() { pauseOthers(null); stage.alwaysRender = false; },
+    pauseAll() { stopIdle(); pauseOthers(null); stage.alwaysRender = false; },
     dispose() {
+      stopIdle();
       pauseOthers(null);
       stage.alwaysRender = false;
       for (const t of textures.values()) t.dispose();
