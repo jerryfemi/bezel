@@ -4,6 +4,8 @@ import '../../editor/state/frame_shape.dart';
 import '../../editor/state/project_title_provider.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/timeline_provider.dart';
+import '../../scene3d/scene_specs.dart';
+import '../../tools/background/background_provider.dart';
 import '../../timeline/state/assets_provider.dart';
 import '../../timeline/state/tracks_provider.dart';
 import '../export_settings.dart';
@@ -53,7 +55,7 @@ class ExportNotifier extends Notifier<ExportState> {
     });
     // First build happens as the sheet opens, so pick the format here too.
     return ExportState(
-        settings: ExportSettings(format: _moves() ? ExportFormat.mp4 : ExportFormat.png));
+        settings: ExportSettings(format: _moves() ? _video : ExportFormat.png));
   }
 
   /// Anything that changes over time: motion, a screen recording, sound, or
@@ -68,12 +70,16 @@ class ExportNotifier extends Notifier<ExportState> {
         tracks.screens.any((c) => assets[c.assetId]?.isVideo ?? false);
   }
 
+  bool _transparent() => ref.read(backgroundProvider).style == BackgroundStyle.transparent;
+
+  ExportFormat get _video => _videoFormat;
+
   void _suggestFormat() {
     final moves = _moves();
     final current = state.settings.format;
     final isVideo = current != ExportFormat.png;
     if (moves && !isVideo) {
-      state = ExportState(settings: state.settings.copyWith(format: _videoFormat));
+      state = ExportState(settings: state.settings.copyWith(format: _video));
     } else if (!moves && isVideo) {
       state = ExportState(settings: state.settings.copyWith(format: ExportFormat.png));
     }
@@ -92,7 +98,7 @@ class ExportNotifier extends Notifier<ExportState> {
     state = state.copyWith(status: ExportStatus.rendering, frame: 0, total: 0);
     try {
       final file = await scene.exportClip(
-        state.settings.toJson(shape, name),
+        state.settings.toJson(shape, name, transparent: _transparent()),
         (frame, total) => state = state.copyWith(frame: frame, total: total),
       );
       state = file == null
