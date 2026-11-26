@@ -44,4 +44,5 @@ class BezelIcons {
   static const IconData fit = LucideIcons.maximize2;
   static const IconData volume = LucideIcons.volume2;
   static const IconData muted = LucideIcons.volumeX;
+  static const IconData lock = LucideIcons.lock;
 }
