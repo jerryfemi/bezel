@@ -17,7 +17,7 @@ class InspectorHost extends ConsumerWidget {
     return AnimatedSwitcher(
       duration: BezelMotion.of(context, const Duration(milliseconds: 160)),
       layoutBuilder: (current, previous) =>
-          Stack(fit: StackFit.expand, children: [...previous, if (current != null) current]),
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
       child: selected
           ? const ClipInspector(key: ValueKey('clip'))
           : const ProjectSettingsPanel(key: ValueKey('project')),
