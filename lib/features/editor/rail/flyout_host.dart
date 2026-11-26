@@ -25,15 +25,20 @@ class FlyoutHost extends ConsumerWidget {
       switchInCurve: BezelMotion.settle,
       switchOutCurve: Curves.easeIn,
       layoutBuilder: (current, previous) =>
-          Stack(fit: StackFit.expand, children: [...previous, if (current != null) current]),
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
         child: SlideTransition(
-          position: Tween(begin: const Offset(-0.06, 0), end: Offset.zero).animate(animation),
+          position: Tween(
+            begin: const Offset(-0.06, 0),
+            end: Offset.zero,
+          ).animate(animation),
           child: child,
         ),
       ),
-      child: tool == null ? const SizedBox.shrink() : _Flyout(key: ValueKey(tool), tool: tool),
+      child: tool == null
+          ? const SizedBox.shrink()
+          : _Flyout(key: ValueKey(tool), tool: tool),
     );
   }
 }
@@ -47,29 +52,38 @@ class _Flyout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return FloatingSurface(
       radius: BezelRadius.panel,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 6, 2),
-          child: Row(children: [
-            Text(tool.label, style: BezelType.title),
-            const Spacer(),
-            IconToolButton(
-              icon: BezelIcons.close,
-              tooltip: 'Close',
-              shortcut: 'Esc',
-              size: 30,
-              onTap: () => ref.read(activeToolProvider.notifier).close(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 6, 2),
+            child: Row(
+              children: [
+                Text(tool.label, style: BezelType.title),
+                const Spacer(),
+                IconToolButton(
+                  icon: BezelIcons.close,
+                  tooltip: 'Close',
+                  shortcut: 'Esc',
+                  size: 30,
+                  onTap: () => ref.read(activeToolProvider.notifier).close(),
+                ),
+              ],
             ),
-          ]),
-        ),
-        Container(height: 1, color: BezelColors.stroke, margin: const EdgeInsets.only(top: 4)),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
-            child: ToolPanelBody(tool: tool),
           ),
-        ),
-      ]),
+          Container(
+            height: 1,
+            color: BezelColors.stroke,
+            margin: const EdgeInsets.only(top: 4),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+              child: ToolPanelBody(tool: tool),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
