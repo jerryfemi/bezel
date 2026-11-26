@@ -15,9 +15,6 @@ abstract final class EditorLayout {
   static const flyout = 280.0;
   static const inspector = 292.0;
   static const gap = 8.0;
-
-  static const sidebarMin = 220.0;
-  static const sidebarMax = 420.0;
 }
 
 /// Whether a clip or keyframe is selected. The right panel shows its
@@ -30,9 +27,6 @@ final hasSelectionProvider = Provider<bool>((ref) {
 
 /// The timeline folds down to its toolbar.
 final timelineFoldedProvider = StateProvider<bool>((ref) => false);
-
-/// The projects sidebar's width, set by dragging its edge.
-final sidebarWidthProvider = StateProvider<double>((ref) => 264);
 
 /// Room the canvas keeps clear of the rail, panels and timeline, so the
 /// frame always sits in the open space between them.
