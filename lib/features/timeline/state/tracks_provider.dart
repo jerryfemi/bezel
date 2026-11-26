@@ -97,8 +97,17 @@ class TracksNotifier extends Notifier<Tracks> {
     ]));
   }
 
-  void setVolume(ClipRef clip, double volume) =>
-      _mapMedia(clip, (c) => c.copyWith(volume: volume.clamp(0.0, 1.0)));
+  void setVolume(ClipRef clip, double volume) => _mapMedia(
+      clip, (c) => c.copyWith(volume: volume.clamp(0.0, 1.0), muted: volume <= 0 ? c.muted : false));
+
+  void setMuted(ClipRef clip, bool muted) => _mapMedia(clip, (c) => c.copyWith(muted: muted));
+
+  /// Fades can't overlap: together they never run longer than the clip.
+  void setFades(ClipRef clip, {double? fadeIn, double? fadeOut}) => _mapMedia(clip, (c) {
+        final nextIn = (fadeIn ?? c.fadeIn).clamp(0.0, c.length);
+        final nextOut = (fadeOut ?? c.fadeOut).clamp(0.0, c.length - nextIn);
+        return c.copyWith(fadeIn: nextIn, fadeOut: nextOut);
+      });
 
   /// Drags a clip so it starts at [start] (it stays between its neighbours).
   void move(ClipRef clip, double start) {
@@ -156,8 +165,14 @@ class TracksNotifier extends Notifier<Tracks> {
       return ClipRef(TrackKind.caption, right.id);
     }
     final media = current as MediaClip;
-    final right = media.copyWith(id: _id('s'), start: t, inPoint: media.inPoint + (t - media.start));
-    final list = [for (final c in state.on(clip.track).cast<MediaClip>()) c.id == media.id ? c.copyWith(end: t) : c, right];
+    // The fade-in stays on the left half, the fade-out on the right.
+    final right = media.copyWith(
+        id: _id('s'), start: t, inPoint: media.inPoint + (t - media.start), fadeIn: 0);
+    final list = [
+      for (final c in state.on(clip.track).cast<MediaClip>())
+        c.id == media.id ? c.copyWith(end: t, fadeOut: 0) : c,
+      right,
+    ];
     _set(clip.track == TrackKind.screen ? state.copyWith(screens: list) : state.copyWith(audio: list));
     return ClipRef(clip.track, right.id);
   }
