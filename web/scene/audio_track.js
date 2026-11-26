@@ -1,6 +1,8 @@
 // Music and sound clips during preview: one <audio> element per clip, played
 // from its in-point while the playhead is inside it and kept in sync.
 // (Export mixes the sound separately; see export/mix_audio.js.)
+import { levelAt } from './sound_level.js';
+
 const DRIFT = 0.3;
 
 export function createAudioTrack(assets) {
@@ -20,7 +22,7 @@ export function createAudioTrack(assets) {
   };
 
   return {
-    /** clips: [{id, start, end, assetId, inPoint, volume}]. */
+    /** clips: [{id, start, end, assetId, inPoint, volume, muted, fadeIn, fadeOut}]. */
     setClips(next) {
       clips = next;
       const keep = new Set(next.map((c) => c.id));
@@ -33,7 +35,7 @@ export function createAudioTrack(assets) {
         if (!p) continue;
         const el = p.el;
         if (!(playing && inside)) { if (!el.paused) el.pause(); continue; }
-        el.volume = Math.max(0, Math.min(1, clip.volume ?? 1));
+        el.volume = levelAt(clip, t);
         const target = clip.inPoint + (t - clip.start);
         if (el.paused) { el.currentTime = target; el.play().catch(() => {}); }
         else if (Math.abs(el.currentTime - target) > DRIFT) el.currentTime = target;
