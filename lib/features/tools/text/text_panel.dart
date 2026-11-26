@@ -103,11 +103,10 @@ class TextPanel extends ConsumerWidget {
       const SizedBox(height: 14),
       Align(
         alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          onPressed: () => notifier.setEnabled(false),
-          icon: const Icon(Icons.delete_outline, size: 16),
-          label: const Text('Delete this caption'),
-          style: TextButton.styleFrom(foregroundColor: BezelColors.danger),
+        child: ChipButton(
+          icon: Icons.delete_outline,
+          label: 'Delete this caption',
+          onTap: () => notifier.setEnabled(false),
         ),
       ),
     ]);
