@@ -39,7 +39,7 @@ class ProjectsNotifier extends Notifier<ProjectsState> {
       projectTitleProvider, frameShapeProvider, backgroundProvider, tracksProvider,
       lightProvider, timelineProvider, deviceSelectionProvider,
     ]) {
-      ref.listen(p, (_, __) => _schedule());
+      ref.listen(p, (_, _) => _schedule());
     }
     ref.onDispose(() => _debounce?.cancel());
     return ProjectsState(projects: ProjectStore.all());
