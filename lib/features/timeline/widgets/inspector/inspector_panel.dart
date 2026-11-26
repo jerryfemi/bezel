@@ -37,7 +37,7 @@ class InspectorPanel extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 10),
-        if (tabs != null) tabs!,
+        ?tabs,
         Container(height: 1, color: BezelColors.stroke),
         Expanded(
           child: SingleChildScrollView(
