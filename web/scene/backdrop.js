@@ -19,6 +19,7 @@ export function createBackdrop(stage, pivot) {
   let editing = null; // {id, part}: that part is hidden while typed on the canvas
   let shownKey = '';
   let onBounds = null; // (json | null) => void, set by Flutter
+  let opaque = false; // during a video export, a transparent background gets its colour
 
   const at = (t) => {
     let found = null;
@@ -45,7 +46,8 @@ export function createBackdrop(stage, pivot) {
       Object.assign(canvas, { width: w, height: h });
       texture.dispose(); // GPU texture size is fixed after upload; reallocate
     }
-    paintBackground(g, background, image, w, h);
+    paintBackground(g, opaque && background.style === 'transparent'
+      ? { ...background, style: 'solid' } : background, image, w, h);
     const active = at(time);
     shownKey = keyFor(time);
     placeDevice(pivot, resolveSide(layoutCaption(time, active), w / h), w / h);
@@ -82,12 +84,22 @@ export function createBackdrop(stage, pivot) {
     setEditing(id, part) { editing = id ? { id, part } : null; draw(); },
     /** Reports the caption's bounds (fractions of the frame) after each draw. */
     onCaptionBounds(fn) { onBounds = fn; draw(); },
+    /** Exports that can't keep transparency paint the colour instead. */
+    setOpaque(on) {
+      if (opaque === on) return;
+      opaque = on;
+      draw();
+    },
     redraw: draw,
     dispose() { texture.dispose(); },
   };
 }
 
 function paintBackground(g, bg, image, w, h) {
+  if (bg.style === 'transparent') {
+    g.clearRect(0, 0, w, h); // nothing behind the device: exports keep the alpha
+    return;
+  }
   g.fillStyle = bg.color;
   g.fillRect(0, 0, w, h);
   if (bg.style === 'spotlight') {
