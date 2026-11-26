@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 
-/// What a prepared device offers. Mirrors web/devices/<id>/profile.json.
+/// What a prepared device offers. Mirrors `web/devices/<id>/profile.json`.
 class DeviceProfile {
   const DeviceProfile({
     required this.id,
