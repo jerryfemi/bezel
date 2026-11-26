@@ -3,7 +3,8 @@ import 'dart:convert';
 /// Settings sent to the 3D scene. Each mirrors a JSON shape documented in
 /// web/scene/bezel_scene.js.
 
-enum BackgroundStyle { solid, spotlight, image }
+/// `transparent` exports with no background at all (PNG and WebM only).
+enum BackgroundStyle { solid, spotlight, image, transparent }
 
 class BackgroundSpec {
   const BackgroundSpec({required this.style, required this.colorHex, this.imageUrl});
