@@ -80,10 +80,15 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAudio = asset.kind == AssetKind.audio;
-    final image = switch (asset.kind) {
-      AssetKind.image => asset.url,
-      AssetKind.video => asset.filmstrip.isEmpty ? null : asset.filmstrip.first,
-      AssetKind.audio => null,
+    // Images show from their blob URL; a video shows its first filmstrip
+    // frame, which arrives as a data URL.
+    final Widget? image = switch (asset.kind) {
+      AssetKind.image => Image.network(asset.url, fit: BoxFit.cover),
+      AssetKind.video when asset.filmstrip.isNotEmpty => Image.memory(
+          UriData.parse(asset.filmstrip.first).contentAsBytes(),
+          fit: BoxFit.cover,
+          gaplessPlayback: true),
+      _ => null,
     };
     return Container(
       width: isAudio ? 36 : 24,
@@ -93,9 +98,8 @@ class _Thumb extends StatelessWidget {
         color: isAudio ? const Color(0xFF173A24) : const Color(0xFF26262B),
         borderRadius: BorderRadius.circular(5),
       ),
-      child: image != null
-          ? Image.network(image, fit: BoxFit.cover)
-          : Icon(isAudio ? BezelIcons.audio : BezelIcons.screenClip,
+      child: image ??
+          Icon(isAudio ? BezelIcons.audio : BezelIcons.screenClip,
               size: 14, color: isAudio ? const Color(0xFF52C77E) : BezelColors.textTertiary),
     );
   }
