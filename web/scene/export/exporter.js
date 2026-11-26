@@ -18,6 +18,8 @@ export async function exportClip(ctx, settings, onProgress, isCancelled) {
   const { format, width, height, name } = settings;
   const restoreSize = () => { stage.locked = false; stage.resize(); };
   ctx.pause();
+  // Only PNG keeps a see-through background; videos get the chosen colour.
+  ctx.backdrop.setOpaque(!settings.transparent);
   stage.locked = true;
   stage.setRenderSize(width, height, 1);
 
@@ -58,6 +60,7 @@ export async function exportClip(ctx, settings, onProgress, isCancelled) {
     const blob = await encoder.finish();
     return download(blob, `${name}.${format}`);
   } finally {
+    ctx.backdrop.setOpaque(false);
     restoreSize();
     ctx.restore?.();
   }
