@@ -20,8 +20,9 @@ abstract final class EditorLayout {
   static const sidebarMax = 420.0;
 }
 
-/// The right panel shows only while a clip or keyframe is selected.
-final inspectorVisibleProvider = Provider<bool>((ref) {
+/// Whether a clip or keyframe is selected. The right panel shows its
+/// settings then, and the project's settings otherwise.
+final hasSelectionProvider = Provider<bool>((ref) {
   if (ref.watch(selectedKeyframeProvider) != null) return true;
   final clip = ref.watch(selectedClipProvider);
   return clip != null && ref.watch(tracksProvider).find(clip) != null;
@@ -39,12 +40,11 @@ final canvasInsetsProvider = Provider<EdgeInsets>((ref) {
   const edge = BezelSpace.edge;
   const breathe = 16.0;
   final flyoutOpen = ref.watch(activeToolProvider) != null;
-  final inspector = ref.watch(inspectorVisibleProvider);
   final folded = ref.watch(timelineFoldedProvider);
   return EdgeInsets.fromLTRB(
     edge + EditorLayout.rail + (flyoutOpen ? EditorLayout.gap + EditorLayout.flyout : 0) + breathe,
     EditorLayout.top,
-    edge + (inspector ? EditorLayout.inspector : 0) + breathe,
+    edge + EditorLayout.inspector + breathe,
     edge + TimelineEditor.heightFor(folded: folded) + breathe,
   );
 });
