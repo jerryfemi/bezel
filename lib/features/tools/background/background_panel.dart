@@ -17,6 +17,7 @@ class BackgroundPanel extends ConsumerWidget {
     BackgroundStyle.solid: 'Solid',
     BackgroundStyle.spotlight: 'Spotlight',
     BackgroundStyle.image: 'Image',
+    BackgroundStyle.transparent: 'None',
   };
 
   @override
@@ -36,8 +37,20 @@ class BackgroundPanel extends ConsumerWidget {
         BackgroundImageRow(name: bg.imageName, onPick: notifier.pickImage),
         const SizedBox(height: 16),
       ],
+      if (bg.style == BackgroundStyle.transparent) ...[
+        Text(
+          'No background: PNG exports are see-through. Videos can\'t be yet, '
+          'so they use this colour instead.',
+          style: BezelType.caption.copyWith(height: 1.45),
+        ),
+        const SizedBox(height: 12),
+      ],
       PanelSection(
-        title: bg.style == BackgroundStyle.image ? 'Colour behind the image' : 'Colour',
+        title: switch (bg.style) {
+          BackgroundStyle.image => 'Colour behind the image',
+          BackgroundStyle.transparent => 'Colour in videos',
+          _ => 'Colour',
+        },
         trailing: Text(bg.swatch.name, style: BezelType.label),
         child: Wrap(children: [
           for (final swatch in sceneBackgrounds)
