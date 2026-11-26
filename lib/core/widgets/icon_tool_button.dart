@@ -14,6 +14,7 @@ class IconToolButton extends StatelessWidget {
     this.shortcut,
     this.selected = false,
     this.size = 36,
+    this.glyph,
   });
 
   final IconData icon;
@@ -22,6 +23,9 @@ class IconToolButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool selected;
   final double size;
+
+  /// Draws a custom mark in place of [icon], in the given colour and size.
+  final Widget Function(Color color, double size)? glyph;
 
   @override
   Widget build(BuildContext context) {
@@ -41,15 +45,17 @@ class IconToolButton extends StatelessWidget {
             color: selected ? BezelColors.accent : null,
             borderRadius: BorderRadius.circular(9),
           ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: selected
-                ? Colors.white
-                : enabled ? BezelColors.textPrimary : BezelColors.textTertiary,
-          ),
+          child: Center(child: _mark(enabled)),
         ),
       ),
     );
+  }
+
+  Widget _mark(bool enabled) {
+    final color = selected
+        ? Colors.white
+        : enabled ? BezelColors.textPrimary : BezelColors.textTertiary;
+    final iconSize = size < 30 ? 14.0 : 18.0;
+    return glyph?.call(color, iconSize) ?? Icon(icon, size: iconSize, color: color);
   }
 }
