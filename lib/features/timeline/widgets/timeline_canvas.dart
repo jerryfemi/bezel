@@ -107,6 +107,11 @@ class _Tracks extends ConsumerWidget {
 
     double rowTop(TrackKind k) => top + TrackStyle.topOf(k);
 
+    // A locked track's clips are dimmed and can't be touched.
+    final locked = ref.watch(tracksProvider.select((t) => t.lockedTracks));
+    Widget lockable(TrackKind k, Widget row) =>
+        locked.contains(k) ? IgnorePointer(child: Opacity(opacity: 0.45, child: row)) : row;
+
     // Files dragged from the Media or Audio panel land where they're dropped.
     return DragTarget<MediaAsset>(
       onAcceptWithDetails: (details) {
@@ -117,9 +122,10 @@ class _Tracks extends ConsumerWidget {
       },
       builder: (context, candidates, _) {
         final dragged = candidates.isEmpty ? null : candidates.first;
-        final lane = dragged == null
+        final target = dragged == null
             ? null
             : dragged.kind == AssetKind.audio ? TrackKind.audio : TrackKind.screen;
+        final lane = target == null || locked.contains(target) ? null : target;
         return Stack(clipBehavior: Clip.none, children: [
       // Lanes; clicking empty space clears the selection.
       for (final k in TrackStyle.order)
@@ -151,7 +157,7 @@ class _Tracks extends ConsumerWidget {
       ),
       Positioned(
         left: 0, right: 0, top: rowTop(TrackKind.caption), height: TrackStyle.of(TrackKind.caption).height,
-        child: ClipRow(
+        child: lockable(TrackKind.caption, ClipRow(
           kind: TrackKind.caption,
           pixelsPerSecond: pps,
           faceFor: (c) => CaptionFace(clip: c as CaptionClip),
@@ -161,29 +167,30 @@ class _Tracks extends ConsumerWidget {
             ref.read(activeToolProvider.notifier).open(EditorTool.text);
             ref.read(captionEditingProvider.notifier).state = null;
           },
-        ),
+        )),
       ),
       Positioned(
         left: 0, right: 0, top: rowTop(TrackKind.screen), height: TrackStyle.of(TrackKind.screen).height,
-        child: ClipRow(
+        child: lockable(TrackKind.screen, ClipRow(
           kind: TrackKind.screen,
           pixelsPerSecond: pps,
           faceFor: (c) => FilmstripFace(
               clip: c as MediaClip, asset: assets[c.assetId], pixelsPerSecond: pps),
-        ),
+        )),
       ),
       Positioned(
         left: 0, right: 0, top: rowTop(TrackKind.motion), height: TrackStyle.of(TrackKind.motion).height,
-        child: MotionRow(pixelsPerSecond: pps, height: TrackStyle.of(TrackKind.motion).height),
+        child: lockable(TrackKind.motion,
+            MotionRow(pixelsPerSecond: pps, height: TrackStyle.of(TrackKind.motion).height)),
       ),
       Positioned(
         left: 0, right: 0, top: rowTop(TrackKind.audio), height: TrackStyle.of(TrackKind.audio).height,
-        child: ClipRow(
+        child: lockable(TrackKind.audio, ClipRow(
           kind: TrackKind.audio,
           pixelsPerSecond: pps,
           faceFor: (c) => WaveformFace(
               clip: c as MediaClip, asset: assets[c.assetId], color: TrackStyle.of(TrackKind.audio).edge),
-        ),
+        )),
       ),
       if (length > 0)
         Positioned.fill(
@@ -195,7 +202,7 @@ class _Tracks extends ConsumerWidget {
           child: IgnorePointer(
             child: ValueListenableBuilder<double>(
               valueListenable: scene.time,
-              builder: (_, t, __) => CustomPaint(painter: PlayheadPainter(t * pps, rulerHeight: top)),
+              builder: (_, t, _) => CustomPaint(painter: PlayheadPainter(t * pps, rulerHeight: top)),
             ),
           ),
         ),
