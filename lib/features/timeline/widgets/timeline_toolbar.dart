@@ -5,6 +5,7 @@ import '../../../app/theme/bezel_colors.dart';
 import '../../../app/theme/bezel_icons.dart';
 import '../../../app/theme/bezel_type.dart';
 import '../../../core/widgets/icon_tool_button.dart';
+import '../../../core/widgets/split_glyph.dart';
 import '../../editor/state/editor_layout.dart';
 import '../../editor/state/scene_provider.dart';
 import '../../motion/state/selected_keyframe_provider.dart';
@@ -47,7 +48,8 @@ class TimelineToolbar extends ConsumerWidget {
             onTap: history.canRedo ? actions.redo : null, size: 32),
         divider(),
         IconToolButton(icon: BezelIcons.split, tooltip: 'Split at the playhead', shortcut: 'S',
-            onTap: length > 0 ? actions.split : null, size: 32),
+            onTap: length > 0 ? actions.split : null, size: 32,
+            glyph: (color, size) => SplitGlyph(color: color, size: size)),
         IconToolButton(icon: BezelIcons.delete, tooltip: 'Delete', shortcut: 'Del',
             onTap: hasSelection ? actions.delete : null, size: 32),
         const SizedBox(width: 8),
@@ -56,7 +58,7 @@ class TimelineToolbar extends ConsumerWidget {
         if (scene != null)
           ValueListenableBuilder<bool>(
             valueListenable: scene.playing,
-            builder: (_, playing, __) => IconToolButton(
+            builder: (_, playing, _) => IconToolButton(
               icon: playing ? BezelIcons.pause : BezelIcons.play,
               tooltip: playing ? 'Pause' : 'Play',
               shortcut: 'Space',
@@ -68,7 +70,7 @@ class TimelineToolbar extends ConsumerWidget {
         if (scene != null)
           ValueListenableBuilder<double>(
             valueListenable: scene.time,
-            builder: (_, t, __) => Text.rich(TextSpan(children: [
+            builder: (_, t, _) => Text.rich(TextSpan(children: [
               TextSpan(text: formatClipTime(t), style: BezelType.mono),
               TextSpan(
                 text: '  /  ${formatClipTime(length)}',
