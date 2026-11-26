@@ -47,6 +47,9 @@ class MediaClip extends TimedClip {
     required this.assetId,
     this.inPoint = 0,
     this.volume = 1,
+    this.muted = false,
+    this.fadeIn = 0,
+    this.fadeOut = 0,
   });
 
   @override
@@ -58,8 +61,13 @@ class MediaClip extends TimedClip {
   final String assetId;
   final double inPoint;
 
-  /// 0 (muted) to 1.
+  /// 0 to 1. Kept while [muted], so unmuting brings the same level back.
   final double volume;
+  final bool muted;
+
+  /// Seconds the sound takes to rise at the start and die away at the end.
+  final double fadeIn;
+  final double fadeOut;
 
   MediaClip copyWith({
     String? id,
@@ -68,6 +76,9 @@ class MediaClip extends TimedClip {
     String? assetId,
     double? inPoint,
     double? volume,
+    bool? muted,
+    double? fadeIn,
+    double? fadeOut,
   }) =>
       MediaClip(
         id: id ?? this.id,
@@ -76,6 +87,9 @@ class MediaClip extends TimedClip {
         assetId: assetId ?? this.assetId,
         inPoint: inPoint ?? this.inPoint,
         volume: volume ?? this.volume,
+        muted: muted ?? this.muted,
+        fadeIn: fadeIn ?? this.fadeIn,
+        fadeOut: fadeOut ?? this.fadeOut,
       );
 
   Map<String, Object?> toMap() => {
@@ -85,6 +99,9 @@ class MediaClip extends TimedClip {
         'assetId': assetId,
         'inPoint': inPoint,
         'volume': volume,
+        'muted': muted,
+        'fadeIn': fadeIn,
+        'fadeOut': fadeOut,
       };
 
   factory MediaClip.fromMap(Map<String, dynamic> m) => MediaClip(
@@ -94,6 +111,9 @@ class MediaClip extends TimedClip {
         assetId: m['assetId'] as String,
         inPoint: (m['inPoint'] as num?)?.toDouble() ?? 0,
         volume: (m['volume'] as num?)?.toDouble() ?? 1,
+        muted: m['muted'] as bool? ?? false,
+        fadeIn: (m['fadeIn'] as num?)?.toDouble() ?? 0,
+        fadeOut: (m['fadeOut'] as num?)?.toDouble() ?? 0,
       );
 }
 
